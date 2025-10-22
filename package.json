@@ -1,0 +1,25 @@
+{
+  "name": "aechess",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chubekho/aechess.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Chubekho/aechess/issues"
+  },
+  "homepage": "https://github.com/Chubekho/aechess#readme",
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

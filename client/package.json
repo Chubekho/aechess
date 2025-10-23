@@ -10,8 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "chess.js": "^1.4.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-chessboard": "^5.7.0",
+    "react-dom": "^19.1.1",
+    "stockfish.js": "^10.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

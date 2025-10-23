@@ -1,0 +1,76 @@
+/* Reset / Normalize hiện đại (SCSS) */
+
+/* Box sizing cho toàn bộ phần tử */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* HTML & body mặc định */
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%; /* chống iOS phóng to chữ */
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  // color: #111;
+  // background-color: #fff;
+  text-rendering: optimizeLegibility;
+}
+
+/* Xóa style mặc định của list */
+ul,
+ol {
+  list-style: none;
+  padding-left: 0;
+}
+
+/* Xóa style mặc định của blockquote, q */
+blockquote,
+q {
+  quotes: none;
+
+  &::before,
+  &::after {
+    content: "";
+  }
+}
+
+/* Xóa style bảng */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* Link mặc định */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Img và video responsive */
+img,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Input, button, textarea */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  outline: none;
+}

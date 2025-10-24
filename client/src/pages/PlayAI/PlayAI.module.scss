@@ -1,0 +1,235 @@
+.wrapper {
+  padding: 20px 16px;
+}
+
+.board {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 4px;
+  background: var(--color-board-dark);
+  overflow: hidden;
+  min-height: 400px;
+  max-height: 620px;
+  color: var(--color-text-l-dark);
+}
+
+.board-heading {
+  display: flex;
+  padding: 14px 6px;
+  margin: 0;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+
+  h2 {
+    margin: 0;
+    font-weight: 200;
+    font-size: 2.6rem;
+  }
+}
+
+/* Thêm vào file PlayAI.module.scss */
+.board-body {
+  background-color: var(--color-board-control);
+  flex: 1;
+  overflow-y: auto;
+  min-height: 250px;
+}
+
+.option-board {
+  padding: 10px;
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: 200;
+    font-size: 1.5rem;
+  }
+
+  p {
+    font-size: 13px;
+    color: #888;
+    margin-top: 0;
+  }
+}
+
+.headingMarginTop {
+  margin-top: 20px !important;
+}
+
+.difficultySelector {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr); // 4 cột
+  gap: 2px;
+  box-shadow: var(--group-shadow);
+
+  button {
+    padding: 10px 5px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--color-text-primary);
+
+    &:hover {
+      background-color: var(--color-btn-def-hover);
+    }
+
+    /* Class .active khi được chọn */
+    &.active {
+      background-color: var(--color-btn-green);
+      color: var(--color-text-hover, #fff);
+    }
+  }
+}
+
+/* Nhóm nút chọn màu */
+/* Trong file PlayAI.module.scss */
+
+.colorSelector {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+  gap: 8px;
+
+  button {
+    width: 100px;
+    padding: 10px;
+    font-size: 20px; // Có thể tăng font-size cho icon nếu muốn
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; /* MỚI: Dùng flex để căn giữa icon */
+    justify-content: center; /* MỚI: Căn giữa theo chiều ngang */
+    align-items: center; /* MỚI: Căn giữa theo chiều dọc */
+    height: 44px; /* MỚI: Đặt chiều cao cố định để các nút bằng nhau */
+
+    &:hover {
+      background-color: var(--color-btn-def-hover);
+    }
+
+    &.active {
+      background-color: var(--color-btn-green);
+      color: var(--color-text-hover, #fff); /* Màu chữ cho các icon */
+      border-color: var(--color-btn-green); /* MỚI: Đổi màu border khi active */
+
+      // Khi nút active, icon bên trong sẽ có màu theo --color-text-hover
+      .iconWhite,
+      .iconBlack,
+      .iconRandom {
+        mask-image: none; /* Xóa mask để dùng màu color */
+        -webkit-mask-image: none;
+        color: var(--color-text-hover, #fff);
+      }
+    }
+
+    // MỚI: Style cho icon bên trong button
+    i.fa-chess-king {
+      font-size: 24px; /* Kích thước icon lớn hơn */
+      // Đặt màu mặc định cho icon
+      color: #333; // Màu xám đậm mặc định khi không active
+      -webkit-mask-size: cover; // Quan trọng cho mask-image
+      mask-size: cover;
+    }
+  }
+}
+
+/* MỚI: Style cụ thể cho từng icon màu */
+/* MỚI: Style cụ thể cho từng icon màu */
+.iconWhite {
+  color: #f0f0f0; // Màu trắng cho icon
+  -webkit-text-fill-color: #f0f0f0;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.iconBlack {
+  color: #000; // Màu đen cho icon
+  -webkit-text-fill-color: #000;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* === CẬP NHẬT PHẦN NÀY === */
+.iconRandom {
+  /* 1. Dùng background-image để tạo gradient màu */
+  background-image: linear-gradient(
+    to right,
+    #f0f0f0 50%,
+    /* 50% bên trái màu trắng */ #000 50% /* 50% bên phải màu đen */
+  );
+
+  /* 2. Clip (cắt) background theo hình dạng của icon */
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  /* 3. Làm cho màu gốc của icon trong suốt */
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+
+  /* 4. Đảm bảo không bị mask (nếu có kế thừa) */
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* Nút Bắt đầu / Footer */
+.board-footer {
+  padding: 10px 0;
+  text-align: center;
+  border-top: 1px solid var(--color-border);
+}
+
+.buttonStart {
+//   width: 100px;
+  padding: 12px 20px;
+  font-size: 2rem;
+  font-weight: 200;
+  background-color: var(--color-board-control);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+
+  .icon {
+    margin-right: 10px;
+    color: var(--color-btn-green);
+  }
+
+  &:hover {
+    background-color: var(--color-btn-def-hover);
+  }
+}
+
+.gameControls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+
+  button {
+    width: 100px;
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    background-color: var(--color-board-control);
+
+    &:hover {
+        background: var(--color-btn-green);
+    }
+
+    &:last-child:hover {
+      // Nút "Đầu hàng"
+      background-color: var(--color-highlight);
+      color: white;
+    }
+  }
+}

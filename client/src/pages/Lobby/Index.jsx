@@ -1,0 +1,7 @@
+function Lobby() {
+    return (
+        <h1> </h1>
+    )
+}
+
+export default Lobby;

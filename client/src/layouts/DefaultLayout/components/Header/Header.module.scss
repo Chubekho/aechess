@@ -1,0 +1,75 @@
+.header {
+    position: fixed;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height: var(--header-height);
+    padding: 0 16px;
+    // background: rgb(64, 46, 49);
+    color: var(--color-text-primary);
+}
+
+.header__nav {
+    display: flex;
+    height: 100%;
+    align-items: center;
+}
+
+.logo {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    font-size: 2.5rem;
+    color: #bababa;
+    cursor: pointer;
+    
+}
+
+.logo-icon {
+    font-size: 2.8rem;
+    margin-right: 6px;
+}
+
+.logo-text {
+    height: 44px;
+    font-weight: 300;
+}
+
+.logo:hover {
+    color: var(--color-link);
+}
+
+.navigation {
+    height: 100%;
+}
+
+.header__auth {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.loginButton {
+    font-weight: 300;
+    color: var(--color-link);
+    &:hover {
+        color: var(--color-link-hover);
+    }
+}
+
+/* Tên user khi đã đăng nhập */
+.userProfile {
+    background: none;
+    border: none;
+    color: var(--color-text-primary, #e3e3e3);
+    font-size: 1.6rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px; // Khoảng cách giữa icon (nếu có) và tên
+
+    &:hover {
+        color: var(--color-link, #fff);
+    }
+}

@@ -8,6 +8,9 @@
 /client/dist
 /client/dist-ssr
 
+#Bỏ qua thư mục ở server
+server/.env
+
 # Environment Variables
 # Bỏ qua tất cả các file .env và .local
 .env
@@ -33,3 +36,5 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+client_secret_698296523903-m5c1llg7csth6qg5e6l8rk84tkcfd29v.apps.googleusercontent.com.json

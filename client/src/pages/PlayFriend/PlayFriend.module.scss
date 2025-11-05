@@ -1,0 +1,403 @@
+/* --- CÁC STYLE CƠ BẢN (Giống PlayAI) --- */
+.wrapper {
+  padding: 20px 16px;
+}
+
+.board {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 4px;
+  background: var(--color-board-dark);
+  overflow: hidden;
+  min-height: 400px;
+  max-height: 520px;
+  color: var(--color-text-l-dark);
+}
+
+.board-heading {
+  display: flex;
+  padding: 14px 6px;
+  margin: 0;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+
+  h2 {
+    margin: 0;
+    font-weight: 200;
+    font-size: 2.6rem;
+  }
+}
+
+.board-body {
+  background-color: var(--color-board-control);
+  flex: 1;
+  overflow-y: auto;
+  min-height: 250px;
+}
+
+
+/* --- CÁC STYLE CỦA PlayFriend --- */
+
+/* Wrapper cho các tùy chọn */
+.option-board {
+  /* .option-board giờ chỉ là wrapper, không cần padding */
+}
+
+/* MỚI: Class chung cho các khối thiết lập */
+.setupBlock {
+  padding: 12px 15px; /* Căn lề */
+  min-height: 60px; /* Chiều cao tối thiểu */
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  /* Style chung cho tiêu đề các khối */
+  h3 {
+    padding: 0;
+    font-weight: 200; // Đậm hơn
+    font-size: 1.5rem;
+  }
+}
+
+/* --- 1. Khối Thời gian --- */
+.selectedTimeDisplay {
+  display: flex;
+  align-items: center;
+  justify-content:center;
+  width: 100%;
+  padding: 0; // Đã có padding từ .setupBlock
+  background-color: transparent; // Nền trong suốt
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+
+  &:hover {
+    .selectedTimeText { // Chỉ highlight chữ
+      color: var(--color-text-hover);
+    }
+  }
+}
+
+.selectedTimeText {
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin: 0 14px;
+}
+.caret {
+  font-size: 1.3rem;
+  color: #c0c0c0;
+  transition: transform 0.2s ease-in-out;
+  transform: rotate(180deg);
+}
+.caretActive {
+  transform: rotate(0deg);
+}
+.timeDropdown {
+  background-color: var(--color-board-control);
+  padding: 15px 0 0 0; // Chỉ padding top
+  margin-top: 10px; // Cách thanh header
+  border-top: 1px solid var(--color-border);
+}
+.timeCategory {
+  margin-bottom: 16px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #c0c0c0;
+}
+.categoryIcon {
+  font-size: 2rem;
+  width: 20px;
+  text-align: center;
+  color: var(--color-btn-green, #7fa650);
+}
+.categoryTitle {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0;
+}
+.timeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.timeButton {
+  background-color: #504e4c;
+  border: 2px solid #504e4c;
+  color: #e0e0e0;
+  padding: 12px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #605e5c;
+  }
+
+  &.active {
+    border-color: var(--color-btn-green, #7fa650);
+    color: var(--color-text-hover, #fff);
+    font-weight: 600;
+    box-shadow: 0 0 5px rgba(127, 166, 80, 0.5);
+  }
+}
+
+/* 4. Style cho Chọn Màu Quân (Giống PlayAI) */
+.colorSelector {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 15px; 
+
+  button {
+    width: 100px;
+    padding: 10px;
+    font-size: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 44px;
+
+    &:hover {
+      background-color: var(--color-btn-def-hover);
+    }
+
+    &.active {
+      background-color: var(--color-btn-green);
+      color: var(--color-text-hover, #fff);
+      border-color: var(--color-btn-green);
+
+      .iconWhite,
+      .iconBlack,
+      .iconRandom {
+        mask-image: none;
+        -webkit-mask-image: none;
+        color: var(--color-text-hover, #fff);
+      }
+    }
+
+    i.fa-chess-king {
+      font-size: 24px;
+      color: #333;
+      -webkit-mask-size: cover;
+      mask-size: cover;
+    }
+  }
+}
+
+/* Style cho các icon màu (Giống PlayAI) */
+.iconWhite {
+  color: #f0f0f0;
+  -webkit-text-fill-color: #f0f0f0;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.iconBlack {
+  color: #000;
+  -webkit-text-fill-color: #000;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.iconRandom {
+  background-image: linear-gradient(
+    to right,
+    #f0f0f0 50%,
+    #000 50%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* --- 5. STYLE CHO PHÒNG CHỜ --- */
+.waitingInfo {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+
+  h4 {
+    margin-top: 0;
+    text-align: center;
+    font-weight: 300;
+    font-size: 2rem;
+  }
+  p {
+    font-size: 1.3rem;
+    color: #b0b0b0;
+    margin-bottom: 8px;
+  }
+  .infoText {
+    font-size: 1.2rem;
+    font-style: italic;
+    text-align: center;
+    margin-top: 10px;
+  }
+}
+
+.linkBox {
+  display: flex;
+  width: 100%;
+}
+
+.linkInput {
+  flex-grow: 1;
+  padding: 8px;
+  font-size: 1.4rem;
+  background-color: #2b2927;
+  border: 1px solid #4a4a4a;
+  color: #f0f0f0;
+  border-radius: 4px 0 0 4px;
+  
+  &:focus {
+    outline: none;
+  }
+}
+
+.copyButton {
+  padding: 0 12px;
+  background-color: var(--color-btn-green);
+  color: var(--color-text-hover);
+  border: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+
+  &:hover {
+     background-color: var(--color-btn-green-hover);
+  }
+}
+
+
+/* --- FOOTER (Giống PlayAI) --- */
+.board-footer {
+  padding: 10px 0;
+  text-align: center;
+  border-top: 1px solid var(--color-border);
+}
+
+.buttonStart {
+  padding: 12px 20px;
+  font-size: 2rem;
+  font-weight: 200;
+  background-color: var(--color-board-control);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+
+  .icon {
+    margin-right: 10px;
+    color: var(--color-btn-green);
+  }
+
+  &:hover {
+    background-color: var(--color-btn-def-hover);
+    color: var(--color-text-hover)
+  }
+}
+
+/* Nút Hủy */
+.buttonCancel {
+  @extend .buttonStart; // Kế thừa style
+  color: #c0c0c0;
+
+  &:hover {
+    background-color: var(--color-highlight); // Màu đỏ
+    color: white;
+  }
+}
+
+/* --- MỚI: STYLE CHO TÙY CHỌN XẾP HẠNG --- */
+
+.ratedSelector {
+  flex-direction: row; /* Ghi đè .setupBlock (column) */
+  justify-content: space-between;
+  align-items: center;
+
+  h3 {
+    margin: 0;
+  }
+
+  .ratedText {
+    font-size: 1.3rem;
+    color: #b0b0b0;
+    font-style: italic;
+    
+    /* Đặt min-width đủ rộng cho cả 2 chuỗi */
+    min-width: 140px; 
+    text-align: right; /* Căn phải cho đẹp */
+  }
+}
+
+/* CSS cho Toggle Switch */
+.toggleSwitch {
+  position: relative;
+  display: inline-block;
+  width: 50px; // Kích thước công tắc
+  height: 28px;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #555; // Màu nền khi 'tắt' (Thân thiện)
+  transition: 0.3s;
+  border-radius: 28px;
+
+  &:before {
+    position: absolute;
+    content: "";
+    height: 20px; // Kích thước chấm tròn
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+  }
+}
+
+input:checked + .slider {
+  background-color: var(--color-btn-green, #7fa650); // Màu nền khi 'bật' (Xếp hạng)
+}
+
+input:checked + .slider:before {
+  transform: translateX(22px); // Khoảng cách di chuyển của chấm tròn
+}

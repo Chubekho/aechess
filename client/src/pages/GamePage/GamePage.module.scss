@@ -1,0 +1,28 @@
+/* GamePage.module.scss */
+
+.wrapper {
+  padding: 20px 16px;
+  /* Giữ chiều cao tối thiểu bằng chiều cao màn hình trừ đi header */
+  min-height: calc(90vh - var(--header-height));
+  color: var(--color-text-primary, #e3e3e3);
+}
+
+.boardArea {
+  /* 'col-8' sẽ xử lý chiều rộng */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Căn giữa bàn cờ và thông tin */
+}
+
+.board {
+  width: 100%;
+  margin: 15px 0; /* Khoảng cách giữa bàn cờ và PlayerInfoBox */
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.panelArea {
+  /* 'col-4' sẽ xử lý chiều rộng */
+  display: flex; /* Cho phép GameInfoPanel co giãn 100% chiều cao */
+}

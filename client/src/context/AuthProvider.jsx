@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 
 import { AuthContext } from "./AuthContext";
@@ -12,38 +12,54 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true); // State check "đang tải"
 
   // Cấu hình axios gửi token theo mỗi request
-  const api = axios.create({
-    baseURL: "http://localhost:8080/api", // Địa chỉ backend
-  });
+  const api = useMemo(
+    () =>
+      axios.create({
+        baseURL: "http://localhost:8080/api", // Địa chỉ backend
+      }),
+    []
+  );
 
-  api.interceptors.request.use((config) => {
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  });
+  // Logic này sẽ chạy lại mỗi khi 'token' hoặc 'api' thay đổi
+  useEffect(() => {
+    // Cài đặt interceptor
+    const interceptor = api.interceptors.request.use((config) => {
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+
+    // Hàm dọn dẹp: gỡ interceptor cũ khi token thay đổi
+    return () => {
+      api.interceptors.request.eject(interceptor);
+    };
+  }, [api, token]); // Phụ thuộc vào api và token
+
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
+  }, [setToken, setUser]);
 
   // useEffect để tự động lấy thông tin user khi có token
   useEffect(() => {
     const fetchUser = async () => {
       if (token) {
         try {
-          // Cập nhật token trong localStorage (đề phòng)
           localStorage.setItem("token", token);
-          const res = await api.get("/auth/me"); // Gọi route test /me
+          const res = await api.get("/auth/me");
           setUser(res.data);
         } catch (err) {
           console.error("Token không hợp lệ, đăng xuất:", err);
-          logout(); // Nếu token sai -> tự động đăng xuất
+          logout();
         }
       } else {
-        localStorage.removeItem("token"); // Dọn dẹp nếu không có token
+        localStorage.removeItem("token");
       }
       setLoading(false);
     };
-
     fetchUser();
-  }, [token]); // Chạy lại mỗi khi 'token' thay đổi
+  }, [token, api, logout]);
 
   // === Các hàm (Actions) ===
 
@@ -51,8 +67,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.post("/auth/login", { email, password });
       setToken(res.data.token); // Kích hoạt useEffect
-      setUser(res.data.user);
-      // localStorage.setItem("token", res.data.token); // useEffect sẽ làm
     } catch (err) {
       console.error("Lỗi đăng nhập:", err);
       throw new Error(err.response.data.msg || "Đăng nhập thất bại");
@@ -63,18 +77,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.post("/auth/register", { email, password });
       setToken(res.data.token); // Kích hoạt useEffect
-      setUser(res.data.user);
-      // localStorage.setItem("token", res.data.token); // useEffect sẽ làm
     } catch (err) {
       console.error("Lỗi đăng ký:", err);
       throw new Error(err.response.data.msg || "Đăng ký thất bại");
     }
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    // localStorage.removeItem("token"); // useEffect sẽ làm
   };
 
   // MỚI: Hàm này dành cho AuthCallback.jsx

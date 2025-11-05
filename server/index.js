@@ -1,6 +1,9 @@
 // server/index.js
 import express from "express";
 import mongoose from "mongoose";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import initializeSocket from "./socket/socketHandler.js";
 import dotenv from "dotenv";
 // Chạy config cho dotenv (để load file .env)
 dotenv.config();
@@ -8,14 +11,24 @@ dotenv.config();
 import passport from "passport";
 import cors from "cors";
 
-// Import file config Passport (chúng ta sẽ tạo ở Bước 6)
+// Import file config Passport 
 import "./config/passport.js";
-// Import routes (chúng ta sẽ tạo ở Bước 3)
+
+// Import routes 
 import authRoutes from "./routes/authRoutes.js";
 import logger from "./middleware/logger.js"
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+// === Khởi tạo Socket.IO Server ===
+const httpServer = createServer(app); // Gói app Express
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.CLIENT_URL, // Cho phép client kết nối
+    methods: ["GET", "POST"]
+  }
+});
 
 // === Middlewares ===
 // 1. CORS: Cho phép client gọi API
@@ -42,6 +55,8 @@ mongoose
 // === Routes ===
 app.use("/api/auth", authRoutes); // Gắn các route xác thực
 
-app.listen(PORT, () => {
-  console.log(`Server đang chạy tại http://localhost:${PORT}`); 
+initializeSocket(io);
+
+httpServer.listen(PORT, () => {
+  console.log(`Server đang chạy (HTTP & Sockets) tại http://localhost:${PORT}`); 
 });

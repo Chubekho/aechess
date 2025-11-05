@@ -3,7 +3,7 @@ import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import clsx from "clsx";
 import styles from "./PlayAI.module.scss";
-import MoveBoard from "../../components/MoveBoard";
+import MoveBoard from "@/components/MoveBoard";
 
 // Ánh xạ 8 level UI → Skill Level Stockfish (0-15)
 const difficultyLevels = [
@@ -78,6 +78,8 @@ function PlayAI() {
   }
 
   function onPieceDrop({ sourceSquare, targetSquare }) {
+    console.log(123);
+    
     if (
       !isStarted ||
       !targetSquare ||
@@ -170,7 +172,7 @@ function PlayAI() {
     <div className={styles.wrapper}>
       <div className={clsx("row", "gx-6", "justify-content-center")}>
         <div className="col-3" />
-        <div className="col-4">
+        <div className="col-5">
           <div className={styles.board}>
             <Chessboard
               options={{

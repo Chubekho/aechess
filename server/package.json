@@ -5,12 +5,13 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-  "dev": "nodemon -r dotenv/config index.js"
-},
+    "dev": "nodemon -r dotenv/config index.js"
+  },
   "author": "khuong dep trai",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "chess.js": "^1.4.0",
     "colors": "^1.4.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -21,6 +22,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "uuid": "^13.0.0"
   }
 }

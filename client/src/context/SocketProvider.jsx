@@ -6,7 +6,7 @@ import { SocketContext } from "./SocketContext";
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
-  const { user } = useAuth(); // Lấy user từ AuthContext
+  const { user, token } = useAuth(); // Lấy user từ AuthContext
 
   useEffect(() => {
     // Chỉ kết nối socket nếu user đã đăng nhập
@@ -17,7 +17,11 @@ export const SocketProvider = ({ children }) => {
       //   query: { token: token } 
       // });
       
-      const newSocket = io("http://localhost:8080");
+      const newSocket = io("http://localhost:8080", { // (Hoặc IP nội bộ)
+        query: {
+          token: token 
+        }
+      });
       
       newSocket.on("connect", () => {
         console.log("Đã kết nối Socket.IO!");
@@ -40,7 +44,7 @@ export const SocketProvider = ({ children }) => {
         setSocket(null);
       }
     }
-  }, [user]); // Chạy lại khi 'user' thay đổi
+  }, [user, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <SocketContext.Provider value={socket}>

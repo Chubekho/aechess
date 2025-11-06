@@ -1,15 +1,14 @@
 // server/socket/socketHandler.js
 import { Chess } from "chess.js";
 
+import { registerGameHandlers } from "./gameHandlers.js";
+import { getPlayerColor } from "./helpers.js";
+
 import createShortId from "../utils/CreateShortId.js";
 
 // Nơi lưu trữ tất cả các ván đấu đang diễn ra
 // Rất quan trọng: Server dùng 'chess.js' của riêng nó
 const activeGames = new Map();
-
-const getPlayerColor = (gameData, socketId) => {
-  return gameData.players.find((p) => p.id === socketId)?.color;
-};
 
 const initializeSocket = (io) => {
   io.on("connection", (socket) => {
@@ -118,87 +117,16 @@ const initializeSocket = (io) => {
       callback({ success: true, assignedColor: guestColor });
     });
 
-    // === 3. THỰC HIỆN NƯỚC ĐI ===
-    socket.on("makeMove", ({ gameId, move }) => {
-      const gameData = activeGames.get(gameId);
-      if (!gameData) return socket.emit("error", "Ván đấu không tồn tại.");
-
-      const playerColor = getPlayerColor(gameData, socket.id);
-      if (!playerColor)
-        return socket.emit("error", "Bạn không phải là người chơi.");
-
-      const playerTurn = gameData.game.turn();
-      if (playerColor !== playerTurn) {
-        return socket.emit("error", "Không phải lượt của bạn.");
-      }
-
-      // --- LOGIC ĐỒNG HỒ (MỚI) ---
-      const now = Date.now();
-      const timeElapsedSeconds = (now - gameData.lastMoveTimestamp) / 1000;
-
-      // 1. Trừ thời gian
-      gameData.clocks[playerTurn] -= timeElapsedSeconds;
-
-      // (Kiểm tra hết giờ)
-      if (gameData.clocks[playerTurn] <= 0) {
-        io.to(gameId).emit("gameOver", {
-          result: "Timeout",
-          winner: playerTurn === "w" ? "b" : "w",
-        });
-        activeGames.delete(gameId); // Xóa game
-        return;
-      }
-      // --- Kết thúc Logic Đồng hồ ---
-
-      // Thực hiện nước đi
-      let moveResult = null;
-      try {
-        moveResult = gameData.game.move({
-          from: move.from,
-          to: move.to,
-          promotion: "q",
-        });
-      } catch (e) {
-        /* Nước đi sai (hiếm) */
-      }
-
-      if (moveResult === null) {
-        return socket.emit("error", "Nước đi không hợp lệ.");
-      }
-
-      // Nước đi HỢP LỆ
-      // 2. Cộng increment
-      const increment = gameData.config.time.inc || 0;
-      gameData.clocks[playerTurn] += increment;
-
-      // 3. Cập nhật timestamp
-      gameData.lastMoveTimestamp = now;
-
-      console.log(`Nước đi trong phòng ${gameId}: ${moveResult.san}`);
-
-      io.to(gameId).emit("movePlayed", {
-        newFen: gameData.game.fen(),
-        lastMove: moveResult.san,
-        clocks: gameData.clocks, // Gửi thời gian đã cập nhật
-      });
-
-      // (Kiểm tra chiếu hết / hòa cờ)
-      if (gameData.game.isGameOver()) {
-        let result = "Draw";
-        let winner = null;
-        if (gameData.game.isCheckmate()) {
-          result = "Checkmate";
-          winner = playerTurn; // Người vừa đi là người thắng
-        }
-        io.to(gameId).emit("gameOver", { result: result, winner: winner });
-        activeGames.delete(gameId); // Xóa game
-      }
-    });
+    // === 3. XỬ LÝ GAME ===
+    registerGameHandlers(io, socket, activeGames);
 
     // === Xử lý Ngắt kết nối ===
     socket.on("disconnect", () => {
       console.log(`Client đã ngắt kết nối: ${socket.id}`);
+      // TODO: Bạn cần thêm logic để xử lý 'disconnect'
       // (Bạn nên thêm logic xử lý khi 1 trong 2 người chơi thoát)
+      // Ví dụ: tìm xem socket.id này có đang ở trong 'activeGames' không
+      // Nếu có, emit 'gameOver' (đối thủ thắng) cho người chơi còn lại
     });
   });
 };

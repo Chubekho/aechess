@@ -25,9 +25,11 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       sparse: true, // Cho phép nhiều 'null'
     },
-    rating: {
-      type: Number,
-      default: 1200,
+    ratings: {
+      bullet: { type: Number, default: 1200 },
+      blitz: { type: Number, default: 1200 },
+      rapid: { type: Number, default: 1200 },
+      classical: { type: Number, default: 1200 },
     },
   },
   { timestamps: true }

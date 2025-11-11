@@ -25,7 +25,7 @@ const initializeSocket = (io) => {
     // === 3. XỬ LÝ GAME ===
     registerRoomHandlers(io, socket, activeGames);
     registerGameHandlers(io, socket, activeGames);
-    registerMatchmakingHandlers(io, socket, matchmakingQueue);
+    registerMatchmakingHandlers(io, socket, matchmakingQueue, activeGames);
 
     // === Xử lý Ngắt kết nối ===
     socket.on("disconnect", () => {

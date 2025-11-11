@@ -1,0 +1,272 @@
+/* Lobby.module.scss */
+
+.wrapper {
+  padding: 20px 28px;
+  min-height: calc(100vh - var(--header-height));
+}
+
+.mainContent {
+  /* Căn giữa nội dung của cột chính */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* === State 1: Giao diện chọn trận === */
+.poolGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 780px;
+}
+
+.poolButton {
+  background-color: hsl(37deg 7% 19% / 66%);
+  border: none;
+  outline: none;
+  border-radius: 8px;
+  padding: 20px 0;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--color-text-primary);
+
+  &:hover {
+    background-color: hsla(22, 100%, 42%, 0.358);
+    color: var(--color-text-hover);
+  }
+
+  .poolTime {
+    display: block;
+    font-size: 3.5rem;
+    font-weight: 200;
+  }
+  .poolCategory {
+    font-size: 2rem;
+    font-weight: 300;
+  }
+}
+
+/* === Cột phải: Thông tin User === */
+.infoPanel {
+  background-color: var(--color-board-control, #302e2c);
+  border-radius: 8px;
+  padding: 20px;
+  color: #e0e0e0;
+}
+
+/* MỚI: Link cho tên user */
+.playerInfoLink {
+  text-decoration: none;
+  color: inherit; /* Kế thừa màu chữ */
+
+  h4 {
+    transition: color 0.2s ease;
+  }
+
+  &:hover h4 {
+    color: var(--color-btn-green, #7fa650);
+  }
+}
+
+.playerInfo h4 {
+  margin-top: 0;
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin-bottom: 12px; // Thêm khoảng cách
+}
+
+.playerInfo p {
+  font-size: 1.5rem;
+}
+
+/* MỚI: Hàng chứa các rating */
+.ratingsRow {
+  display: flex;
+  justify-content: space-around; // Căn đều
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid #4a4a4a;
+  border-bottom: 1px solid #4a4a4a;
+}
+
+/* MỚI: Từng mục (icon + rating) */
+.ratingItem {
+  display: flex;
+  flex-direction: column; // Icon ở trên, số ở dưới (hoặc 'row' nếu muốn)
+  align-items: center;
+  gap: 6px;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #c0c0c0;
+
+  .icon {
+    font-size: 1.6rem;
+    color: var(--color-btn-green, #7fa650); // Màu icon
+  }
+}
+
+.minimizedSearchContainer {
+  margin-bottom: 15px; // Khoảng cách với infoPanel bên dưới
+  background-color: var(--color-board-control, #302e2c);
+  border-radius: 8px;
+  overflow: hidden; // Để bo góc .searchingBox
+}
+
+/* === State 2: Đang tìm trận === */
+.searchingBox {
+  text-align: center;
+  color: #fff;
+  padding: 30px;
+  background-color: var(--color-board-control, #302e2c);
+  border-radius: 8px;
+
+  /* Style khi thu nhỏ */
+  &.minimized {
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 0; // Bỏ bo góc (vì container đã bo)
+
+    .searchingAnimation {
+      width: 24px; // Nhỏ lại
+      height: 24px;
+      border-width: 3px;
+      margin: 0;
+    }
+
+    h3 {
+      font-size: 1.6rem;
+      font-weight: 500;
+      margin: 0;
+      flex: 1; // Đẩy timer ra xa
+      text-align: left;
+      padding-left: 15px;
+    }
+
+    .searchingTimer {
+      font-size: 1.6rem; // Nhỏ lại
+      font-weight: 600;
+      margin: 0 15px 0 0;
+    }
+
+    .cancelButton {
+      padding: 5px 10px; // Nhỏ lại
+      font-size: 1.3rem;
+    }
+  }
+
+  h3 {
+    font-size: 2rem;
+    font-weight: 500;
+  }
+  .searchingTimer {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 10px 0;
+  }
+  .cancelButton {
+    padding: 10px 20px;
+    font-size: 1.6rem;
+    background-color: #888;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    &:hover {
+      background-color: #999;
+    }
+  }
+}
+
+.searchingAnimation {
+  width: 60px;
+  height: 60px;
+  border: 5px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--color-btn-green, #7fa650);
+  border-radius: 50%;
+  margin: 0 auto 20px auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* === State 3: Tìm thấy trận === */
+.matchFoundBox {
+  width: 100%;
+  max-width: 400px;
+  padding: 25px;
+  background-color: #3c3934;
+  border-radius: 8px;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+
+  h3 {
+    margin-top: 0;
+    font-size: 2.2rem;
+    color: var(--color-btn-green, #7fa650);
+  }
+  .opponentInfo {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+  }
+}
+
+.durationBar {
+  height: 8px;
+  width: 100%;
+  background-color: #262522;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.durationProgress {
+  height: 100%;
+  width: 100%;
+  background-color: var(--color-btn-green, #7fa650);
+  animation: countdown 10s linear forwards;
+}
+
+@keyframes countdown {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.matchActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.actionButton {
+  padding: 12px 20px;
+  font-size: 1.8rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.decline {
+  background-color: #888;
+  color: #fff;
+  &:hover {
+    background-color: #999;
+  }
+}
+.accept {
+  background-color: var(--color-btn-green, #7fa650);
+  color: #fff;
+  &:hover {
+    background-color: (#7fa650, 5%);
+  }
+}

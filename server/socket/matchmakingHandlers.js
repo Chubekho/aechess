@@ -1,124 +1,312 @@
-// server/socket/matchmakingHandlers.js
 import { Chess } from "chess.js";
 import createShortId from "../utils/CreateShortId.js";
 
-// Đăng ký các event `findMatch`, `cancelFindMatch`
-export const registerMatchmakingHandlers = (io, socket, matchmakingQueue) => {
-  
+// State (bộ nhớ) cho các trận đang chờ xác nhận
+const pendingMatches = new Map();
+
+/**
+ * Đăng ký các event listener liên quan đến matchmaking
+ */
+export const registerMatchmakingHandlers = (
+  io,
+  socket,
+  matchmakingQueue,
+  activeGames
+) => {
+  // --- 1. User bắt đầu tìm trận ---
   socket.on("findMatch", (config) => {
-    // Kiểm tra xem user đã ở trong queue chưa
-    const alreadyInQueue = matchmakingQueue.some(p => p.userId === socket.user.id);
-    if (alreadyInQueue) return; 
-    
-    console.log(`User ${socket.user.id} đang tìm trận ${config.timeControl}`);
+    const alreadyInQueue = matchmakingQueue.some(
+      (p) => p.user.id === socket.user.id
+    );
+    if (alreadyInQueue) return;
+
+    console.log(
+      `User ${socket.user.email} đang tìm trận ${config.timeControl}`
+    );
+
     matchmakingQueue.push({
-      userId: socket.user.id,
+      user: {
+        id: socket.user.id,
+        displayName: socket.user.displayName,
+        ratings: socket.user.ratings,
+      },
       socketId: socket.id,
-      rating: socket.user.rating,
-      config: config, // { timeControl: "10+0", isRated: true }
-      joinTime: Date.now()
+      config: config,
+      joinTime: Date.now(),
     });
   });
 
+  // --- 2. User hủy tìm (khi đang ở màn hình "Đang tìm...") ---
   socket.on("cancelFindMatch", () => {
-    const index = matchmakingQueue.findIndex(p => p.userId === socket.user.id);
+    const index = matchmakingQueue.findIndex(
+      (p) => p.user.id === socket.user.id
+    );
     if (index !== -1) {
       matchmakingQueue.splice(index, 1);
-      console.log(`User ${socket.user.id} đã hủy tìm trận.`);
+      console.log(`User ${socket.user.email} đã hủy tìm trận.`);
     }
   });
 
-  // Xử lý ngắt kết nối: cũng phải xóa khỏi queue
+  // --- 3. User nhấn "Chơi" (Chấp nhận) ---
+  socket.on("acceptMatch", ({ matchId }) => {
+    const match = pendingMatches.get(matchId);
+    if (!match) return; // Trận đã bị hủy
+
+    const { playerA, playerB } = match;
+
+    if (playerA.socketId === socket.id) {
+      match.acceptedA = true;
+    } else if (playerB.socketId === socket.id) {
+      match.acceptedB = true;
+    }
+
+    if (match.acceptedA && match.acceptedB) {
+      // SỬA: Gỡ bom hẹn giờ
+      clearTimeout(match.timerId);
+
+      // === CHÍNH THỨC TẠO GAME ===
+      const gameId = createShortId(8);
+      const game = new Chess();
+      const category = getTimeCategory(playerA.config.timeControl);
+      const timeParts = playerA.config.timeControl.split("+");
+      const config = {
+        time: {
+          base: parseInt(timeParts[0]),
+          inc: parseInt(timeParts[1] || 0),
+        },
+        isRated: playerA.config.isRated,
+        category: category,
+      };
+      const baseTimeSeconds = config.time.base * 60;
+
+      const pA_Color = Math.random() > 0.5 ? "w" : "b";
+      const pB_Color = pA_Color === "w" ? "b" : "w";
+      const whitePlayer = pA_Color === "w" ? playerA : playerB;
+      const blackPlayer = pA_Color === "w" ? playerB : playerA;
+      const whiteRating = whitePlayer.user.ratings[category] || 1200;
+      const blackRating = blackPlayer.user.ratings[category] || 1200;
+
+      // SỬA: Xóa bỏ 1 lần activeGames.set bị trùng
+      activeGames.set(gameId, {
+        game: game,
+        players: [
+          {
+            id: whitePlayer.user.id,
+            displayName: whitePlayer.user.displayName,
+            rating: whiteRating,
+            socketId: whitePlayer.socketId,
+            color: "w",
+          },
+          {
+            id: blackPlayer.user.id,
+            displayName: blackPlayer.user.displayName,
+            rating: blackRating,
+            socketId: blackPlayer.socketId,
+            color: "b",
+          },
+        ],
+        config: config,
+        clocks: { w: baseTimeSeconds, b: baseTimeSeconds },
+        lastMoveTimestamp: Date.now(),
+        drawOffer: null,
+      });
+
+      const socketA = io.sockets.sockets.get(playerA.socketId);
+      const socketB = io.sockets.sockets.get(playerB.socketId);
+
+      // SỬA: Thêm lại logic emit "gameStart"
+      if (socketA && socketB) {
+        socketA.join(gameId);
+        socketB.join(gameId);
+
+        io.to(gameId).emit("gameStart", {
+          gameId: gameId,
+          fen: game.fen(),
+          whitePlayer: activeGames
+            .get(gameId)
+            .players.find((p) => p.color === "w"),
+          blackPlayer: activeGames
+            .get(gameId)
+            .players.find((p) => p.color === "b"),
+          config: config,
+          clocks: activeGames.get(gameId).clocks,
+        });
+      }
+
+      pendingMatches.delete(matchId);
+    }
+  });
+
+  // --- 4. User nhấn "Hủy" (Từ chối trận) ---
+  socket.on("declineMatch", ({ matchId }) => {
+    const match = pendingMatches.get(matchId);
+    if (!match) return;
+
+    // SỬA: Gỡ bom hẹn giờ
+    clearTimeout(match.timerId);
+
+    const { playerA, playerB } = match;
+    const opponent =
+      playerA.socketId === socket.id ? playerB : playerA;
+    const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+
+    // SỬA: Xóa logic re-queue
+    if (opponentSocket) {
+      opponentSocket.emit("matchAborted", { reQueued: false });
+    }
+
+    pendingMatches.delete(matchId);
+  });
+
+  // --- 5. User ngắt kết nối (Rất quan trọng) ---
   socket.on("disconnect", () => {
-    const index = matchmakingQueue.findIndex(p => p.socketId === socket.id);
-    if (index !== -1) {
-      matchmakingQueue.splice(index, 1);
-      console.log(`User ${socket.user.id} (disconnect) đã bị xóa khỏi queue.`);
+    // 1. Dọn dẹp hàng đợi matchmaking
+    const queueIndex = matchmakingQueue.findIndex(
+      (p) => p.socketId === socket.id
+    );
+    if (queueIndex !== -1) {
+      matchmakingQueue.splice(queueIndex, 1);
+      console.log(
+        `User ${socket.user?.email || socket.id} (disconnect) đã bị xóa khỏi queue.`
+      );
+    }
+
+    // 2. Dọn dẹp phòng chờ (pendingMatches) - coi như 'decline'
+    for (const [matchId, match] of pendingMatches.entries()) {
+      let opponent;
+      if (match.playerA.socketId === socket.id) {
+        opponent = match.playerB;
+      } else if (match.playerB.socketId === socket.id) {
+        opponent = match.playerA;
+      } else {
+        continue; // Socket này không ở trong match
+      }
+      
+      // SỬA: Gỡ bom hẹn giờ
+      clearTimeout(match.timerId);
+
+      const opponentSocket = io.sockets.sockets.get(opponent.socketId);
+
+      // SỬA: Xóa logic re-queue
+      if (opponentSocket) {
+        opponentSocket.emit("matchAborted", { reQueued: false });
+      }
+
+      pendingMatches.delete(matchId);
+      break;
     }
   });
 };
 
-
-// Bộ não ghép trận (chạy bằng setInterval)
-function processMatchmakingQueue(io, matchmakingQueue, activeGames) {
+/**
+ * Bộ não ghép trận (chạy bằng setInterval)
+ */
+function processMatchmakingQueue(
+  io,
+  matchmakingQueue,
+  activeGames,
+  pendingMatches
+) {
   if (matchmakingQueue.length < 2) return;
 
-  // Sắp xếp: Ưu tiên rating
-  matchmakingQueue.sort((a, b) => a.rating - b.rating);
+  matchmakingQueue.sort(
+    (a, b) => (a.user.ratings.blitz || 1200) - (b.user.ratings.blitz || 1200)
+  );
 
   let i = 0;
   while (i < matchmakingQueue.length - 1) {
     const pA = matchmakingQueue[i];
     const pB = matchmakingQueue[i + 1];
 
-    // Tiêu chí ghép:
     const timeMatch = pA.config.timeControl === pB.config.timeControl;
     const ratedMatch = pA.config.isRated === pB.config.isRated;
-    const ratingMatch = Math.abs(pA.rating - pB.rating) <= 100; // Chênh lệch <= 100
+    const category = getTimeCategory(pA.config.timeControl);
+    const ratingA = pA.user.ratings[category] || 1200;
+    const ratingB = pB.user.ratings[category] || 1200;
+    const ratingMatch = Math.abs(ratingA - ratingB) <= 100;
 
     if (timeMatch && ratedMatch && ratingMatch) {
       // === TÌM THẤY TRẬN! ===
-      console.log(`Ghép trận: ${pA.userId} vs ${pB.userId}`);
-      
-      // 1. Xóa họ khỏi queue
+      console.log(
+        `Ghép trận: ${pA.user.displayName} vs ${pB.user.displayName}`
+      );
+
       matchmakingQueue.splice(i + 1, 1);
       matchmakingQueue.splice(i, 1);
 
-      // 2. Tạo logic game (giống 'createRoom')
-      const gameId = createShortId();
-      const game = new Chess();
-      
-      const timeParts = pA.config.timeControl.split('+');
-      const config = {
-        time: { base: parseInt(timeParts[0]), inc: parseInt(timeParts[1] || 0) },
-        isRated: pA.config.isRated,
-      };
-      
-      const baseTimeSeconds = config.time.base * 60;
+      const matchId = createShortId(6);
 
-      // 3. Gán màu ngẫu nhiên
-      const pA_Color = Math.random() > 0.5 ? 'w' : 'b';
-      const pB_Color = pA_Color === 'w' ? 'b' : 'w';
+      // Đặt hẹn giờ 10s để xử lý Timeout
+      const timerId = setTimeout(() => {
+        const match = pendingMatches.get(matchId);
+        if (!match) return;
 
-      const whitePlayer = (pA_Color === 'w') ? pA : pB;
-      const blackPlayer = (pA_Color === 'w') ? pB : pA;
+        console.log(`Hủy trận ${matchId} do hết giờ.`);
+        
+        const socketA = io.sockets.sockets.get(pA.socketId);
+        const socketB = io.sockets.sockets.get(pB.socketId);
 
-      // 4. Lưu game vào bộ nhớ
-      activeGames.set(gameId, {
-        game: game,
-        players: [
-          { id: whitePlayer.userId, socketId: whitePlayer.socketId, color: 'w', rating: whitePlayer.rating },
-          { id: blackPlayer.userId, socketId: blackPlayer.socketId, color: 'b', rating: blackPlayer.rating }
-        ],
-        config: config,
-        clocks: { w: baseTimeSeconds, b: baseTimeSeconds },
-        lastMoveTimestamp: Date.now(), // Bắt đầu đếm giờ
+        // SỬA: Xóa logic re-queue
+        if (socketA) socketA.emit("matchAborted", { reQueued: false });
+        if (socketB) socketB.emit("matchAborted", { reQueued: false });
+        
+        pendingMatches.delete(matchId);
+      }, 10000);
+
+      // SỬA: Lưu timerId vào match
+      pendingMatches.set(matchId, {
+        playerA: pA,
+        playerB: pB,
+        acceptedA: false,
+        acceptedB: false,
+        timerId: timerId, // <-- Quan trọng để gỡ bom
       });
-      
-      // 5. Lấy socket của 2 người chơi
+
       const socketA = io.sockets.sockets.get(pA.socketId);
       const socketB = io.sockets.sockets.get(pB.socketId);
 
-      if (socketA && socketB) {
-        socketA.join(gameId);
-        socketB.join(gameId);
-        
-        // 6. Gửi thông báo "ĐÃ TÌM THẤY TRẬN"
-        io.to(gameId).emit("matchFound", { gameId });
-      } else {
-        // (Nếu 1 trong 2 ngắt kết nối, hủy game)
-        activeGames.delete(gameId);
-        // (Có thể đưa người còn lại về queue)
+      if (socketA) {
+        socketA.emit("matchFound", {
+          matchId: matchId,
+          opponent: {
+            displayName: pB.user.displayName,
+            rating: ratingB,
+          },
+        });
+      }
+      if (socketB) {
+        socketB.emit("matchFound", {
+          matchId: matchId,
+          opponent: {
+            displayName: pA.user.displayName,
+            rating: ratingA,
+          },
+        });
       }
     } else {
-      i++; // Không khớp, kiểm tra cặp tiếp theo
+      i++;
     }
   }
 }
 
-// Hàm khởi chạy (chạy 1 lần duy nhất)
+// Helper để xác định thể loại
+function getTimeCategory(timeControl) {
+  const parts = timeControl.split("+").map(Number);
+  const baseMinutes = parts[0];
+  const incrementSeconds = parts[1] || 0;
+  const estimatedTime = baseMinutes * 60 + incrementSeconds * 40;
+
+  if (estimatedTime < 180) return "bullet";
+  if (estimatedTime < 600) return "blitz";
+  if (estimatedTime < 1500) return "rapid";
+  return "classical";
+}
+
+/**
+ * Hàm khởi chạy (chạy 1 lần duy nhất)
+ */
 export const startMatchmakingEngine = (io, matchmakingQueue, activeGames) => {
   setInterval(() => {
-    processMatchmakingQueue(io, matchmakingQueue, activeGames);
-  }, 5000); // 5 giây 1 lần
+    processMatchmakingQueue(io, matchmakingQueue, activeGames, pendingMatches);
+  }, 5000);
 };

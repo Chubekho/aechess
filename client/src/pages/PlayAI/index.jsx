@@ -185,7 +185,7 @@ function PlayAI() {
           </div>
         </div>
 
-        <div className={clsx("col-3", "align-self-center", styles["side-board"])}>
+        <div className={clsx("col-3", "align-self-center")}>
           <div className={styles.container}>
             <div className={styles["board-heading"]}>
               <h2>{isStarted ? "Chơi với máy" : "Thiết lập ván đấu"}</h2>

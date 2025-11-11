@@ -1,4 +1,3 @@
-// server/socket/gameEndHandler.js
 import User from "../models/User.js";
 import Game from "../models/Game.js";
 import { calculateNewRatings } from "../utils/eloCalculator.js";
@@ -19,7 +18,7 @@ export async function endGame(io, activeGames, gameId, result, reason) {
   const game = gameData.game;
   const whitePlayerInfo = gameData.players.find((p) => p.color === "w");
   const blackPlayerInfo = gameData.players.find((p) => p.color === "b");
-  
+
   // 2. Nếu game không xếp hạng (từ "Chơi với bạn"), chỉ xóa và dừng
   if (!gameData.config.isRated) {
     activeGames.delete(gameId);
@@ -34,8 +33,17 @@ export async function endGame(io, activeGames, gameId, result, reason) {
   );
 
   try {
+    // 3. Xác định thể loại game
+    const category = gameData.config.category;
+    if (!category) {
+      console.error(`Lỗi: Không tìm thấy 'category' cho game ${gameId}`);
+      // Nếu không có thể loại, không thể cập nhật Elo
+      return; 
+    }
 
     // 4. Tính Elo mới
+    // (whitePlayerInfo.rating đã là rating đúng thể loại,
+    // được gán khi matchmakingHandler tạo 'activeGames')
     const oldRatings = {
       white: whitePlayerInfo.rating,
       black: blackPlayerInfo.rating,
@@ -46,12 +54,15 @@ export async function endGame(io, activeGames, gameId, result, reason) {
       result
     );
 
-    // 5. Cập nhật User trong DB
+    // 5. Cập nhật User trong DB (dùng dot notation)
+    const whiteUpdateField = `ratings.${category}`; // e.g., "ratings.blitz"
+    const blackUpdateField = `ratings.${category}`;
+
     await User.findByIdAndUpdate(whitePlayerInfo.id, {
-      rating: newRatings.whiteNew,
+      $set: { [whiteUpdateField]: newRatings.whiteNew }
     });
     await User.findByIdAndUpdate(blackPlayerInfo.id, {
-      rating: newRatings.blackNew,
+      $set: { [blackUpdateField]: newRatings.blackNew }
     });
 
     // 6. Lưu ván đấu vào DB
@@ -62,7 +73,7 @@ export async function endGame(io, activeGames, gameId, result, reason) {
       pgn: fullPgn,
       timeControl: timeControlForDb,
       isRated: true,
-      whiteRating: oldRatings.white,
+      whiteRating: oldRatings.white, // Lưu rating cũ (của thể loại này)
       blackRating: oldRatings.black,
     });
     await newGame.save();
@@ -72,6 +83,7 @@ export async function endGame(io, activeGames, gameId, result, reason) {
       whitePlayerId: whitePlayerInfo.id,
       blackPlayerId: blackPlayerInfo.id,
       newRatings: newRatings,
+      category: category // Gửi thể loại để client biết update UI nào
     });
   } catch (err) {
     console.error("Lỗi khi kết thúc game:", err);

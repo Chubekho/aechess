@@ -1,0 +1,175 @@
+/* GameHistory.module.scss */
+/* Dựa trên ảnh của bạn (Lichess style) */
+
+.wrapper {
+  margin-top: 30px;
+  background-color: var(--color-board-control, #302e2c);
+  border-radius: 8px;
+  color: #e0e0e0;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 500;
+  padding: 15px 20px;
+  border-bottom: 1px solid #4a4a4a;
+  margin: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  overflow: hidden;
+
+  th {
+    text-align: center;
+    padding: 12px 15px;
+    font-size: 1.3rem;
+    color: #a0a0a0;
+    font-weight: 500;
+    text-transform: uppercase;
+    border-bottom: 1px solid #4a4a4a;
+
+    &:nth-child(1) {
+      width: 10%;
+    }
+    &:nth-child(2) {
+      width: 30%;
+    }
+    &:nth-child(3) {
+      width: 15%;
+    }
+    &:nth-child(4) {
+      width: 15%;
+    }
+    &:nth-child(5) {
+      width: 30%;
+    }
+  }
+
+  tbody tr {
+    transition: background-color 0.15s ease;
+    border-top: 1px solid #4a4a4a;
+    &:hover {
+      background-color: #3c3934;
+    }
+  }
+
+  td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.players {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.timeControl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 60px;
+  font-size: 1.3rem;
+  color: #a0a0a0;
+}
+
+.timeIcon {
+  font-size: 1.8rem;
+  color: var(--color-btn-green, #7fa650);
+}
+
+.playerNames {
+  font-size: 1.5rem;
+}
+.player {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: #e0e0e0;
+}
+.rating {
+  font-size: 1.3rem;
+  color: #a0a0a0;
+  font-weight: 300;
+}
+.colorIcon {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  &.white {
+    background-color: #fff;
+  }
+  &.black {
+    background-color: #555;
+    border: 1px solid #777;
+  }
+}
+
+.resultContent {
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.analysisButton {
+  background-color: #4a4a4a;
+  color: #c0c0c0;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  &:hover {
+    background-color: #555;
+    color: #fff;
+  }
+}
+
+.moves {
+  font-size: 1.5rem;
+  color: #a0a0a0;
+  text-align: center;
+}
+
+.date {
+  font-size: 1.3rem;
+  color: #a0a0a0;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.noGames,
+.loading {
+  text-align: center;
+  padding: 30px;
+  font-size: 1.5rem;
+  color: #a0a0a0;
+  font-style: italic;
+}
+
+.viewMore {
+  padding: 15px;
+  text-align: center;
+  border-top: 1px solid #4a4a4a;
+  a {
+    color: var(--color-btn-green, #7fa650);
+    text-decoration: none;
+    font-weight: 600;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

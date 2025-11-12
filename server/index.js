@@ -16,6 +16,7 @@ import "./config/passport.js";
 
 // Import routes 
 import authRoutes from "./routes/authRoutes.js";
+import gameRoutes from "./routes/gameRoutes.js";
 import logger from "./middleware/logger.js"
 
 const app = express();
@@ -53,7 +54,8 @@ mongoose
   .catch((err) => console.error("Lỗi kết nối MongoDB:", err));
 
 // === Routes ===
-app.use("/api/auth", authRoutes); // Gắn các route xác thực
+app.use("/api/auth", authRoutes); 
+app.use("/api/games", gameRoutes);
 
 initializeSocket(io);
 

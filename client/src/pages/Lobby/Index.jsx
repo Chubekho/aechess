@@ -7,6 +7,8 @@ import Modal from "react-modal";
 import clsx from "clsx";
 import styles from "./Lobby.module.scss";
 
+import GameHistory from "@/components/GameHistory";
+
 // Cấu trúc dữ liệu cho các ô Time Control
 const timePools = [
   { display: "1+0", category: "Bullet", timeControl: "1+0" },
@@ -253,12 +255,13 @@ function Lobby() {
   return (
     <div className={styles.wrapper}>
       <div className={clsx("row", "gx-6", "justify-content-center")}>
-        <div className="col-3" />
-        <div className="col-6">
+        <div className="col-2" />
+        <div className="col-7">
           {/* Cột giữa (main) */}
           <div className={styles.mainContent}>
             {renderPoolGrid()}
             {/* Lịch sử đấu sẽ được thêm vào ĐÂY (Bước 4) */}
+            <GameHistory limit={5} />
           </div>
         </div>
         <div className="col-3">

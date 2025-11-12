@@ -8,6 +8,7 @@
 .mainContent {
   /* Căn giữa nội dung của cột chính */
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -18,7 +19,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   width: 100%;
-  max-width: 780px;
+  // max-width: 780px;
 }
 
 .poolButton {

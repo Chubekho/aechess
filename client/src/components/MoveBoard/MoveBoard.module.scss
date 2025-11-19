@@ -1,9 +1,17 @@
 /* File: src/components/MoveBoard/MoveBoard.module.scss */
 
+.moveBoardWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden; /* Ngăn tràn ra ngoài */
+}
+
 .moveList {
-  border-radius: 4px;
-  overflow-y: auto;
+  flex: 1; /* Tự động chiếm không gian còn lại */
+  overflow-y: auto; /* Thanh cuộn dọc */
   padding: 10px;
+  background-color: var(--color-board-control);
 }
 
 .movePair {
@@ -23,21 +31,54 @@
 
 .moveWhite,
 .moveBlack {
-  padding: 3px 6px;
-  border-radius: 3px;
+  padding: 4px 8px;
+  border-radius: 4px;
   text-align: center;
   font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.1s;
+
+  &:hover {
+    background-color: #4a4a4a;
+  }
 }
 
-.moveBlack {
-  // Lồng :empty vào bên trong .moveBlack
-  &:empty {
-    background-color: transparent;
-  }
+.moveBlack:empty {
+  cursor: default;
+  &:hover { background-color: transparent; }
 }
 
 .lastMove {
   background-color: #364828;
   color: var(--color-text-hover);
   font-weight: 700;
+}
+
+.selectedMove {
+  background-color: #5a5a5a;
+  color: #fff;
+}
+
+.navigator {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  background-color: #262522; // Nền tối hơn
+  border-bottom: 1px solid var(--color-border, #404040);
+
+  button {
+    background: none;
+    border: none;
+    color: #c0c0c0;
+    font-size: 1.6rem;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--color-btn-def-hover, #3c3934);
+      color: #fff;
+    }
+  }
 }

@@ -211,10 +211,12 @@ function Lobby() {
   const renderMatchFoundState = (isDeclined = false) => (
     <div className={styles.matchFoundBox}>
       <h3>{isDeclined ? "Đã từ chối" : "Đã tìm thấy trận!"}</h3>
-      <div className={styles.opponentInfo}>
+
+      {/* Bỏ hiển thị thông tin đối thủ trước khi vào game */}
+      {/* <div className={styles.opponentInfo}>
         <span>{foundMatchData.opponent.displayName}</span>
         <span>({foundMatchData.opponent.rating})</span>
-      </div>
+      </div> */}
       {/* Thanh duration 10s */}
       <div className={styles.durationBar}>
         {/* Thêm class 'declinedBar' nếu 'isDeclined' = true */}

@@ -1,27 +1,40 @@
 // components/GameInfoPanel/index.jsx
-import MoveBoard from "../MoveBoard"; // Tái sử dụng
+import MoveBoard from "../MoveBoard";
 import styles from "./GameInfoPanel.module.scss";
 
-function GameInfoPanel({ moveHistory, lastMove, onResign }) {
+function GameInfoPanel({
+  moveHistory,
+  lastMove,
+  onResign,
+  gameStatus,
+  onNavigate,
+  currentMoveIndex,
+}) {
   return (
     <div className={styles.wrapper}>
-      {/* Tab (Chat, Lịch sử,...) - (Có thể thêm sau) */}
       <div className={styles.tabs}>
         <button className={styles.tabActive}>Lịch sử</button>
         <button>Chat</button>
       </div>
 
-      {/* Lịch sử nước đi */}
       <div className={styles.moveListContainer}>
-        <MoveBoard history={moveHistory} lastMove={lastMove} />
+        <MoveBoard
+          history={moveHistory}
+          lastMove={lastMove}
+          gameStatus={gameStatus}
+          onNavigate={onNavigate}
+          currentMoveIndex={currentMoveIndex}
+        />
       </div>
-      
-      {/* Nút điều khiển */}
+
       <div className={styles.controls}>
-        <button onClick={onResign}>Đầu hàng</button>
-        <button>Cầu hòa</button>
+        <button onClick={onResign} disabled={gameStatus === "gameOver"}>
+          Đầu hàng
+        </button>
+        <button disabled={gameStatus === "gameOver"}>Cầu hòa</button>
       </div>
     </div>
   );
 }
+
 export default GameInfoPanel;

@@ -21,6 +21,7 @@ export const TimeControlIcon = ({ timeControl }) => {
 };
 
 // 2. Hàm Format Ngày
+// eslint-disable-next-line react-refresh/only-export-components
 export const formatDate = (dateString) => {
   // 'd MMM, yyyy' -> '11 thg 11, 2025'
   return format(new Date(dateString), "d MMM, yyyy", { locale: vi });

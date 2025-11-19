@@ -55,7 +55,7 @@ function User({ user }) {
       {isDropdownOpen && (
         <ul className={styles.subList}>
           <li className={styles.subItem}>
-            <NavLink to={`/profile/${user.id}`} onClick={() => setIsDropdownOpen(false)}>
+            <NavLink to={`/profile/`} onClick={() => setIsDropdownOpen(false)}>
               Hồ sơ
             </NavLink>
           </li>

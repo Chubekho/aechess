@@ -56,6 +56,8 @@ export const registerGameHandlers = (io, socket, activeGames) => {
       newFen: gameData.game.fen(),
       lastMove: moveResult.san,
       clocks: gameData.clocks,
+      moverSocketId: socket.id,
+      pgn: gameData.game.pgn()
     });
 
     // (Kiểm tra chiếu hết / hòa cờ)

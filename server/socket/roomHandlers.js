@@ -70,6 +70,7 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
         msg: "Re-joined",
         assignedColor: isAlreadyPlayer.color,
         fen: gameData.game.fen(),
+        pgn: gameData.game.pgn(),
         clocks: gameData.clocks,
         config: gameData.config,
         whitePlayer: whitePlayer, // Gửi nguyên object

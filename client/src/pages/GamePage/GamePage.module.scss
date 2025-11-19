@@ -1,17 +1,18 @@
 /* GamePage.module.scss */
 
 .wrapper {
-  padding: 20px 16px;
-  /* Giữ chiều cao tối thiểu bằng chiều cao màn hình trừ đi header */
-  min-height: calc(90vh - var(--header-height));
+  min-height: calc(80vh - var(--header-height));
   color: var(--color-text-primary, #e3e3e3);
+  
+  &.row {
+    align-items: stretch;
+  }
 }
 
 .boardArea {
-  /* 'col-8' sẽ xử lý chiều rộng */
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Căn giữa bàn cờ và thông tin */
+  justify-content: center; 
 }
 
 .board {
@@ -23,6 +24,10 @@
 }
 
 .panelArea {
-  /* 'col-4' sẽ xử lý chiều rộng */
-  display: flex; /* Cho phép GameInfoPanel co giãn 100% chiều cao */
+  display: flex;
+  flex-direction: column;
 }
+
+// .col-height {
+//   max-height: 80vh;
+// }

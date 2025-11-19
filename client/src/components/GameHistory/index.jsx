@@ -117,7 +117,7 @@ function GameHistory({ limit = 5 }) {
       </table>
       {limit === 5 && (
         <div className={styles.viewMore}>
-          <Link to={`/profile/${user.id}`}>Xem tất cả</Link>
+          <Link to={`/profile/`}>Xem tất cả</Link>
         </div>
       )}
     </div>

@@ -1,13 +1,13 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useSocket } from "@/context/SocketContext";
+import { useGameNavigation } from "@/hooks/index";
+
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-
-// MỚI: Import các component con
-
-import styles from "./GamePage.module.scss";
 import clsx from "clsx";
+import styles from "./GamePage.module.scss";
+
 import PlayerInfoBox from "@/components/PlayerInfoBox";
 import GameInfoPanel from "@/components/GameInfoPanel";
 
@@ -22,192 +22,236 @@ function GamePage() {
   const [myColor, setMyColor] = useState(null);
 
   // State cho thông tin ván đấu
-  const [gameData, setGameData] = useState(null); // Sẽ chứa { whitePlayer, blackPlayer, config }
-  const [gameStatus, setGameStatus] = useState("waiting"); // waiting | playing | gameOver
-  const [clocks, setClocks] = useState({ w: 0, b: 0 }); // Thời gian (tính bằng giây)
+  const [gameData, setGameData] = useState(null);
+  const [gameStatus, setGameStatus] = useState("waiting");
+  const [clocks, setClocks] = useState({ w: 0, b: 0 });
+
   const [moveHistory, setMoveHistory] = useState([]);
   const [lastMove, setLastMove] = useState(null);
 
-  // Component Đồng hồ (Clock)
-  // Server sẽ gửi thời gian CHUẨN sau mỗi nước đi
+  const fenHistoryRef = useRef([new Chess().fen()]);
+
+  const {
+    currentMoveIndex,
+    setCurrentMoveIndex, // Cần dùng khi reset game
+    handleNavigation,
+    snapToEnd,
+  } = useGameNavigation(fenHistoryRef, moveHistory, setFen, setLastMove);
+
+  // --- 1. Component Đồng hồ (Clock) ---
   useEffect(() => {
     if (gameStatus !== "playing") return;
-
     const timer = setInterval(() => {
-      // Luôn lấy lượt đi (turn) MỚI NHẤT từ ref
       const turn = gameRef.current.turn();
-
-      setClocks((prevClocks) => {
-        if (turn === "w") {
-          return { ...prevClocks, w: prevClocks.w > 0 ? prevClocks.w - 1 : 0 };
-        } else {
-          return { ...prevClocks, b: prevClocks.b > 0 ? prevClocks.b - 1 : 0 };
-        }
+      setClocks((prev) => {
+        const next = { ...prev };
+        if (turn === "w") next.w = prev.w > 0 ? prev.w - 1 : 0;
+        else next.b = prev.b > 0 ? prev.b - 1 : 0;
+        return next;
       });
     }, 1000);
-
     return () => clearInterval(timer);
-  }, [gameStatus]); // Chỉ phụ thuộc vào gameStatus
+  }, [gameStatus]);
 
-  // === 1. KẾT NỐI VÀ LẮNG NGHE SOCKET ===
+  // --- 2. Helper update state ---
+  const updateGameStateFull = useCallback(
+    (data) => {
+      // A. Load Logic Cờ
+      // Ưu tiên PGN nếu có (khi F5), nếu không thì dùng FEN (khi start game)
+      if (data.pgn) {
+        try {
+          gameRef.current.loadPgn(data.pgn);
+        } catch (e) {
+          console.error("Lỗi PGN:", e);
+        }
+      } else if (data.fen) {
+        gameRef.current.load(data.fen);
+      }
+
+      // B. Cập nhật State UI
+      const currentFen = gameRef.current.fen();
+      setFen(currentFen);
+
+      // C. Cập nhật Lịch sử
+      const historyVerbose = gameRef.current.history({ verbose: true });
+      const fens = historyVerbose.map((move) => move.after);
+      fenHistoryRef.current = [new Chess().fen(), ...fens]; // Reset ref với lịch sử mới
+
+      const moves = gameRef.current.history();
+      setMoveHistory(moves);
+
+      // D. Dùng hàm của Hook để đưa về cuối
+      // (Thay vì tự setIndex và setLastMove thủ công)
+      // Lưu ý: snapToEnd cần dữ liệu mới nhất, nhưng vì nó dùng ref nên an toàn
+      // Tuy nhiên, lastMove cần được set thủ công 1 lần ở đây vì snapToEnd dựa vào moveHistory state (có thể chưa cập nhật kịp)
+      setLastMove(historyVerbose[historyVerbose.length - 1]?.san || null);
+      // Chúng ta set index trực tiếp để tránh độ trễ của state
+      setCurrentMoveIndex(moves.length);
+
+      // E. Cập nhật Thông tin Game (nếu có)
+      if (data.whitePlayer && data.blackPlayer && data.config) {
+        setGameData({
+          config: data.config,
+          whitePlayer: data.whitePlayer,
+          blackPlayer: data.blackPlayer,
+        });
+      }
+
+      // F. Cập nhật Đồng hồ (QUAN TRỌNG: Đồng bộ ngay lập tức)
+      if (data.clocks) {
+        setClocks(data.clocks);
+      } else if (data.config?.time) {
+        // Fallback: Nếu không có clocks hiện tại, dùng base time
+        const baseTime = (data.config.time.base || 10) * 60;
+        setClocks({ w: baseTime, b: baseTime });
+      }
+
+      // G. Cập nhật Trạng thái
+      if (data.status === "playing" || (!data.status && moves.length >= 0)) {
+        // Logic đơn giản: nếu đã load game xong thì coi như playing
+        setGameStatus("playing");
+      }
+    },
+    [setCurrentMoveIndex]
+  );
+
+  // === 3. KẾT NỐI VÀ LẮNG NGHE SOCKET ===
   useEffect(() => {
     if (!socket) return;
 
-    // (Logic `joinRoom` của bạn giữ nguyên)
-    // Client gửi 'joinRoom'
+    // A. Join Room (Xử lý F5 / Reconnect)
     socket.emit("joinRoom", { gameId }, (response) => {
       if (response.error) {
         alert(response.error);
         navigate("/");
       } else {
-        // Gán màu ngay khi join
         setMyColor(response.assignedColor);
-
-        // NẾU LÀ HOST (hoặc F5)
-        // Server sẽ gửi trạng thái hiện tại ngay lập tức
         if (
           response.status === "playing" ||
           response.status === "waiting_as_host"
         ) {
-          gameRef.current.load(response.fen);
-          setFen(response.fen);
-          setClocks(response.clocks);
-          setGameData({
-            config: response.config,
+          updateGameStateFull({
+            pgn: response.pgn,
+            fen: response.fen,
+            clocks: response.clocks,
             whitePlayer: response.whitePlayer,
             blackPlayer: response.blackPlayer,
+            config: response.config,
+            status: response.status,
           });
-          setMoveHistory(gameRef.current.history());
-
-          // Nếu game đã 'playing' (ví dụ: F5), kích hoạt game
-          if (response.status === "playing") {
-            setGameStatus("playing");
-          }
         }
       }
     });
 
-    // Lắng nghe server báo "Game Bắt đầu"
+    // B. Game Start (Bắt đầu trận mới)
     socket.on("gameStart", (data) => {
       console.log("Game Bắt đầu!", data);
-
-      // 6. SỬA: Cập nhật ref và state
-      gameRef.current.load(data.fen); // Cập nhật "não"
-      setGameData(data);
-      setFen(data.fen);
-
-      const baseTimeInSeconds = (data.config.time.base || 10) * 60;
-      setClocks({ w: baseTimeInSeconds, b: baseTimeInSeconds });
-
-      setGameStatus("playing");
-      setMoveHistory([]);
-      setLastMove(null);
+      gameRef.current = new Chess();
+      updateGameStateFull({ ...data, status: "playing" });
     });
 
-    // Lắng nghe "Nước đi đã được thực hiện"
-    socket.on("movePlayed", ({ newFen, lastMove, clocks: serverClocks }) => {
-      // 7. SỬA: Cập nhật ref và state
-      gameRef.current.load(newFen); // Cập nhật "não"
-      setFen(newFen);
-      setLastMove(lastMove);
-      setMoveHistory(gameRef.current.history());
-      setClocks(serverClocks);
-    });
+    // C. Move Played (Nước đi đối thủ)
+    socket.on(
+      "movePlayed",
+      ({ newFen, lastMove, clocks: serverClocks, moverSocketId }) => {
+        if (socket.id === moverSocketId) {
+          setClocks(serverClocks);
+          return;
+        }
 
-    // Lắng nghe lỗi
-    socket.on("error", (message) => {
-      alert(message);
-    });
+        gameRef.current.load(newFen);
+        setFen(newFen);
+        setClocks(serverClocks);
 
-    // Lắng nghe game tàn
+        setMoveHistory((prev) => [...prev, lastMove]);
+        setLastMove(lastMove);
+
+        // Cập nhật lịch sử cho hook
+        fenHistoryRef.current.push(newFen);
+        // Dùng hàm của hook để tua về cuối
+        snapToEnd();
+      }
+    );
+
+    socket.on("error", (message) => alert(message));
     socket.on("gameOver", (data) => {
       alert(`Game tàn! ${data.result}`);
+      setGameStatus("gameOver");
     });
 
     return () => {
-      // (Dọn dẹp listeners)
       socket.off("gameStart");
       socket.off("movePlayed");
       socket.off("error");
       socket.off("gameOver");
     };
-  }, [socket, gameId, navigate]); // Thêm 'game' vào dependencies
+  }, [socket, gameId, navigate, updateGameStateFull, snapToEnd]);
 
-  // === 2. XỬ LÝ KHI NGƯỜI CHƠI ĐI CỜ ===
+  // === 4. XỬ LÝ KHI NGƯỜI CHƠI ĐI CỜ ===
   const onPieceDrop = useCallback(
     ({ sourceSquare, targetSquare }) => {
-      if (!socket || gameStatus !== "playing") {
+      // Dùng currentMoveIndex từ Hook
+      if (gameStatus !== "playing" || currentMoveIndex !== fenHistoryRef.current.length - 1) {
         return false;
       }
+      if (gameRef.current.turn() !== myColor) return false;
 
-      // Sửa lỗi: Chỉ cho đi khi đúng lượt
-      if (gameRef.current.turn() !== myColor) {
-        return false;
-      }
-
-      let move = null;
-
-      try {
-        // 9. SỬA: Thực hiện nước đi TRỰC TIẾP trên ref (không cần copy)
-        move = gameRef.current.move({
-          from: sourceSquare,
-          to: targetSquare,
-          promotion: "q",
-        });
-      } catch (e) {
-        console.log(e);
-
-        return false; // Nước đi sai
-      }
+      const gameCopy = new Chess(gameRef.current.fen());
+      const move = gameCopy.move({
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: "q",
+      });
 
       if (move === null) return false;
 
-      // Gửi nước đi hợp lệ lên server
       socket.emit("makeMove", {
         gameId: gameId,
         move: { from: sourceSquare, to: targetSquare },
       });
 
-      // Cập nhật UI ngay lập tức
+      // Cập nhật Client
+      gameRef.current.load(gameCopy.fen());
       setFen(gameRef.current.fen());
-      setMoveHistory(gameRef.current.history());
+      setMoveHistory((prev) => [...prev, move.san]);
+      
+      // Cập nhật lịch sử cho Hook
+      fenHistoryRef.current.push(gameRef.current.fen());
+      // Dùng hàm của hook
+      snapToEnd();
+      // Cần setLastMove thủ công vì snapToEnd dựa vào moveHistory cũ trong render này
       setLastMove(move.san);
 
       return true;
     },
-    [socket, myColor, gameId, gameStatus]
+    [socket, myColor, gameId, gameStatus, currentMoveIndex, snapToEnd]
   );
 
-  // === 3. XỬ LÝ NÚT BẤM (Đầu hàng, Cầu hòa) ===
+  // === 5. CÁC HANDLERS KHÁC ===
   const handleResign = () => {
-    if (socket) {
-      socket.emit("resign", { gameId });
-    }
+    if (socket) socket.emit("resign", { gameId });
   };
 
-  // === Tách biệt thông tin người chơi ===
+  // === 6. RENDER ===
   const me =
     gameData && myColor
       ? myColor === "w"
         ? gameData.whitePlayer
         : gameData.blackPlayer
-      : null; // Player data của tôi
-
+      : null;
   const opponent =
     gameData && myColor
       ? myColor === "w"
         ? gameData.blackPlayer
         : gameData.whitePlayer
-      : null; // Player data của đối thủ
-
+      : null;
   const opponentColor = myColor === "w" ? "b" : "w";
 
-  // Gán options
   const chessboardOptions = useMemo(
     () => ({
       position: fen,
       onPieceDrop: onPieceDrop,
-      id: "PlayVsAI",
+      id: "PlayVsPerson",
       boardOrientation: myColor === "b" ? "black" : "white",
     }),
     [fen, onPieceDrop, myColor]
@@ -215,11 +259,8 @@ function GamePage() {
 
   return (
     <div className={clsx(styles.wrapper, "row", "gx-5")}>
-      <div className="col-3" />
-
-      {/* CỘT TRÁI: BÀN CỜ */}
-      <div className={clsx("col-5", styles.boardArea)}>
-        {/* 13. SỬA: Truyền clock an toàn hơn */}
+      <div className={clsx("col-3", styles["col-height"])} />
+      <div className={clsx("col-5", styles.boardArea, styles["col-height"])}>
         <PlayerInfoBox
           player={opponent}
           clock={clocks[opponentColor]}
@@ -238,14 +279,14 @@ function GamePage() {
           }
         />
       </div>
-
-      {/* CỘT PHẢI: BẢNG THÔNG TIN */}
-      <div className={clsx("col-3", styles.panelArea)}>
+      <div className={clsx("col-3", styles.panelArea, styles["col-height"])}>
         <GameInfoPanel
           moveHistory={moveHistory}
           lastMove={lastMove}
           onResign={handleResign}
-          // (Thêm onOfferDraw...)
+          gameStatus={gameStatus}
+          onNavigate={handleNavigation}
+          currentMoveIndex={currentMoveIndex}
         />
       </div>
     </div>

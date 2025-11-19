@@ -28,16 +28,15 @@
 }
 
 .clock {
-  /* Dùng font mono-space để số không bị "nhảy" khi đếm ngược */
   font-family: "Consolas", "Menlo", monospace;
-  font-size: 2.4rem;
-  font-weight: 700;
-  padding: 8px 14px;
+  font-size: 2rem;
+  font-weight: 500;
+  padding: 4px 10px;
   border-radius: 4px;
-  background-color: #262522; // Nền tối hơn
+  background-color: #262522; 
   color: #a0a0a0;
   transition: all 0.2s ease;
-  min-width: 100px; // Giữ chiều rộng cố định
+  min-width: 100px; 
   text-align: center;
 }
 

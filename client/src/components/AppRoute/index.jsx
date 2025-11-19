@@ -14,6 +14,7 @@ import AuthLayout from "@/layouts/AuthLayout";
 import Login from "@/pages/Auth/Login";
 import Register from "@/pages/Auth/Register";
 import AuthCallback from "@/pages/Auth/AuthCallback";
+import Profile from "@/pages/Profile";
 
 function AppRoute() {
   return (
@@ -27,6 +28,7 @@ function AppRoute() {
               <Route path="/play/ai" element={<PlayAI />} />
               <Route path="/play/friend" element={<PlayFriend />} />
               <Route path="/game/:gameId" element={<GamePage />} />
+              <Route path="/profile" element={<Profile />} />
             </Route>
 
             {/* MỚI: Route chơi game (layout riêng) */}

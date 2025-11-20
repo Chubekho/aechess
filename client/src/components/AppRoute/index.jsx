@@ -7,7 +7,7 @@ import DefaultLayout from "@/layouts/DefaultLayout";
 import Lobby from "@/pages/Lobby/Index";
 import GamePage from "@/pages/GamePage";
 import PlayAI from "@/pages/PlayAI";
-import PlayFriend from "../../pages/PlayFriend";
+import PlayFriend from "@/pages/PlayFriend";
 
 // Import các trang thuộc Auth Layout
 import AuthLayout from "@/layouts/AuthLayout";
@@ -15,6 +15,7 @@ import Login from "@/pages/Auth/Login";
 import Register from "@/pages/Auth/Register";
 import AuthCallback from "@/pages/Auth/AuthCallback";
 import Profile from "@/pages/Profile";
+import AnalysisPage from "@/pages/Analysis";
 
 function AppRoute() {
   return (
@@ -29,6 +30,7 @@ function AppRoute() {
               <Route path="/play/friend" element={<PlayFriend />} />
               <Route path="/game/:gameId" element={<GamePage />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/analysis" element={<AnalysisPage />} />
             </Route>
 
             {/* MỚI: Route chơi game (layout riêng) */}

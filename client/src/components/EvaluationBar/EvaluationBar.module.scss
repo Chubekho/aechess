@@ -1,0 +1,36 @@
+.barContainer {
+  width: 20px; /* Thanh mảnh */
+  height: 100%; /* Cao bằng bàn cờ */
+  background-color: #403d39; /* Màu của Đen */
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse; /* Để height tính từ dưới lên */
+}
+
+.whiteBar {
+  width: 100%;
+  background-color: #ffffff; /* Màu của Trắng */
+  transition: height 0.5s ease-in-out; /* Hiệu ứng mượt */
+}
+
+.scoreText {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  z-index: 1;
+  
+  /* Mặc định nằm ở trên cùng (cho Đen) */
+  top: 5px; 
+  color: #fff;
+}
+
+.darkText {
+  /* Nếu Trắng chiếm ưu thế, text nằm dưới */
+  top: auto;
+  bottom: 5px;
+  color: #333;
+}

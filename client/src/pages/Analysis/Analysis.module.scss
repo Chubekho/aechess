@@ -1,0 +1,89 @@
+.wrapper {
+  padding: 20px;
+  min-height: calc(100vh - var(--header-height));
+  background-color: var(--color-board-dark, #262522);
+  color: #e0e0e0;
+  display: flex; /* Dùng flex cho toàn bộ wrapper */
+}
+
+/* Cột 1: Evaluation Bar */
+.evalColumn {
+  width: 30px; /* Cố định chiều rộng */
+  margin-right: 10px;
+  display: flex;
+  justify-content: center;
+  /* Chiều cao sẽ tự fill theo flex container cha */
+}
+
+/* Cột 2: Bàn cờ */
+.boardArea {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: 20px;
+}
+
+.board {
+  width: 100%;
+  max-width: 650px; /* Giới hạn độ to của bàn cờ */
+  margin: 0 auto;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.playerHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  font-size: 1.6rem;
+  
+  .playerName { font-weight: 600; }
+  .playerRating { color: #aaa; font-weight: 300; }
+}
+
+
+/* Cột 3: Panel bên phải */
+.panelArea {
+  flex: 1; /* Chiếm phần còn lại */
+  min-width: 350px; /* Không được nhỏ quá */
+}
+
+.panelContainer {
+  background-color: var(--color-board-control, #302e2c);
+  border-radius: 8px;
+  height: 100%; /* Full chiều cao */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panelHeader {
+  padding: 15px;
+  background-color: #262522;
+  border-bottom: 1px solid #444;
+  h2 { margin: 0; font-size: 1.8rem; font-weight: 500; }
+}
+
+.settingsSection {
+  padding: 10px;
+  border-bottom: 1px solid #444;
+}
+
+.engineOutputSection {
+  flex: 0 0 auto; /* Chiều cao tự động theo nội dung, không co giãn */
+  max-height: 30%; /* Giới hạn chiều cao nếu quá nhiều line */
+  overflow-y: auto;
+  border-bottom: 1px solid #444;
+}
+
+.moveListSection {
+  flex: 1; /* Chiếm toàn bộ không gian còn lại */
+  overflow: hidden; /* Để MoveBoard tự scroll */
+  display: flex; 
+  flex-direction: column;
+  
+  /* Style đè lên MoveBoard wrapper để nó full height */
+  > div { height: 100%; }
+}

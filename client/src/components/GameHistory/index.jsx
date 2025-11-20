@@ -61,6 +61,7 @@ function GameHistory({ limit = 5 }) {
           ) : (
             games.map((game) => (
               <tr key={game._id}>
+                {console.log(game._id)}
                 <td>
                   <div className={styles.timeControl}>
                     <TimeControlIcon timeControl={game.timeControl} />

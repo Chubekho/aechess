@@ -1,0 +1,57 @@
+.wrapper {
+  background-color: var(--color-board-control, #302e2c);
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: monospace; /* Dùng font monospace cho đẹp */
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.3rem;
+  
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    background-color: #262522;
+    color: #a0a0a0;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+  }
+
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #444;
+    color: #ccc;
+  }
+}
+
+.score {
+  font-weight: 700;
+  width: 60px;
+  
+  &.positive { color: #98c16e; } /* Xanh lá */
+  &.negative { color: #ff6b6b; } /* Đỏ */
+}
+
+.bestMove {
+  width: 80px;
+  font-weight: 600;
+  color: #7fa650;
+}
+
+.pv {
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px; /* Giới hạn chiều rộng để hiện '...' */
+}

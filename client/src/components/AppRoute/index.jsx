@@ -29,8 +29,8 @@ function AppRoute() {
               <Route path="/play/ai" element={<PlayAI />} />
               <Route path="/play/friend" element={<PlayFriend />} />
               <Route path="/game/:gameId" element={<GamePage />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/analysis" element={<AnalysisPage />} />
+              <Route path="/profile/:id" element={<Profile />} />
+              <Route path="/analysis/:id" element={<AnalysisPage />} />
             </Route>
 
             {/* MỚI: Route chơi game (layout riêng) */}

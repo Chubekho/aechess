@@ -2,25 +2,28 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/index";
 import { Link } from "react-router";
-import axios from "axios"; // Dùng axios riêng hoặc từ context
+import axios from "axios";
 import clsx from "clsx";
 import styles from "./GameHistory.module.scss";
 
 import { TimeControlIcon, formatDate } from "./helpers.jsx";
 
-function GameHistory({ limit = 5 }) {
-  const { token, user } = useAuth(); // Cần token để gọi API
+function GameHistory({ limit = 5, userId }) {
+  const { token, user } = useAuth();
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const targetId = userId || user?.id;
+
   useEffect(() => {
-    if (!token) return; // Không fetch nếu chưa đăng nhập
+    if (!token || !targetId) return;
 
     const fetchHistory = async () => {
       setLoading(true);
       try {
+        // Gửi targetId vào query params
         const res = await axios.get(
-          `http://localhost:8080/api/games/my-history?limit=${limit}`,
+          `http://localhost:8080/api/games/history?limit=${limit}&userId=${targetId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -33,9 +36,9 @@ function GameHistory({ limit = 5 }) {
     };
 
     fetchHistory();
-  }, [token, limit, user]); // Thêm 'user' để fetch lại khi user thay đổi
+  }, [token, limit, targetId]); // Thêm 'user' để fetch lại khi user thay đổi
 
-  if (!user) return null; // Ẩn nếu không đăng nhập
+  // if (!user) return null; // Ẩn nếu không đăng nhập
   if (loading) return <div className={styles.loading}>Đang tải lịch sử...</div>;
 
   return (
@@ -61,7 +64,6 @@ function GameHistory({ limit = 5 }) {
           ) : (
             games.map((game) => (
               <tr key={game._id}>
-                {console.log(game._id)}
                 <td>
                   <div className={styles.timeControl}>
                     <TimeControlIcon timeControl={game.timeControl} />

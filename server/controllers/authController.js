@@ -105,7 +105,20 @@ export const login = async (req, res) => {
 // @route: GET /api/auth/me
 export const getMe = async (req, res) => {
   const user = await User.findById(req.user.id).select("-passwordHash");
-  res.json(user);
+  if (!user) {
+    return res.status(404).json({ msg: "User not found" });
+  }
+
+  // SỬA LỖI: Chuyển đổi sang object thường và map _id thành id
+  const userData = {
+    id: user._id, // Map _id -> id
+    email: user.email,
+    displayName: user.displayName,
+    ratings: user.ratings,
+    createdAt: user.createdAt,
+  };
+
+  res.json(userData);
 };
 
 // === 3. GOOGLE AUTH ===
@@ -129,7 +142,7 @@ const passportAuth = passport.authenticate("google", {
 const finalHandler = (req, res) => {
   // Đăng nhập thành công, req.user chứa thông tin user từ Passport
   const token = createToken(req.user);
-  
+
   // Redirect về CLIENT với token
   res.redirect(`${process.env.CLIENT_URL}/auth-callback?token=${token}`);
 };
@@ -137,7 +150,4 @@ const finalHandler = (req, res) => {
 // 3. Export cả hai dưới dạng một mảng
 // @desc: Google OAuth callback URL (handles redirect)
 // @route: GET /api/auth/google/callback
-export const googleCallback = [
-  passportAuth,
-  finalHandler
-];
+export const googleCallback = [passportAuth, finalHandler];

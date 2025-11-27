@@ -35,14 +35,15 @@ const io = new Server(httpServer, {
 });
 
 // === Middlewares ===
-// 1. CORS: Cho phép client gọi API
+// 1. CORS
 app.use(
   cors({
-    origin: process.env.CLIENT_URL, // Chỉ cho phép client này
+    origin: process.env.CLIENT_URL, 
     credentials: true,
   })
 );
-// 2. Body Parser: Đọc req.body (dạng JSON)
+
+// 2. Body Parser
 app.use(express.json());
 // 3. Khởi tạo Passport
 app.use(passport.initialize());

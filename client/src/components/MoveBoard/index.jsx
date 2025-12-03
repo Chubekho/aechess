@@ -1,50 +1,48 @@
-// components/MoveBoard/index.jsx
 import { useEffect, useRef } from "react";
 import clsx from "clsx";
 import styles from "./MoveBoard.module.scss";
 
+// --- Component Navigator ---
 const MoveNavigator = ({ onNavigate }) => {
   return (
     <div className={styles.navigator}>
-      <button onClick={() => onNavigate("start")} aria-label="First move">
+      <button onClick={() => onNavigate("start")}>
         <i className="fa-solid fa-backward-fast"></i>
       </button>
-      <button onClick={() => onNavigate("back")} aria-label="Previous move">
+      <button onClick={() => onNavigate("back")}>
         <i className="fa-solid fa-backward-step"></i>
       </button>
-      <button onClick={() => onNavigate("next")} aria-label="Next move">
+      <button onClick={() => onNavigate("next")}>
         <i className="fa-solid fa-forward-step"></i>
       </button>
-      <button onClick={() => onNavigate("end")} aria-label="Last move">
+      <button onClick={() => onNavigate("end")}>
         <i className="fa-solid fa-forward-fast"></i>
-      </button>
-      <button aria-label="Options">
-        <i className="fa-solid fa-bars"></i>
       </button>
     </div>
   );
 };
 
-function MoveBoard({
-  history = [],
-  lastMove = null,
-  gameStatus = "playing",
-  onNavigate,
-  currentMoveIndex = 0,
-}) {
+// --- Component Chính ---
+function MoveBoard({ rootNode, currentNode, onNavigate }) {
   const scrollRef = useRef(null);
-  const moveRefs = useRef({});
+  const activeMoveRef = useRef(null);
 
-  // Xử lý phím mũi tên
+  // Auto-scroll
+  useEffect(() => {
+    if (activeMoveRef.current) {
+      activeMoveRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [currentNode]);
+
+  //logic điều hướng bằng mũi tên
   useEffect(() => {
     if (!onNavigate) return;
     const handleKeyDown = (e) => {
-      if (
-        document.activeElement.tagName === "INPUT" ||
-        document.activeElement.tagName === "TEXTAREA"
-      ) {
+      if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName))
         return;
-      }
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         onNavigate("back");
@@ -54,86 +52,165 @@ function MoveBoard({
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onNavigate]);
 
-  // Tính toán mảng 'pairs'
-  const pairs = [];
-  for (let i = 0; i < history.length; i += 2) {
-    pairs.push({
-      moveNumber: i / 2 + 1,
-      white: history[i],
-      black: history[i + 1] || "",
-    });
-  }
+  // Helper: Lấy số thứ tự từ FEN
+  const getMoveInfo = (node) => {
+    const fenParts = node.fen.split(" ");
+    const turn = fenParts[1]; 
+    const fullMove = parseInt(fenParts[5]);
+    const isWhiteMove = turn === "b";
 
-  // Xử lý cuộn (scroll)
-  useEffect(() => {
-    // 1. Nếu đang chơi (hoặc tua về cuối) -> cuộn xuống dưới cùng
-    if (gameStatus === "playing" || currentMoveIndex === history.length) {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    return { isWhiteMove, moveNumber: fullMove };
+  };
+
+  // --- Component con: Render 1 ô nước đi ---
+  const MoveBox = ({ node }) => { 
+    if (!node) return <div className={styles.moveBoxEmpty}>...</div>;
+
+    // const { isWhiteMove, moveNumber } = getMoveInfo(node);
+    const isActive = currentNode && currentNode.id === node.id;
+
+    // const numberText = isWhiteMove ? `${moveNumber}.` : `${moveNumber - 1}`;
+
+    return (
+      <>
+        {/* {showNumber && <span className={styles.moveNumber}>{numberText}</span>} */}
+        <div
+          ref={isActive ? activeMoveRef : null}
+          className={clsx(styles.moveBox, { [styles.active]: isActive })}
+          onClick={(e) => {
+            e.stopPropagation();
+            onNavigate("select", node);
+          }}
+        >
+          {node.san}
+        </div>
+      </>
+    );
+  };
+
+  const renderRows = (startNode, depth = 0) => {
+    if (!startNode) return null;
+
+    const rows = [];
+    let current = startNode;
+
+    while (current) {
+      const { isWhiteMove, moveNumber } = getMoveInfo(current);
+
+      let whiteNode = null;
+      let blackNode = null;
+
+      // (Biến thể của Trắng HOẶC biến thể của Đen)
+      const variationsToRender = [];
+
+      // --- TRƯỜNG HỢP 1: Bắt đầu bằng nước Trắng ---
+      if (isWhiteMove) {
+        whiteNode = current;
+
+        // 2. Lấy nước Đen (con chính của Trắng)
+        if (whiteNode.children.length > 0) {
+          blackNode = whiteNode.children[0]; // Nhánh chính
+
+          // 3. Kiểm tra các biến thể của Đen (các con khác của Trắng)
+          if (whiteNode.children.length > 1) {
+            // children[1...n] là các nước Đen khác
+            whiteNode.children.slice(1).forEach((varNode) => {
+              variationsToRender.push(varNode);
+            });
+          }
+        }
+      }
+      // --- TRƯỜNG HỢP 2: Bắt đầu bằng nước Đen (Biến thể từ giữa) ---
+      else {
+        blackNode = current;
+      }
+
+      // --- RENDER HÀNG (ROW) ---
+      rows.push(
+        <div key={`row-${current.id}`} className={styles.rowWrapper}>
+          <div
+            className={styles.moveRow}
+            style={{ paddingLeft: `${depth * 15}px` }} // Thụt lề theo depth
+          >
+            {/* Số thứ tự (chỉ hiện nếu có nước Trắng hoặc bắt đầu dòng biến thể) */}
+            <div className={styles.moveIndex}>
+              {whiteNode ? `${moveNumber}.` : ``}
+            </div>
+
+            {/* Ô Trắng */}
+            {whiteNode ? (
+              <MoveBox node={whiteNode} />
+            ) : (
+              <div className={styles.moveBoxEmpty}>...</div>
+            )}
+
+            {/* Ô Đen */}
+            {blackNode ? (
+              <MoveBox node={blackNode} showNumber={!whiteNode} />
+            ) : (
+              <div className={styles.moveBoxEmpty}></div>
+            )}
+          </div>
+
+          {/* --- RENDER CÁC BIẾN THỂ CON (NẾU CÓ) --- */}
+          {variationsToRender.length > 0 && (
+            <div className={styles.variationsBlock}>
+              {variationsToRender.map((vNode) => (
+                <div key={vNode.id} className={styles.variationItem}>
+                  {/* GỌI ĐỆ QUY VỚI DEPTH TĂNG LÊN */}
+                  {renderRows(vNode, depth + 1)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+
+      // --- TIẾP TỤC VÒNG LẶP (Main Line của nhánh này) ---
+
+      // Nếu vừa render xong cặp Trắng-Đen
+      if (blackNode && blackNode.children.length > 0) {
+        current = blackNode.children[0]; 
+
+        if (blackNode.children.length > 1) {
+          const nextWhiteVars = blackNode.children.slice(1);
+          rows.push(
+            <div
+              key={`vars-next-${blackNode.id}`}
+              className={styles.variationsBlock}
+            >
+              {nextWhiteVars.map((v) => (
+                <div key={v.id} className={styles.variationItem}>
+                  {renderRows(v, depth + 1)}
+                </div>
+              ))}
+            </div>
+          );
+        }
+      } else if (whiteNode && !blackNode && whiteNode.children.length > 0) {
+        current = whiteNode.children[0];
+      } else {
+        // Hết nhánh
+        current = null;
       }
     }
-    // 2. Nếu đang tua -> cuộn đến nước đi được chọn
-    else if (moveRefs.current[currentMoveIndex]) {
-      moveRefs.current[currentMoveIndex].scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-  }, [history, gameStatus, currentMoveIndex]);
 
-  // Helper tính index (cho onClick)
-  const getMoveIndex = (pairIndex, isWhite) => {
-    return isWhite ? pairIndex * 2 + 1 : pairIndex * 2 + 2;
+    return rows;
   };
 
   return (
     <div className={styles.moveBoardWrapper}>
       <MoveNavigator onNavigate={onNavigate} />
-
       <div className={styles.moveList} ref={scrollRef}>
-        {pairs.map((pair, index) => {
-          const whiteMoveIndex = getMoveIndex(index, true);
-          const blackMoveIndex = getMoveIndex(index, false);
-
-          const isWhiteSelected = currentMoveIndex === whiteMoveIndex;
-          const isBlackSelected = currentMoveIndex === blackMoveIndex;
-
-          return (
-            <div key={pair.moveNumber} className={styles.movePair}>
-              <span className={styles.moveNumber}>{pair.moveNumber}.</span>
-              <span
-                ref={(el) => (moveRefs.current[whiteMoveIndex] = el)}
-                className={clsx(styles.moveWhite, {
-                  [styles.selectedMove]: isWhiteSelected,
-                  // Chỉ highlight 'lastMove' khi đang ở cuối
-                  [styles.lastMove]:
-                    currentMoveIndex === history.length &&
-                    pair.white === lastMove,
-                })}
-                onClick={() => onNavigate("select", whiteMoveIndex)}
-              >
-                {pair.white}
-              </span>
-              <span
-                ref={(el) => (moveRefs.current[blackMoveIndex] = el)}
-                className={clsx(styles.moveBlack, {
-                  [styles.selectedMove]: isBlackSelected,
-                  [styles.lastMove]:
-                    currentMoveIndex === history.length &&
-                    pair.black === lastMove,
-                })}
-                onClick={() => onNavigate("select", blackMoveIndex)}
-              >
-                {pair.black}
-              </span>
-            </div>
-          );
-        })}
+        {/* Bắt đầu render từ con đầu tiên của Root */}
+        {rootNode && rootNode.children.length > 0 ? (
+          renderRows(rootNode.children[0])
+        ) : (
+          <div className={styles.emptyText}>Chưa có nước đi</div>
+        )}
       </div>
     </div>
   );

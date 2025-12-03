@@ -140,10 +140,12 @@ function PlayAI() {
           to: targetSquare,
           promotion: "q",
         });
+        console.log(move);
+        
 
         if (!move) return false;
 
-        updateGameHistory(move.san); // <-- SỬA: Dùng helper
+        updateGameHistory(move.san); 
         return true;
       } catch {
         return false;

@@ -1,9 +1,13 @@
 .wrapper {
   padding: 20px;
   min-height: calc(100vh - var(--header-height));
-  background-color: var(--color-board-dark, #262522);
-  color: #e0e0e0;
   display: flex; /* Dùng flex cho toàn bộ wrapper */
+}
+
+.boardContainerFlex {
+  display: flex;
+  justify-content: center;
+  gap: 10px; /* Khoảng cách giữa Bar và Board */
 }
 
 /* Cột 1: Evaluation Bar */
@@ -20,7 +24,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-right: 20px;
+  // padding-right: 20px;
 }
 
 .board {
@@ -48,6 +52,7 @@
 .panelArea {
   flex: 1; /* Chiếm phần còn lại */
   min-width: 350px; /* Không được nhỏ quá */
+  max-height: 600px;
 }
 
 .panelContainer {

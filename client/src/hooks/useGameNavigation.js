@@ -1,67 +1,91 @@
 // client/src/hooks/useGameNavigation.js
-import { useState, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
+import { MoveNode, getDisplayList } from "@/utils/GameTree";
 
-/**
- * Hook quản lý việc tua lại ván cờ
- * @param {Object} fenHistoryRef - Ref chứa mảng các FEN string
- * @param {Array} moveHistory - Mảng các nước đi (SAN)
- * @param {Function} setFen - Hàm update state FEN bàn cờ
- * @param {Function} setLastMove - Hàm update state nước đi cuối (để highlight)
- */
-export const useGameNavigation = (
-  fenHistoryRef,
-  moveHistory,
-  setFen,
-  setLastMove
-) => {
-  const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
+const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+export const useGameNavigation = (setFen) => {
+  const rootNodeRef = useRef(new MoveNode(null, START_FEN));
+  const [currentNode, setCurrentNode] = useState(rootNodeRef.current);
+
+  const addMove = useCallback((san, fen) => {
+    setCurrentNode((prevNode) => {
+      const nextNode = prevNode.addChild(san, fen);
+      return nextNode;
+    });
+  }, []);
+
+  // const currentNodeRef = useRef(rootNodeRef.current);
+
+  const displayHistory = useMemo(() => {
+      return getDisplayList(currentNode);
+  }, [currentNode]);
 
   const handleNavigation = useCallback(
-    (action, index) => {
-      const maxIndex = fenHistoryRef.current.length - 1;
-      let newIndex = currentMoveIndex;
+    (action, targetNode = null) => {
+      let nextNode = currentNode;
+      switch (action) {
+        case "start": {
+          let temp = currentNode;
+          while (temp.parent) temp = temp.parent;
+          nextNode = temp;
+          break;
+        }
 
-      if (action === "select") {
-        newIndex = index;
-      } else if (action === "start") {
-        newIndex = 0;
-      } else if (action === "back") {
-        newIndex = Math.max(0, currentMoveIndex - 1);
-      } else if (action === "next") {
-        newIndex = Math.min(maxIndex, currentMoveIndex + 1);
-      } else if (action === "end") {
-        newIndex = maxIndex;
+        case "back":
+          if (currentNode.parent) nextNode = currentNode.parent;
+          break;
+
+        case "next":
+          if (currentNode.children.length > 0)
+            nextNode = currentNode.children[0];
+          break;
+
+        case "end": {
+          let end = currentNode;
+          while (end.children.length > 0) end = end.children[0];
+          nextNode = end;
+          break;
+        }
+
+        case "select":
+          if (targetNode) nextNode = targetNode;
+          break;
+
+        default:
+          break;
       }
 
-      // Đảm bảo index hợp lệ
-      newIndex = Math.max(0, Math.min(maxIndex, newIndex));
-
-      // Cập nhật State
-      setCurrentMoveIndex(newIndex);
-      
-      // Cập nhật Bàn cờ (FEN)
-      if (fenHistoryRef.current[newIndex]) {
-        setFen(fenHistoryRef.current[newIndex]);
+      if (nextNode !== currentNode) {
+        setCurrentNode(nextNode);
+        setFen(nextNode.fen);
       }
-      
-      // Cập nhật Highlight (Last Move)
-      // moveHistory[newIndex - 1] là nước đi tại vị trí đó
-      setLastMove(moveHistory[newIndex - 1] || null);
     },
-    [currentMoveIndex, fenHistoryRef, moveHistory, setFen, setLastMove]
+    [currentNode, setFen]
   );
 
-  // Hàm helper để reset navigation về cuối (dùng khi có nước đi mới)
-  const snapToEnd = useCallback(() => {
-    const maxIndex = fenHistoryRef.current.length - 1;
-    setCurrentMoveIndex(maxIndex);
-    // setFen không cần gọi ở đây vì logic game chính thường đã setFen mới nhất rồi
-  }, [fenHistoryRef]);
+  const resetNavigation = useCallback((startFen = START_FEN) => {
+    rootNodeRef.current = new MoveNode(null, startFen);
+    setCurrentNode(rootNodeRef.current);
+  }, []);
+
+  // Hàm nạp lại toàn bộ lịch sử (Sync)
+  const loadHistory = useCallback((historyVerbose) => {
+      let tempNode = rootNodeRef.current;
+      for (const move of historyVerbose) {
+          tempNode = tempNode.addChild(move.san, move.after);
+      }
+      setCurrentNode(tempNode); // Cập nhật state 1 lần cuối cùng
+  }, []);
+
 
   return {
-    currentMoveIndex,
-    setCurrentMoveIndex,
+    currentNode,
+    rootNode: rootNodeRef.current,
     handleNavigation,
-    snapToEnd
+    addMove,
+    resetNavigation,
+    displayHistory,
+    loadHistory
   };
 };

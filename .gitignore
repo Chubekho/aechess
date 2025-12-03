@@ -1,5 +1,5 @@
 # Dependencies
-/node_modules
+node_modules
 # Bỏ qua node_modules ở cả 2 dự án con
 /client/node_modules
 /server/node_modules

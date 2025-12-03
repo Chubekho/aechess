@@ -76,8 +76,6 @@ function AnalysisPage() {
         resetNavigation();
 
         // 4. Nạp lại lịch sử vào Cây (Replay)
-        // Duyệt qua từng nước đi trong lịch sử và thêm nó vào cây
-        // Việc này giúp xây dựng lại cấu trúc cây từ PGN phẳng
         const historyVerbose = loadedGame.history({ verbose: true });
         loadHistory(historyVerbose);
         setFen(loadedGame.fen());
@@ -162,7 +160,7 @@ function AnalysisPage() {
           <EvaluationBar
             evaluation={
               lines[0]
-                ? { type: lines[0].mate ? "mate" : "cp", value: lines[0].score }
+                ? { type: lines[0].mate ? "mate" : "cp", value: lines[0].mate ? lines[0].mate : lines[0].score}
                 : null
             }
           />

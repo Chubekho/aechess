@@ -33,7 +33,7 @@
   margin: 0 auto;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
 
 .playerHeader {
@@ -42,11 +42,15 @@
   gap: 10px;
   padding: 10px 0;
   font-size: 1.6rem;
-  
-  .playerName { font-weight: 600; }
-  .playerRating { color: #aaa; font-weight: 300; }
-}
 
+  .playerName {
+    font-weight: 600;
+  }
+  .playerRating {
+    color: #aaa;
+    font-weight: 300;
+  }
+}
 
 /* Cột 3: Panel bên phải */
 .panelArea {
@@ -68,7 +72,15 @@
   padding: 15px;
   background-color: #262522;
   border-bottom: 1px solid #444;
-  h2 { margin: 0; font-size: 1.8rem; font-weight: 500; }
+  display: flex; /* Flexbox */
+  justify-content: space-between; /* Căn 2 đầu */
+  align-items: center;
+
+  h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 500;
+  }
 }
 
 .settingsSection {
@@ -86,9 +98,90 @@
 .moveListSection {
   flex: 1; /* Chiếm toàn bộ không gian còn lại */
   overflow: hidden; /* Để MoveBoard tự scroll */
-  display: flex; 
+  display: flex;
   flex-direction: column;
-  
+
   /* Style đè lên MoveBoard wrapper để nó full height */
-  > div { height: 100%; }
+  > div {
+    height: 100%;
+  }
+}
+
+.engineToggle {
+  position: relative;
+  display: inline-block;
+  width: 40px; /* Nhỏ gọn */
+  height: 22px;
+
+  input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #555; /* Màu khi tắt */
+  transition: .4s;
+  border-radius: 22px;
+
+  &:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+}
+
+input:checked + .slider {
+  background-color: var(--color-btn-green, #7fa650); /* Màu khi bật */
+}
+
+input:checked + .slider:before {
+  transform: translateX(18px); /* Di chuyển chấm tròn */
+}
+
+/* Style cho thông báo Paused */
+.enginePaused {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  font-size: 1.4rem;
+}
+
+.loading {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  min-height: 100px; /* Thêm min-height để giữ chỗ */
+}
+
+/* MỚI: Style cho kết quả cuối cùng */
+.resultDisplay {
+  padding: 20px;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #c0c0c0;
+  background-color: #3c3934;
+  /* Đảm bảo nó có cùng chiều cao với loading */
+  min-height: 100px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Màu text cho người thắng */
+  .winner {
+    color: var(--color-btn-green, #7fa650);
+  }
 }

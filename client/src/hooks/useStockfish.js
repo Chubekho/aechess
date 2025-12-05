@@ -5,7 +5,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
  * @param {string} fen - FEN hiện tại
  * @param {object} options - Cấu hình { depth, multiPV }
  */
-export const useStockfish = (fen, { depth = 18, multiPV = 1 } = {}) => {
+export const useStockfish = (fen, { depth = 18, multiPV = 1, isAnalyzing = true } = {}) => {
   const engine = useRef(null);
 
   // State lưu trữ danh sách các dòng phân tích
@@ -93,8 +93,8 @@ export const useStockfish = (fen, { depth = 18, multiPV = 1 } = {}) => {
 
           newLines[lineIndex] = {
             id: lineIndex + 1,
-            score, // Điểm đã chuẩn hóa (Tuyệt đối theo Trắng)
-            mate, // Mate đã chuẩn hóa
+            score, 
+            mate, 
             pv: pvString,
             bestMove: bestMoveObj,
             turn: turn
@@ -104,11 +104,16 @@ export const useStockfish = (fen, { depth = 18, multiPV = 1 } = {}) => {
       }
     },
     [fen]
-  ); // QUAN TRỌNG: Thêm 'fen' vào dependencies để biết 'turn'
+  ); 
 
   // 3. Gửi lệnh phân tích
   useEffect(() => {
     if (!engine.current || !fen || !isEngineReady) return;
+
+    if (!isAnalyzing) {
+      engine.current.postMessage("stop"); // Dừng tính toán ngay lập tức
+      return; // Không gửi lệnh 'go' mới
+    }
 
     // Reset kết quả cũ khi FEN đổi
     setLines([]);
@@ -125,7 +130,7 @@ export const useStockfish = (fen, { depth = 18, multiPV = 1 } = {}) => {
     // Thiết lập vị trí và bắt đầu
     engine.current.postMessage(`position fen ${fen}`);
     engine.current.postMessage(`go depth ${depth}`);
-  }, [fen, depth, multiPV, handleEngineMessage, isEngineReady]);
+  }, [fen, depth, multiPV, isAnalyzing, handleEngineMessage, isEngineReady]);
 
   // Export cả isEngineReady để UI sử dụng
   return { lines, isEngineReady };

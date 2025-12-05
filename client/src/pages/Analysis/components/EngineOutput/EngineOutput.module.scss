@@ -56,13 +56,30 @@
   max-width: 200px; /* Giới hạn chiều rộng để hiện '...' */
 }
 
-.gameOverMessage {
+.loading {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  min-height: 100px; /* Thêm min-height để giữ chỗ */
+}
+
+/* MỚI: Style cho kết quả cuối cùng */
+.resultDisplay {
   padding: 20px;
   text-align: center;
   font-size: 1.6rem;
   font-weight: 600;
-  height: 100%;
+  color: #c0c0c0;
+  background-color: #3c3934;
+  /* Đảm bảo nó có cùng chiều cao với loading */
+  min-height: 100px; 
   display: flex;
   align-items: center;
   justify-content: center;
+  
+  /* Màu text cho người thắng */
+  .winner {
+    color: var(--color-btn-green, #7fa650);
+  }
 }

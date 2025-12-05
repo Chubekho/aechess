@@ -34,6 +34,8 @@ function AnalysisPage() {
   const [depth, setDepth] = useState(18);
   const [multiPV, setMultiPV] = useState(3);
 
+  const [isAnalyzing, setIsAnalyzing] = useState(true);
+
   // Để biết trạng thái của game
   const gameResult = useMemo(() => {
     const tempGame = new Chess(fen);
@@ -66,7 +68,11 @@ function AnalysisPage() {
     loadHistory,
   } = useGameNavigation(setFen);
 
-  const { lines, isEngineReady } = useStockfish(fen, { depth, multiPV });
+  const { lines, isEngineReady } = useStockfish(fen, {
+    depth,
+    multiPV,
+    isAnalyzing,
+  });
 
   // --- 3. Fetch Game Data ---
   useEffect(() => {
@@ -118,7 +124,7 @@ function AnalysisPage() {
     const result = [];
 
     // B. Engine Arrows
-    if (lines.length > 0) {
+    if (isAnalyzing && lines.length > 0) {
       lines.forEach((line, index) => {
         if (line.bestMove) {
           const { from, to } = line.bestMove;
@@ -134,7 +140,7 @@ function AnalysisPage() {
       });
     }
     return result;
-  }, [lines]);
+  }, [lines, isAnalyzing]);
 
   // 5. Logic OnPieceDrop (Đơn giản hơn rất nhiều)
   const onPieceDrop = useCallback(
@@ -155,7 +161,6 @@ function AnalysisPage() {
         return true;
       } catch (e) {
         console.log(e);
-
         return false;
       }
     },
@@ -189,6 +194,7 @@ function AnalysisPage() {
                 : null
             }
             gameResult={gameResult}
+            isAnalyzing={isAnalyzing}
           />
         </div>
 
@@ -221,6 +227,16 @@ function AnalysisPage() {
         <div className={styles.panelContainer}>
           <div className={styles.panelHeader}>
             <h2>Phân tích & Engine</h2>
+
+            {/* Nút Toggle Switch */}
+            <label className={styles.engineToggle}>
+              <input
+                type="checkbox"
+                checked={isAnalyzing}
+                onChange={() => setIsAnalyzing(!isAnalyzing)}
+              />
+              <span className={styles.slider}></span>
+            </label>
           </div>
 
           <div className={styles.engineOutputSection}>
@@ -233,7 +249,8 @@ function AnalysisPage() {
             <EngineOutput
               lines={lines}
               isEngineReady={isEngineReady}
-              gameResult={gameResult}
+              isAnalyzing={isAnalyzing} // <-- TRUYỀN FLAG ENGINE
+              gameResult={gameResult} // <-- TRUYỀN KẾT QUẢ GAME
             />
           </div>
 

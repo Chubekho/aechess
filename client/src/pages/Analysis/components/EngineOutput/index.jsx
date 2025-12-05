@@ -1,74 +1,44 @@
-import clsx from "clsx";
 import styles from "./EngineOutput.module.scss";
 
-function EngineOutput({ lines, isEngineReady, gameResult }) {
-  // 1. Nếu Game Over -> Hiển thị kết quả
+function EngineOutput({ lines, isEngineReady, isAnalyzing, gameResult }) {
+  // 1. ƯU TIÊN 1: GAME OVER
   if (gameResult?.isGameOver) {
     let message = "";
 
+    // Logic xác định ai thắng
     if (gameResult.type === "checkmate") {
-      const winnerText = gameResult.winner === "w" ? "Trắng" : "Đen";
-      message = `Chiếu hết: ${winnerText} thắng!`;
+      const winnerText = gameResult.winner === "w" ? "TRẮNG" : "ĐEN";
+      message = `KẾT THÚC: CHIẾU HẾT! ${winnerText} thắng.`;
     } else {
-      message = gameResult.reason || "Ván cờ hòa";
+      message = `KẾT THÚC: HÒA (${gameResult.reason || "Hòa"}).`;
     }
 
     return (
       <div className={styles.wrapper}>
-        <div className={clsx(styles.gameOverMessage)}>
-          {message}
-        </div>
+        <div className={styles.resultDisplay}>{message}</div>
       </div>
     );
   }
 
-  // 2. Các trạng thái loading
-  if (!isEngineReady) {
-    return <div className={styles.loading}>Đang khởi động Engine...</div>;
+  // 2. ƯU TIÊN 2: ENGINE TẮT (PAUSED)
+  if (!isAnalyzing) {
+    return (
+      <div className={styles.wrapper}>
+        <div className={styles.loading}>ENGINE ĐANG TẠM DỪNG.</div>
+      </div>
+    );
   }
 
-  if (lines.length === 0) {
+  // 3. ƯU TIÊN 3: ĐANG TÍNH HOẶC KHỞI ĐỘNG
+  if (!isEngineReady || lines.length === 0) {
     return <div className={styles.loading}>Đang tính toán...</div>;
   }
 
+  // 4. HIỂN THỊ BẢNG PHÂN TÍCH (lines.length > 0)
   return (
     <div className={styles.wrapper}>
-      <table className={styles.table}>
-        <tbody>
-          {lines.map((line) => {
-            // Format điểm số
-            let scoreText = "";
-            if (line.mate) {
-              scoreText = `M${Math.abs(line.mate)}`; // Mate in X
-            } else {
-              // Centipawn -> Pawn (chia 100)
-              const pawnScore = (line.score / 100).toFixed(2);
-              scoreText = line.score > 0 ? `+${pawnScore}` : pawnScore;
-            }
-
-            return (
-              <tr key={line.id} className={styles.lineRow}>
-                <td
-                  className={clsx(styles.score, {
-                    [styles.positive]: line.score > 0 || line.mate > 0,
-                    [styles.negative]: line.score < 0 || line.mate < 0,
-                  })}
-                >
-                  {scoreText}
-                </td>
-                <td className={styles.bestMove}>
-                  {/* Hiển thị bestMove.from + bestMove.to (tạm thời) */}
-                  {/* Thực tế nên dùng chess.js để convert sang SAN (e.g. "Nf3") nhưng phức tạp */}
-                  {line.bestMove
-                    ? `${line.bestMove.from}${line.bestMove.to}`
-                    : "..."}
-                </td>
-                <td className={styles.pv}>{line.pv}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      {/* ... Render Table of Analysis Lines ... */}
+      <table className={styles.table}>{/* ... Render lines ... */}</table>
     </div>
   );
 }

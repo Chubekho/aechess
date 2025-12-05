@@ -3,12 +3,12 @@ import MoveBoard from "../MoveBoard";
 import styles from "./GameInfoPanel.module.scss";
 
 function GameInfoPanel({
-  moveHistory,
-  lastMove,
+  rootNode,
+  currentNode,
+  onNavigate,
+  showVariations = false,
   onResign,
   gameStatus,
-  onNavigate,
-  currentMoveIndex,
 }) {
   return (
     <div className={styles.wrapper}>
@@ -19,11 +19,10 @@ function GameInfoPanel({
 
       <div className={styles.moveListContainer}>
         <MoveBoard
-          history={moveHistory}
-          lastMove={lastMove}
-          gameStatus={gameStatus}
+          rootNode={rootNode}
+          currentNode={currentNode}
           onNavigate={onNavigate}
-          currentMoveIndex={currentMoveIndex}
+          showVariations={showVariations}
         />
       </div>
 

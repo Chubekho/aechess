@@ -212,6 +212,7 @@ function AnalysisPage() {
               rootNode={rootNode}
               currentNode={currentNode} // Node hiện tại để highlight
               onNavigate={handleNavigation}
+              showVariations={true}
             />
           </div>
         </div>

@@ -23,7 +23,12 @@ const MoveNavigator = ({ onNavigate }) => {
 };
 
 // --- Component Chính ---
-function MoveBoard({ rootNode, currentNode, onNavigate }) {
+function MoveBoard({
+  rootNode,
+  currentNode,
+  onNavigate,
+  showVariations = false,
+}) {
   const scrollRef = useRef(null);
   const activeMoveRef = useRef(null);
 
@@ -58,7 +63,7 @@ function MoveBoard({ rootNode, currentNode, onNavigate }) {
   // Helper: Lấy số thứ tự từ FEN
   const getMoveInfo = (node) => {
     const fenParts = node.fen.split(" ");
-    const turn = fenParts[1]; 
+    const turn = fenParts[1];
     const fullMove = parseInt(fenParts[5]);
     const isWhiteMove = turn === "b";
 
@@ -66,7 +71,7 @@ function MoveBoard({ rootNode, currentNode, onNavigate }) {
   };
 
   // --- Component con: Render 1 ô nước đi ---
-  const MoveBox = ({ node }) => { 
+  const MoveBox = ({ node }) => {
     if (!node) return <div className={styles.moveBoxEmpty}>...</div>;
 
     // const { isWhiteMove, moveNumber } = getMoveInfo(node);
@@ -114,8 +119,8 @@ function MoveBoard({ rootNode, currentNode, onNavigate }) {
         if (whiteNode.children.length > 0) {
           blackNode = whiteNode.children[0]; // Nhánh chính
 
-          // 3. Kiểm tra các biến thể của Đen (các con khác của Trắng)
-          if (whiteNode.children.length > 1) {
+          // 3. Kiểm tra điều kiện show variations các biến thể của Đen (các con khác của Trắng)
+          if (showVariations && whiteNode.children.length > 1) {
             // children[1...n] là các nước Đen khác
             whiteNode.children.slice(1).forEach((varNode) => {
               variationsToRender.push(varNode);
@@ -156,7 +161,7 @@ function MoveBoard({ rootNode, currentNode, onNavigate }) {
           </div>
 
           {/* --- RENDER CÁC BIẾN THỂ CON (NẾU CÓ) --- */}
-          {variationsToRender.length > 0 && (
+          {showVariations && variationsToRender.length > 0 && (
             <div className={styles.variationsBlock}>
               {variationsToRender.map((vNode) => (
                 <div key={vNode.id} className={styles.variationItem}>
@@ -173,9 +178,9 @@ function MoveBoard({ rootNode, currentNode, onNavigate }) {
 
       // Nếu vừa render xong cặp Trắng-Đen
       if (blackNode && blackNode.children.length > 0) {
-        current = blackNode.children[0]; 
+        current = blackNode.children[0];
 
-        if (blackNode.children.length > 1) {
+        if (showVariations && blackNode.children.length > 1) {
           const nextWhiteVars = blackNode.children.slice(1);
           rows.push(
             <div

@@ -21,25 +21,12 @@ const difficultyLevels = [
 function PlayAI() {
   const chessGameRef = useRef(new Chess());
   const engine = useRef(null);
-
   const [chessPosition, setChessPosition] = useState(
     chessGameRef.current.fen()
   );
-  const [moveHistory, setMoveHistory] = useState([]);
-  const [lastMove, setLastMove] = useState(null);
-
   const fenHistoryRef = useRef([chessGameRef.current.fen()]);
-  const {
-    currentMoveIndex,
-    setCurrentMoveIndex, // Cần để reset khi start game
-    handleNavigation,
-    snapToEnd,
-  } = useGameNavigation(
-    fenHistoryRef,
-    moveHistory,
-    setChessPosition,
-    setLastMove
-  );
+  const { currentNode, rootNode, handleNavigation, addMove, resetNavigation } =
+    useGameNavigation(setChessPosition);
 
   const [isStarted, setIsStarted] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState(5); // skill default
@@ -47,24 +34,16 @@ function PlayAI() {
   const [playerColor, setPlayerColor] = useState("w");
 
   // Helper: Cập nhật trạng thái game và lịch sử (Dùng chung cho cả AI và Player)
-  const updateGameHistory = (moveSan) => {
-    const newFen = chessGameRef.current.fen();
+  const updateGameHistory = useCallback(
+    (moveSan) => {
+      const newFen = chessGameRef.current.fen();
 
-    // 1. Cập nhật FEN History
-    fenHistoryRef.current.push(newFen);
-
-    // 2. Cập nhật Move History
-    setMoveHistory((prev) => [...prev, moveSan]);
-
-    // 3. Cập nhật Last Move
-    setLastMove(moveSan);
-
-    // 4. Cập nhật vị trí bàn cờ
-    setChessPosition(newFen);
-
-    // 5. Snap thanh điều hướng về cuối
-    snapToEnd();
-  };
+      addMove(moveSan, newFen);
+      fenHistoryRef.current.push(newFen);
+      setChessPosition(newFen);
+    },
+    [addMove]
+  );
 
   // Khởi tạo engine
   // 1. Khởi tạo Engine (Chạy 1 lần duy nhất)
@@ -87,7 +66,7 @@ function PlayAI() {
               promotion: "q",
             });
             if (move) {
-              updateGameHistory(move.san); // <-- SỬA: Dùng helper
+              updateGameHistory(move.san);
             }
           } catch (e) {
             console.error(e);
@@ -96,8 +75,7 @@ function PlayAI() {
       }
     };
     return () => engine.current?.terminate();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isStarted, playerColor, snapToEnd]);
+  }, [isStarted, playerColor, updateGameHistory]);
 
   // 2. Hàm yêu cầu AI đi nước cờ
   const makeAiMove = useCallback(() => {
@@ -117,19 +95,20 @@ function PlayAI() {
   useEffect(() => {
     const game = chessGameRef.current;
     // Chỉ gọi AI nếu đang ở nước đi cuối cùng (không phải đang tua)
-    if (
-      isStarted &&
-      game.turn() !== playerColor &&
-      currentMoveIndex === fenHistoryRef.current.length - 1
-    ) {
+    const isAtLatestMove = currentNode.children.length === 0;
+
+    if (isStarted && game.turn() !== playerColor && isAtLatestMove) {
       setTimeout(makeAiMove, 500);
     }
-  }, [chessPosition, isStarted, playerColor, makeAiMove, currentMoveIndex]);
+  }, [chessPosition, isStarted, playerColor, makeAiMove, currentNode]);
 
   // 3. Xử lý người chơi đi cờ
   const onPieceDrop = useCallback(
     ({ sourceSquare, targetSquare }) => {
       const game = chessGameRef.current;
+
+      // Chặn đi quân nếu đang tua lại quá khứ
+      if (currentNode.children.length > 0) return false;
 
       if (!isStarted || game.isGameOver() || game.turn() !== playerColor)
         return false;
@@ -141,30 +120,28 @@ function PlayAI() {
           promotion: "q",
         });
         console.log(move);
-        
 
         if (!move) return false;
 
-        updateGameHistory(move.san); 
+        updateGameHistory(move.san);
         return true;
       } catch {
         return false;
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isStarted, playerColor, currentMoveIndex, snapToEnd]
+    [isStarted, playerColor, currentNode, addMove]
   );
 
   // 4. Các hàm điều khiển Game
-  // 4. Controls
+  /// 4. Controls
   function handleStartGame() {
     chessGameRef.current.reset();
 
-    // Reset States
-    setMoveHistory([]);
-    setLastMove(null);
-    fenHistoryRef.current = [chessGameRef.current.fen()]; // Reset ref
-    setCurrentMoveIndex(0); // Reset index
+    // Reset Hook
+    resetNavigation(chessGameRef.current.fen());
+
+    fenHistoryRef.current = [chessGameRef.current.fen()];
     setChessPosition(chessGameRef.current.fen());
 
     let finalColor = selectedColor;
@@ -174,13 +151,11 @@ function PlayAI() {
 
     if (finalColor === "b") setTimeout(makeAiMove, 500);
   }
-
   function handleStopGame() {
     setIsStarted(false);
-    chessGameRef.current.reset(); // Reset logic
-    setChessPosition(chessGameRef.current.fen()); // Reset UI
-    setMoveHistory([]);
-    setLastMove(null);
+    chessGameRef.current.reset();
+    resetNavigation(); // Reset cây
+    setChessPosition(chessGameRef.current.fen());
   }
 
   function handleResign() {
@@ -263,13 +238,11 @@ function PlayAI() {
 
             <div className={styles["board-body"]}>
               {isStarted ? (
-                <MoveBoard 
-                  history={moveHistory} 
-                  lastMove={lastMove}
-                  // MỚI: Truyền logic điều hướng xuống
+                <MoveBoard
+                  rootNode={rootNode}
+                  currentNode={currentNode}
                   onNavigate={handleNavigation}
-                  currentMoveIndex={currentMoveIndex}
-                  gameStatus={isStarted ? "playing" : "gameOver"} // Để MoveBoard biết có scroll tự động không
+                  showVariations={false}
                 />
               ) : (
                 renderSetupOptions()

@@ -1,15 +1,30 @@
 import clsx from "clsx";
 import styles from "./EvaluationBar.module.scss";
 
-function EvaluationBar({ evaluation }) {
+function EvaluationBar({ evaluation, gameResult }) {
   let percent = 50; 
   let text = "0.0";
 
-  if (evaluation) {
-    const { type, value } = evaluation; // value giờ đã chứa đúng Mate (+/-)
+  // 1. ƯU TIÊN: Kiểm tra Game Over trước
+  if (gameResult?.isGameOver) {
+    if (gameResult.type === 'checkmate') {
+      if (gameResult.winner === 'w') {
+        percent = 100; // Trắng thắng
+        text = "1-0";
+      } else {
+        percent = 0;   // Đen thắng
+        text = "0-1";
+      }
+    } else {
+      // Hòa
+      percent = 50;
+      text = "½-½";
+    }
+  }
 
-    console.log(value);
-    
+  // 2. Nếu Game chưa kết thúc, dùng data từ Stockfish
+  if (evaluation) {
+    const { type, value } = evaluation;
     // === 1. XỬ LÝ CHIẾU HẾT (MATE) ===
     if (type === "mate") {
       // value > 0: Trắng thắng (Mate +N) -> Full Trắng
@@ -22,10 +37,6 @@ function EvaluationBar({ evaluation }) {
         percent = 0;
         text = `M${Math.abs(value)}`;
       }
-      
-      // Lưu ý: Logic text "0-1" hay "1-0" của bạn bị ngược ở câu hỏi trước.
-      // Mate > 0 là Trắng thắng (1-0), Mate < 0 là Đen thắng (0-1).
-      // Tốt nhất cứ hiện "M1", "M2" cho chuẩn engine.
     } 
     // === 2. XỬ LÝ ĐIỂM SỐ (CENTIPAWN) ===
     else {

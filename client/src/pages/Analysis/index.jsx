@@ -34,6 +34,28 @@ function AnalysisPage() {
   const [depth, setDepth] = useState(18);
   const [multiPV, setMultiPV] = useState(3);
 
+  // Để biết trạng thái của game
+  const gameResult = useMemo(() => {
+    const tempGame = new Chess(fen);
+
+    if (tempGame.isCheckmate()) {
+      // Nếu đến lượt Trắng đi mà bị chiếu hết -> Đen thắng ('b')
+      const winner = tempGame.turn() === "w" ? "b" : "w";
+      return { isGameOver: true, type: "checkmate", winner };
+    }
+
+    if (tempGame.isDraw()) {
+      let reason = "Hòa";
+      if (tempGame.isStalemate()) reason = "Hòa (Stalemate)";
+      if (tempGame.isThreefoldRepetition()) reason = "Hòa (Lặp lại 3 lần)";
+      if (tempGame.isInsufficientMaterial()) reason = "Hòa (Không đủ quân)";
+
+      return { isGameOver: true, type: "draw", reason };
+    }
+
+    return null; // Game chưa kết thúc
+  }, [fen]);
+
   // --- 2. Hooks ---
   const {
     currentNode,
@@ -160,9 +182,13 @@ function AnalysisPage() {
           <EvaluationBar
             evaluation={
               lines[0]
-                ? { type: lines[0].mate ? "mate" : "cp", value: lines[0].mate ? lines[0].mate : lines[0].score}
+                ? {
+                    type: lines[0].mate ? "mate" : "cp",
+                    value: lines[0].mate ? lines[0].mate : lines[0].score,
+                  }
                 : null
             }
+            gameResult={gameResult}
           />
         </div>
 
@@ -204,7 +230,11 @@ function AnalysisPage() {
               multiPV={multiPV}
               setMultiPV={setMultiPV}
             />
-            <EngineOutput lines={lines} isEngineReady={isEngineReady} />
+            <EngineOutput
+              lines={lines}
+              isEngineReady={isEngineReady}
+              gameResult={gameResult}
+            />
           </div>
 
           <div className={styles.moveListSection}>

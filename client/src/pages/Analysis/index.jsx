@@ -12,7 +12,7 @@ import { useAuth, useGameNavigation, useStockfish } from "@/hooks/index";
 
 // Components
 import MoveBoard from "@/components/MoveBoard";
-import EvaluationBar from "@/components/EvaluationBar";
+import EvaluationBar from "@/pages/Analysis/components/EvaluationBar";
 import EngineOutput from "./components/EngineOutput";
 import AnalysisSettings from "./components/AnalysisSettings";
 

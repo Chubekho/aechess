@@ -1,0 +1,79 @@
+/* Import.module.scss */
+@use "sass:color";
+.wrapper {
+  /* Thiết lập nền cho toàn bộ khu vực dưới header */
+  min-height: calc(100vh - var(--header-height));
+  background-color: var(--color-board-dark, #262522);
+  color: var(--color-text-primary, #e3e3e3);
+  padding: 40px 16px;
+  display: flex;
+  justify-content: center; /* Căn giữa form */
+}
+
+.container {
+  width: 100%;
+  max-width: 800px; /* Giới hạn chiều rộng nội dung */
+  padding: 30px;
+  background-color: var(--color-board-control, #302e2c);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.title {
+  font-size: 2.8rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #4a4a4a;
+  padding-bottom: 10px;
+}
+
+.description {
+    color: #b0b0b0;
+    margin-bottom: 15px;
+}
+
+.textarea {
+  /* Khu vực nhập PGN */
+  resize: vertical; /* Chỉ cho phép kéo dãn dọc */
+  min-height: 250px;
+  width: 100%; /* Chiếm toàn bộ chiều rộng container */
+  font-family: monospace; /* Dùng font monospace cho code/PGN */
+  font-size: 1.4rem;
+  padding: 15px;
+  background-color: #2b2927;
+  border: 1px solid #4a4a4a;
+  color: #f0f0f0;
+  border-radius: 5px;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-btn-green, #7fa650);
+  }
+}
+
+.errorText {
+  color: var(--color-text-error); 
+  font-size: 1.4rem;
+  margin-top: 8px;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+.buttonAnalyze {
+  padding: 12px 25px;
+  font-size: 1.6rem;
+  font-weight: 600;
+  background-color: var(--color-btn-green, #7fa650);
+  color: var(--color-text-hover);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  margin-top: 15px;
+  
+  &:hover {
+    background-color: color.adjust(#7fa650, $lightness: -5%);
+  }
+}

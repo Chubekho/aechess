@@ -1,6 +1,6 @@
 // pages/Analysis/index.jsx
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useLocation } from "react-router";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import axios from "axios";
@@ -23,6 +23,7 @@ function AnalysisPage() {
   const { id: gameId } = useParams();
   const { token } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // --- 1. State & Refs ---
 
@@ -74,50 +75,71 @@ function AnalysisPage() {
     isAnalyzing,
   });
 
-  // --- 3. Fetch Game Data ---
+  // --- 3. Fetch & Init Game Data ---
   useEffect(() => {
-    if (!token) return;
+    // Helper: Nạp game vào State & Tree
+    const loadGameToState = (gameInstance) => {
+      // 1. Cập nhật Header
+      setPgnHeaders(gameInstance.header());
 
-    const fetchGame = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:8080/api/games/${gameId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+      // 2. Reset Cây
+      resetNavigation();
 
-        const gameData = res.data;
-        const loadedGame = new Chess();
+      // 3. Nạp lịch sử (Bulk Load)
+      const historyVerbose = gameInstance.history({ verbose: true });
+      loadHistory(historyVerbose);
 
-        // 1. Load PGN từ database
+      // 4. Cập nhật UI về cuối
+      setFen(gameInstance.fen());
+    };
+
+    const initGame = async () => {
+      // CASE 1: Xem lại ván đấu (Có gameId)
+      if (gameId) {
+        if (!token) return; // Đợi token (nếu bắt buộc)
         try {
-          loadedGame.loadPgn(gameData.pgn);
-        } catch (e) {
-          console.error("PGN Lỗi (có thể do version cũ):", e);
+          const res = await axios.get(
+            `http://localhost:8080/api/games/${gameId}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+
+          const loadedGame = new Chess();
+          // Load PGN an toàn
+          try {
+            loadedGame.loadPgn(res.data.pgn);
+          } catch (e) {
+            console.error("PGN Error:", e);
+          }
+
+          loadGameToState(loadedGame);
+        } catch (err) {
+          console.error("Lỗi tải ván đấu:", err);
+          alert("Không thể tải ván đấu.");
+          navigate("/");
+        }
+      }
+      // CASE 2: Chế độ Import hoặc Tự do
+      else {
+        const pgnFromImport = location.state?.pgnInput;
+        const localGame = new Chess();
+
+        if (pgnFromImport) {
+          try {
+            localGame.loadPgn(pgnFromImport);
+          } catch (e) {
+            console.log("PGN error:", e);
+            navigate("/");
+          }
+          // Xóa state để F5 không bị load lại
+          window.history.replaceState({}, document.title);
         }
 
-        // 2. Lưu thông tin Header (Tên người chơi, Elo...)
-        setPgnHeaders(loadedGame.getHeaders());
-
-        // 3. Reset Cây điều hướng về trạng thái ban đầu (Root)
-        resetNavigation();
-
-        // 4. Nạp lại lịch sử vào Cây (Replay)
-        const historyVerbose = loadedGame.history({ verbose: true });
-        loadHistory(historyVerbose);
-        setFen(loadedGame.fen());
-
-        console.log("Game Loaded Successfully. Total Moves:", history.length);
-      } catch (err) {
-        console.error("Lỗi tải ván đấu:", err);
-        alert("Không thể tải ván đấu này.");
-        navigate("/");
+        loadGameToState(localGame);
       }
     };
 
-    fetchGame();
-  }, [gameId, token, navigate, resetNavigation, loadHistory]);
+    initGame();
+  }, [gameId, token, navigate, resetNavigation, loadHistory, location.state]);
 
   // 4. Arrows (Cần cập nhật logic lấy from/to từ Tree)
   const arrows = useMemo(() => {

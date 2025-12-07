@@ -1,140 +1,113 @@
 .wrapper {
-  padding: 20px;
+  /* Layout chung */
+  padding: 20px 16px;
   min-height: calc(100vh - var(--header-height));
-  display: flex; /* Dùng flex cho toàn bộ wrapper */
+  color: var(--color-text-primary, #e3e3e3);
+  
+  /* row của Bootstrap đã có display: flex */
+  align-items: stretch; /* Các cột cao bằng nhau */
 }
 
-.boardContainerFlex {
-  display: flex;
-  justify-content: center;
-  gap: 10px; /* Khoảng cách giữa Bar và Board */
-}
-
-/* Cột 1: Evaluation Bar */
-.evalColumn {
-  width: 30px; /* Cố định chiều rộng */
-  margin-right: 10px;
-  display: flex;
-  justify-content: center;
-  /* Chiều cao sẽ tự fill theo flex container cha */
-}
-
-/* Cột 2: Bàn cờ */
-.boardArea {
+/* --- CỘT 1: PLAYER INFO --- */
+.playerInfoColumn {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  // padding-right: 20px;
+  align-items: center;
+  gap: 20px; /* Khoảng cách giữa 2 hộp */
 }
 
-.board {
-  width: 100%;
-  max-width: 650px; /* Giới hạn độ to của bàn cờ */
-  margin: 0 auto;
+/* --- CỘT 2: BOARD CONTAINER --- */
+.boardContainerFlex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px; /* Khoảng cách giữa EvalBar và Board */
+  height: 90vh;
+}
+
+.evalColumn {
+  width: 24px; /* Cố định chiều rộng thanh đánh giá */
+  height: calc(46vw); /* Cố định chiều cao cho khớp với bàn cờ lớn */
+  display: flex;
+  flex-direction: column;
+}
+
+.boardWrapper {
+  flex: 1;
+  width: 90%; /* Giới hạn kích thước bàn cờ */
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
 
-.playerHeader {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  font-size: 1.6rem;
-
-  .playerName {
-    font-weight: 600;
-  }
-  .playerRating {
-    color: #aaa;
-    font-weight: 300;
-  }
-}
-
-/* Cột 3: Panel bên phải */
+/* --- CỘT 3: ANALYSIS PANEL --- */
 .panelArea {
-  flex: 1; /* Chiếm phần còn lại */
-  min-width: 350px; /* Không được nhỏ quá */
-  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+  max-height: 700px; /* Giới hạn chiều cao panel nếu cần */
+  align-self: center; /* Căn giữa theo chiều dọc của row */
 }
 
 .panelContainer {
   background-color: var(--color-board-control, #302e2c);
   border-radius: 8px;
-  height: 100%; /* Full chiều cao */
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 .panelHeader {
   padding: 15px;
   background-color: #262522;
   border-bottom: 1px solid #444;
-  display: flex; /* Flexbox */
-  justify-content: space-between; /* Căn 2 đầu */
+  display: flex;
+  justify-content: space-between;
   align-items: center;
 
-  h2 {
-    margin: 0;
-    font-size: 1.8rem;
-    font-weight: 500;
-  }
-}
-
-.settingsSection {
-  padding: 10px;
-  border-bottom: 1px solid #444;
+  h2 { margin: 0; font-size: 1.8rem; font-weight: 500; }
 }
 
 .engineOutputSection {
-  flex: 0 0 auto; /* Chiều cao tự động theo nội dung, không co giãn */
-  max-height: 30%; /* Giới hạn chiều cao nếu quá nhiều line */
-  overflow-y: auto;
+  flex: 0 0 auto; /* Không co giãn */
   border-bottom: 1px solid #444;
+  background-color: #2b2927;
 }
 
 .moveListSection {
   flex: 1; /* Chiếm toàn bộ không gian còn lại */
-  overflow: hidden; /* Để MoveBoard tự scroll */
-  display: flex;
+  overflow: hidden; 
+  display: flex; 
   flex-direction: column;
-
-  /* Style đè lên MoveBoard wrapper để nó full height */
-  > div {
-    height: 100%;
-  }
+  
+  /* Đảm bảo MoveBoard con bung ra hết cỡ */
+  > div { height: 100%; }
 }
 
+/* --- TOGGLE SWITCH --- */
 .engineToggle {
   position: relative;
   display: inline-block;
-  width: 40px; /* Nhỏ gọn */
+  width: 40px;
   height: 22px;
-
-  input { 
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
+  input { opacity: 0; width: 0; height: 0; }
 }
 
 .slider {
   position: absolute;
   cursor: pointer;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #555; /* Màu khi tắt */
+  background-color: #555;
   transition: .4s;
   border-radius: 22px;
 
   &:before {
     position: absolute;
     content: "";
-    height: 16px;
-    width: 16px;
-    left: 3px;
-    bottom: 3px;
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
     background-color: white;
     transition: .4s;
     border-radius: 50%;
@@ -142,46 +115,8 @@
 }
 
 input:checked + .slider {
-  background-color: var(--color-btn-green, #7fa650); /* Màu khi bật */
+  background-color: var(--color-btn-green, #7fa650);
 }
-
 input:checked + .slider:before {
-  transform: translateX(18px); /* Di chuyển chấm tròn */
-}
-
-/* Style cho thông báo Paused */
-.enginePaused {
-  padding: 20px;
-  text-align: center;
-  color: #666;
-  font-style: italic;
-  font-size: 1.4rem;
-}
-
-.loading {
-  padding: 20px;
-  text-align: center;
-  color: #888;
-  font-style: italic;
-  min-height: 100px; /* Thêm min-height để giữ chỗ */
-}
-
-/* MỚI: Style cho kết quả cuối cùng */
-.resultDisplay {
-  padding: 20px;
-  text-align: center;
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: #c0c0c0;
-  background-color: #3c3934;
-  /* Đảm bảo nó có cùng chiều cao với loading */
-  min-height: 100px; 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  /* Màu text cho người thắng */
-  .winner {
-    color: var(--color-btn-green, #7fa650);
-  }
+  transform: translateX(18px);
 }

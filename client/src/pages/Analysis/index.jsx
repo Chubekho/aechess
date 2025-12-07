@@ -15,6 +15,7 @@ import MoveBoard from "@/components/MoveBoard";
 import EvaluationBar from "@/pages/Analysis/components/EvaluationBar";
 import EngineOutput from "./components/EngineOutput";
 import AnalysisSettings from "./components/AnalysisSettings";
+import PlayerInfoBox from "@/components/PlayerInfoBox";
 
 // FEN chuẩn của bàn cờ vua khi bắt đầu
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -202,8 +203,30 @@ function AnalysisPage() {
 
   return (
     <div className={clsx(styles.wrapper, "row", "gx-6")}>
-      <div className={clsx("col-1")} />
+      {/* --- CỘT 1 (3/12): THÔNG TIN NGƯỜI CHƠI --- */}
+      <div className={clsx("col-3", styles.playerInfoColumn)}>
+        {/* Player B (Black) */}
+        <PlayerInfoBox
+          player={{
+            name: pgnHeaders.Black || "Black",
+            rating: pgnHeaders.BlackElo,
+          }}
+          timeControl={pgnHeaders.TimeControl}
+          variant="top"
+        />
 
+        {/* Player A (White) */}
+        <PlayerInfoBox
+          player={{
+            name: pgnHeaders.White || "White",
+            rating: pgnHeaders.WhiteElo,
+          }}
+          timeControl={pgnHeaders.TimeControl}
+          variant="bottom"
+        />
+      </div>
+
+      {/* --- CỘT 2 (6/12): BÀN CỜ + EVAL BAR --- */}
       <div className={clsx("col-6", styles.boardContainerFlex)}>
         <div className={styles.evalColumn}>
           <EvaluationBar
@@ -221,36 +244,15 @@ function AnalysisPage() {
         </div>
 
         <div className={styles.boardWrapper}>
-          <div className={styles.playerHeader}>
-            <span className={styles.playerName}>
-              {pgnHeaders.Black || "Black"}
-            </span>
-            <span className={styles.playerRating}>
-              ({pgnHeaders.BlackElo || "?"})
-            </span>
-          </div>
-
-          <div className={styles.board}>
-            <Chessboard options={chessboardOptions} />
-          </div>
-
-          <div className={styles.playerHeader}>
-            <span className={styles.playerName}>
-              {pgnHeaders.White || "White"}
-            </span>
-            <span className={styles.playerRating}>
-              ({pgnHeaders.WhiteElo || "?"})
-            </span>
-          </div>
+          <Chessboard options={chessboardOptions} />
         </div>
       </div>
 
-      <div className={clsx("col-2", styles.panelArea)}>
+      {/* --- CỘT 3 (3/12): PANEL PHÂN TÍCH --- */}
+      <div className={clsx("col-3", styles.panelArea)}>
         <div className={styles.panelContainer}>
           <div className={styles.panelHeader}>
             <h2>Phân tích & Engine</h2>
-
-            {/* Nút Toggle Switch */}
             <label className={styles.engineToggle}>
               <input
                 type="checkbox"
@@ -271,15 +273,15 @@ function AnalysisPage() {
             <EngineOutput
               lines={lines}
               isEngineReady={isEngineReady}
-              isAnalyzing={isAnalyzing} // <-- TRUYỀN FLAG ENGINE
-              gameResult={gameResult} // <-- TRUYỀN KẾT QUẢ GAME
+              isAnalyzing={isAnalyzing}
+              gameResult={gameResult}
             />
           </div>
 
           <div className={styles.moveListSection}>
             <MoveBoard
               rootNode={rootNode}
-              currentNode={currentNode} // Node hiện tại để highlight
+              currentNode={currentNode}
               onNavigate={handleNavigation}
               showVariations={true}
             />

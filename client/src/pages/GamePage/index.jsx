@@ -32,7 +32,6 @@ function GamePage() {
     handleNavigation,
     addMove,
     resetNavigation,
-    // loadHistory // (Dùng hàm này nếu muốn load 1 lèo)
   } = useGameNavigation(setFen);
 
   // --- 1. Component Đồng hồ (Clock) ---
@@ -209,6 +208,9 @@ function GamePage() {
       : null;
   const opponentColor = myColor === "w" ? "b" : "w";
 
+  const topPlayerSide = opponentColor === "w" ? "white" : "black";
+  const bottomPlayerSide = myColor === "w" ? "white" : "black";
+
   const chessboardOptions = useMemo(
     () => ({
       position: fen,
@@ -220,33 +222,53 @@ function GamePage() {
   );
 
   return (
-    <div className={clsx(styles.wrapper, "row", "gx-5")}>
-      <div className={clsx("col-3", styles["col-height"])} />
-      <div className={clsx("col-5", styles.boardArea, styles["col-height"])}>
-        <PlayerInfoBox
-          player={opponent}
-          clock={clocks[opponentColor]}
-          isTurn={
-            gameStatus === "playing" && gameRef.current.turn() === opponentColor
-          }
+    <div className={clsx(styles.wrapper, "row", "gx-6")}>
+      {/* --- CỘT 1 (3/12): THÔNG TIN NGƯỜI CHƠI --- */}
+      <div className={clsx("col-3", styles.playerInfoColumn)}>
+        {/* Đối thủ (Luôn ở trên) */}
+        <div className={styles.playerBlock}>
+          <PlayerInfoBox
+            player={opponent}
+            timeControl={clocks[opponentColor]} // Truyền giây còn lại vào
+            variant="top"
+            side={topPlayerSide}
+          />
+        </div>
+
+        {/* Divider */}
+        <div
+          style={{
+            height: "1px",
+            backgroundColor: "#3a3836",
+            margin: "15px 0",
+            width: "60%",
+          }}
         />
+
+        {/* Mình (Luôn ở dưới) */}
+        <div className={styles.playerBlock}>
+          <PlayerInfoBox
+            player={me}
+            timeControl={clocks[myColor]} // Truyền giây còn lại vào
+            variant="bottom"
+            side={bottomPlayerSide}
+          />
+        </div>
+      </div>
+
+      <div className={clsx("col-6", styles.boardArea, styles["col-height"])}>
+        
         <div className={styles.board}>
           <Chessboard options={chessboardOptions} />
         </div>
-        <PlayerInfoBox
-          player={me}
-          clock={clocks[myColor]}
-          isTurn={
-            gameStatus === "playing" && gameRef.current.turn() === myColor
-          }
-        />
+        
       </div>
       <div className={clsx("col-3", styles.panelArea, styles["col-height"])}>
         <GameInfoPanel
           rootNode={rootNode}
           currentNode={currentNode}
           onNavigate={handleNavigation}
-          showVariations={false} 
+          showVariations={false}
           onResign={handleResign}
           gameStatus={gameStatus}
         />

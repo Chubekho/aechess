@@ -28,6 +28,18 @@
   flex-direction: column;
 }
 
-// .col-height {
-//   max-height: 80vh;
-// }
+.playerInfoColumn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px 0;
+  align-items: center;
+}
+
+.playerBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Căn giữa InfoBox */
+  gap: 10px;
+  width: 100%;
+}

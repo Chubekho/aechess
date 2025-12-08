@@ -28,7 +28,7 @@ const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 function AnalysisPage() {
   const { id: gameId } = useParams();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -38,6 +38,7 @@ function AnalysisPage() {
   const [fen, setFen] = useState(START_FEN);
   const [pgnHeaders, setPgnHeaders] = useState({});
   const [pgn, setPgn] = useState(null);
+  const [boardOrientation, setBoardOrientation] = useState("white");
 
   // Engine Settings
   const [depth, setDepth] = useState(18);
@@ -95,16 +96,13 @@ function AnalysisPage() {
     const loadGameToState = (gameInstance) => {
       setPgnHeaders(gameInstance.header());
       setPgn(gameInstance.pgn());
-
-      // 2. Reset Cây
       resetNavigation();
 
-      // 3. Nạp lịch sử (Bulk Load)
       const historyVerbose = gameInstance.history({ verbose: true });
       loadHistory(historyVerbose);
 
-      // 4. Cập nhật UI về cuối
       setFen(gameInstance.fen());
+      return gameInstance.header();
     };
 
     const initGame = async () => {
@@ -112,20 +110,39 @@ function AnalysisPage() {
       if (gameId) {
         if (!token) return; // Đợi token (nếu bắt buộc)
         try {
-          const res = await axios.get(
-            `http://localhost:8080/api/games/${gameId}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-
+          // 1. Gọi song song API lấy Game và API lấy thông tin User hiện tại
+          const [gameRes, userRes] = await Promise.all([
+            axios.get(`http://localhost:8080/api/games/${gameId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            axios.get(`http://localhost:8080/api/users/${user.id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+          ]);
+          // 2. Load Game
           const loadedGame = new Chess();
-          // Load PGN an toàn
           try {
-            loadedGame.loadPgn(res.data.pgn);
+            loadedGame.loadPgn(gameRes.data.pgn);
           } catch (e) {
             console.error("PGN Error:", e);
           }
+          const headers = loadGameToState(loadedGame);
 
-          loadGameToState(loadedGame);
+          // 3. LOGIC SET ORIENTATION
+          const currentDisplayName = userRes.data.displayName;
+          const blackPlayerName = headers?.Black;
+
+          // Nếu tên User hiện tại trùng với tên người cầm quân Đen -> Xoay bàn
+          if (
+            currentDisplayName &&
+            blackPlayerName &&
+            currentDisplayName === blackPlayerName
+          ) {
+            setBoardOrientation("black");
+          } else {
+            // Trường hợp còn lại (Quân Trắng hoặc Không trùng tên) -> Mặc định Trắng
+            setBoardOrientation("white");
+          }
         } catch (err) {
           console.error("Lỗi tải ván đấu:", err);
           alert("Không thể tải ván đấu.");
@@ -149,13 +166,22 @@ function AnalysisPage() {
         }
 
         loadGameToState(localGame);
+        setBoardOrientation("white");
       }
     };
 
     initGame();
-  }, [gameId, token, navigate, resetNavigation, loadHistory, location.state]);
+  }, [
+    gameId,
+    token,
+    user,
+    navigate,
+    resetNavigation,
+    loadHistory,
+    location.state,
+  ]);
 
-  // --- 5. AUTO RUN ANALYSIS (FIXED) ---
+  // --- 5. AUTO RUN ANALYSIS ---
   useEffect(() => {
     // Logic sạch: Chỉ chạy khi có biến 'pgn' (chuỗi string) hợp lệ
     if (pgn && !isReportAnalyzing && !report) {
@@ -168,7 +194,6 @@ function AnalysisPage() {
   const arrows = useMemo(() => {
     const result = [];
 
-    // B. Engine Arrows
     if (isAnalyzing && lines.length > 0) {
       lines.forEach((line, index) => {
         if (line.bestMove) {
@@ -187,7 +212,12 @@ function AnalysisPage() {
     return result;
   }, [lines, isAnalyzing]);
 
-  // 5. Logic OnPieceDrop (Đơn giản hơn rất nhiều)
+  // Hàm đảo ngược bàn cờ thủ công
+  const handleFlipBoard = () => {
+    setBoardOrientation((prev) => (prev === "white" ? "black" : "white"));
+  };
+
+  // 5. Logic OnPieceDrop
   const onPieceDrop = useCallback(
     ({ sourceSquare, targetSquare }) => {
       const tempGame = new Chess(fen);
@@ -212,65 +242,89 @@ function AnalysisPage() {
     [fen, addMove]
   );
 
+  // --- LOGIC RENDER PLAYER INFO BOX ---
+  // Xác định ai nằm trên (Top) ai nằm dưới (Bottom) dựa vào orientation
+  const isFlipped = boardOrientation === "black";
+
+  // Data người chơi
+  const whitePlayerInfo = {
+    name: pgnHeaders.White || "White",
+    rating: pgnHeaders.WhiteElo,
+  };
+  const blackPlayerInfo = {
+    name: pgnHeaders.Black || "Black",
+    rating: pgnHeaders.BlackElo,
+  };
+
+  // Data Report (nếu có)
+  const whiteReport = report?.white;
+  const blackReport = report?.black;
+
+  // Xác định Top/Bottom Component data
+  // Nếu Board White: Top là Đen, Bottom là Trắng
+  // Nếu Board Black (Flipped): Top là Trắng, Bottom là Đen
+  const topPlayer = isFlipped ? whitePlayerInfo : blackPlayerInfo;
+  const topReport = isFlipped ? whiteReport : blackReport;
+  const topSide = isFlipped ? "white" : "black"; // Side để quyết định màu Avatar
+
+  const bottomPlayer = isFlipped ? blackPlayerInfo : whitePlayerInfo;
+  const bottomReport = isFlipped ? blackReport : whiteReport;
+  const bottomSide = isFlipped ? "black" : "white";
+
   const chessboardOptions = useMemo(
     () => ({
       position: fen,
       arrows,
       onPieceDrop: onPieceDrop,
       id: "PlayVsPerson",
-      boardOrientation: "white",
+      boardOrientation: boardOrientation,
     }),
-    [fen, onPieceDrop, arrows]
+    [fen, onPieceDrop, arrows, boardOrientation]
   );
 
   const Divider = () => (
-    <div style={{ 
-      height: '1px', 
-      backgroundColor: '#3a3836', 
-      margin: '15px 0',
-      width: '100%' 
-    }} />
+    <div
+      style={{
+        height: "1px",
+        backgroundColor: "#3a3836",
+        margin: "15px 0",
+        width: "100%",
+      }}
+    />
   );
 
   return (
     <div className={clsx(styles.wrapper, "row", "gx-6")}>
       {/* --- CỘT 1 (TRÁI): THÔNG TIN PLAYER & REPORT --- */}
       <div className={clsx("col-3", styles.playerInfoColumn)}>
-        {/* --- KHỐI NGƯỜI CHƠI ĐEN (Ở TRÊN) --- */}
+        {/* PLAYER Ở TRÊN (TOP) */}
         <div className={styles.playerBlock}>
           <PlayerInfoBox
-            player={{
-              name: pgnHeaders.Black || "Black",
-              rating: pgnHeaders.BlackElo,
-            }}
+            player={topPlayer}
             timeControl={pgnHeaders.TimeControl}
-            variant="top" // Layout tên trước, giờ sau
-            side="black"
+            variant="top"
+            side={topSide}
           />
-          {/* Hiển thị Report Đen ngay dưới Info */}
-          {!isReportAnalyzing && report && (
+          {!isReportAnalyzing && topReport && (
             <div className={styles.reportWrapper}>
-              <PlayerReportCard stats={report.black} />
+              <PlayerReportCard stats={topReport} />
             </div>
           )}
         </div>
 
         <Divider />
 
+        {/* PLAYER Ở DƯỚI (BOTTOM) */}
         <div className={styles.playerBlock}>
           <PlayerInfoBox
-            player={{
-              name: pgnHeaders.White || "White",
-              rating: pgnHeaders.WhiteElo,
-            }}
+            player={bottomPlayer}
             timeControl={pgnHeaders.TimeControl}
-            variant="bottom" // Layout giờ trước, tên sau
-            side="white"
+            variant="bottom"
+            side={bottomSide}
           />
-
-          {!isReportAnalyzing && report && (
+          {!isReportAnalyzing && bottomReport && (
             <div className={styles.reportWrapper}>
-              <PlayerReportCard stats={report.white} />
+              <PlayerReportCard stats={bottomReport} />
             </div>
           )}
         </div>
@@ -295,6 +349,13 @@ function AnalysisPage() {
 
         <div className={styles.boardWrapper}>
           <Chessboard options={chessboardOptions} />
+          <button
+            className={styles.flipBtn}
+            onClick={handleFlipBoard}
+            title="Xoay bàn cờ"
+          >
+            <i className="fa-solid fa-retweet"></i>
+          </button>
         </div>
       </div>
 

@@ -11,7 +11,7 @@ function PlayerInfoBox({
   // variant = 'top' (Cho Đen: Tên ở trên, Giờ ở dưới)
   // variant = 'bottom' (Cho Trắng: Giờ ở trên, Tên ở dưới)
 
-  const name = player?.name || "Unknown"; 
+  const name = player?.name || player?.displayName || "Unknown"; 
   const rating = player?.rating ? `(${player.rating})` : "";
 
   const formattedTime = formatTimeControl(timeControl);

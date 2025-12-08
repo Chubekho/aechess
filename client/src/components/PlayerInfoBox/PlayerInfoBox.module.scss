@@ -29,6 +29,17 @@
   color: #000000;
 }
 
+.avatarBlack {
+  background-color: #e0e0e0; 
+  color: #1a1a1a;            
+}
+
+/* Class cho quân Trắng (side="white") */
+.avatarWhite {
+  background-color: #555555; 
+  color: #f0f0f0;            
+}
+
 .textDetails {
   display: flex;
   flex-direction: column;

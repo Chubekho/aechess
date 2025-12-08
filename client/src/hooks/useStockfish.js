@@ -46,8 +46,6 @@ export const useStockfish = (fen, { depth = 18, multiPV = 1, isAnalyzing = true 
         const multipvMatch = msg.match(/multipv (\d+)/);
         const lineIndex = multipvMatch ? parseInt(multipvMatch[1]) - 1 : 0;
 
-        // --- SỬA LỖI ĐIỂM SỐ (Evaluation Flip) ---
-
         // 1. Xác định lượt đi từ FEN hiện tại
         const turn = fen.split(" ")[1]; // 'w' hoặc 'b'
 

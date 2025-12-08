@@ -1,0 +1,79 @@
+.reportContainer {
+  width: 100%;
+  background-color: #262421; /* Nền tối nhẹ */
+  padding: 10px 0; /* Padding trên dưới */
+  border-radius: 5px;
+  font-size: 1.3rem;
+}
+
+/* Accuracy Row */
+.accuracyRow {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 5px;
+}
+
+.accLabel {
+  color: var(--color-text-hover);
+  margin-left: 10px;
+  font-size: 1.5rem;
+}
+
+.accValue {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff;
+  margin-right: 10px;
+
+  &.high {
+    color: #96bc4b;
+  } /* Xanh */
+  &.med {
+    color: #f0c15c;
+  } /* Vàng */
+  &.low {
+    color: #fa5c5c;
+  } /* Đỏ */
+}
+
+/* Stats List - Xếp dọc */
+.statsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Khoảng cách giữa các dòng */
+}
+
+.statItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.03); /* Highlight nhẹ từng dòng */
+
+  .left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .icon {
+    width: 20px;
+    text-align: center;
+  }
+
+  .label {
+    color: #ccc;
+    font-size: 1.3rem;
+  }
+
+  .value {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.3rem;
+    margin-right: 10px;
+  }
+}

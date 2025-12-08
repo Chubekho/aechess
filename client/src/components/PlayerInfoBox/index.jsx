@@ -1,18 +1,30 @@
 import styles from "./PlayerInfoBox.module.scss";
 import clsx from "clsx";
+import { formatTimeControl } from "@/utils/gameHelpers";
 
-function PlayerInfoBox({ player, timeControl, variant = "bottom" }) {
+function PlayerInfoBox({
+  player,
+  timeControl,
+  variant = "bottom",
+  side = "white",
+}) {
   // variant = 'top' (Cho Đen: Tên ở trên, Giờ ở dưới)
   // variant = 'bottom' (Cho Trắng: Giờ ở trên, Tên ở dưới)
 
-  const name = player?.name || "Unknown"; // Sửa lại key cho phù hợp với pgnHeaders
+  const name = player?.name || "Unknown"; 
   const rating = player?.rating ? `(${player.rating})` : "";
+
+  const formattedTime = formatTimeControl(timeControl);
+
+  const avatarClass = clsx(styles.avatar, {
+    [styles.avatarBlack]: side === "black",
+    [styles.avatarWhite]: side === "white",
+  });
 
   // Render khối thông tin (Avatar + Tên + Rating)
   const InfoBlock = () => (
     <div className={styles.info}>
-      <div className={styles.avatar}>
-        {/* Placeholder Avatar */}
+      <div className={avatarClass}>
         <i className="fa-solid fa-user"></i>
       </div>
       <div className={styles.textDetails}>
@@ -24,9 +36,7 @@ function PlayerInfoBox({ player, timeControl, variant = "bottom" }) {
 
   // Render đồng hồ (Chỉ hiển thị text Time Control)
   const ClockBlock = () => (
-    <div className={styles.clock}>
-      {timeControl || "00:00"}
-    </div>
+    <div className={styles.clock}>{formattedTime}</div>
   );
 
   return (

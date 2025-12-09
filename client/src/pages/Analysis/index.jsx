@@ -1,9 +1,8 @@
 // pages/Analysis/index.jsx
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { useParams, useNavigate, useLocation } from "react-router";
+import { useParams, useLocation } from "react-router";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import axios from "axios";
 import clsx from "clsx";
 import styles from "./Analysis.module.scss";
 
@@ -14,6 +13,8 @@ import {
   useStockfish,
   useFullGameAnalysis,
 } from "@/hooks/index";
+
+import { useAnalysisData } from "./hooks/useAnalysisData";
 
 // Components
 import MoveBoard from "@/components/MoveBoard";
@@ -29,7 +30,7 @@ const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 function AnalysisPage() {
   const { id: gameId } = useParams();
   const { token, user } = useAuth();
-  const navigate = useNavigate();
+
   const location = useLocation();
 
   // --- 1. State & Refs ---
@@ -43,10 +44,30 @@ function AnalysisPage() {
   // Engine Settings
   const [depth, setDepth] = useState(18);
   const [multiPV, setMultiPV] = useState(3);
-
   const [isAnalyzing, setIsAnalyzing] = useState(true);
 
-  // Để biết trạng thái của game
+  // --- 2. Game Logic Hooks ---
+  const {
+    currentNode,
+    rootNode,
+    handleNavigation,
+    addMove,
+    resetNavigation,
+    loadHistory,
+  } = useGameNavigation(setFen);
+
+  // --- FETCH DATA HOOK ---
+  // Gọi hook và truyền các hàm setter vào
+  const { loading } = useAnalysisData(gameId, token, user, location.state, {
+    setPgnHeaders,
+    setPgn,
+    resetNavigation,
+    loadHistory,
+    setFen,
+    setBoardOrientation,
+  });
+
+  // --- Engine & Analysis Hooks ---
   const gameResult = useMemo(() => {
     const tempGame = new Chess(fen);
 
@@ -64,19 +85,8 @@ function AnalysisPage() {
 
       return { isGameOver: true, type: "draw", reason };
     }
-
     return null; // Game chưa kết thúc
   }, [fen]);
-
-  // --- 2. Hooks ---
-  const {
-    currentNode,
-    rootNode,
-    handleNavigation,
-    addMove,
-    resetNavigation,
-    loadHistory,
-  } = useGameNavigation(setFen);
 
   const { lines, isEngineReady } = useStockfish(fen, {
     depth,
@@ -92,90 +102,10 @@ function AnalysisPage() {
   } = useFullGameAnalysis();
 
   // --- 3. Fetch & Init Game Data ---
-  useEffect(() => {
-    const loadGameToState = (gameInstance) => {
-      setPgnHeaders(gameInstance.header());
-      setPgn(gameInstance.pgn());
-      resetNavigation();
-
-      const historyVerbose = gameInstance.history({ verbose: true });
-      loadHistory(historyVerbose);
-
-      setFen(gameInstance.fen());
-      return gameInstance.header();
-    };
-
-    const initGame = async () => {
-      // CASE 1: Xem lại ván đấu (Có gameId)
-      if (gameId) {
-        if (!token) return; // Đợi token (nếu bắt buộc)
-        try {
-          // 1. Gọi song song API lấy Game và API lấy thông tin User hiện tại
-          const [gameRes, userRes] = await Promise.all([
-            axios.get(`http://localhost:8080/api/games/${gameId}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-            axios.get(`http://localhost:8080/api/users/${user.id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
-          ]);
-          // 2. Load Game
-          const loadedGame = new Chess();
-          try {
-            loadedGame.loadPgn(gameRes.data.pgn);
-          } catch (e) {
-            console.error("PGN Error:", e);
-          }
-          const headers = loadGameToState(loadedGame);
-
-          // 3. LOGIC SET ORIENTATION
-          const currentDisplayName = userRes.data.displayName;
-          const blackPlayerName = headers?.Black;
-
-          // Nếu tên User hiện tại trùng với tên người cầm quân Đen -> Xoay bàn
-          if (
-            currentDisplayName &&
-            blackPlayerName &&
-            currentDisplayName === blackPlayerName
-          ) {
-            setBoardOrientation("black");
-          } else {
-            // Trường hợp còn lại (Quân Trắng hoặc Không trùng tên) -> Mặc định Trắng
-            setBoardOrientation("white");
-          }
-        } catch (err) {
-          console.error("Lỗi tải ván đấu:", err);
-          alert("Không thể tải ván đấu.");
-          navigate("/");
-        }
-      }
-      // CASE 2: Chế độ Import hoặc Tự do
-      else {
-        const pgnFromImport = location.state?.pgnInput;
-        const localGame = new Chess();
-
-        if (pgnFromImport) {
-          try {
-            localGame.loadPgn(pgnFromImport);
-          } catch (e) {
-            console.log("PGN error:", e);
-            navigate("/");
-          }
-          // Xóa state để F5 không bị load lại
-          window.history.replaceState({}, document.title);
-        }
-
-        loadGameToState(localGame);
-        setBoardOrientation("white");
-      }
-    };
-
-    initGame();
-  }, [
+  useEffect(() => {}, [
     gameId,
     token,
     user,
-    navigate,
     resetNavigation,
     loadHistory,
     location.state,
@@ -183,14 +113,41 @@ function AnalysisPage() {
 
   // --- 5. AUTO RUN ANALYSIS ---
   useEffect(() => {
-    // Logic sạch: Chỉ chạy khi có biến 'pgn' (chuỗi string) hợp lệ
     if (pgn && !isReportAnalyzing && !report) {
-      console.log("🚀 Auto-running Game Report...");
       runAnalysis(pgn);
     }
   }, [pgn, isReportAnalyzing, report, runAnalysis]);
 
-  // 4. Arrows (Cần cập nhật logic lấy from/to từ Tree)
+  // --- 6. Helper & Handlers ---
+  // Hàm đảo ngược bàn cờ thủ công
+  const handleFlipBoard = () => {
+    setBoardOrientation((prev) => (prev === "white" ? "black" : "white"));
+  };
+
+  // 5. Logic OnPieceDrop
+  const onPieceDrop = useCallback(
+    ({ sourceSquare, targetSquare }) => {
+      const tempGame = new Chess(fen);
+      try {
+        const move = tempGame.move({
+          from: sourceSquare,
+          to: targetSquare,
+          promotion: "q",
+        });
+        if (!move) return false;
+        addMove(move.san, tempGame.fen());
+        setFen(tempGame.fen());
+        return true;
+      } catch (e) {
+        console.log(e);
+        return false;
+      }
+    },
+    [fen, addMove]
+  );
+
+
+  // 4. Arrows logic
   const arrows = useMemo(() => {
     const result = [];
 
@@ -212,63 +169,17 @@ function AnalysisPage() {
     return result;
   }, [lines, isAnalyzing]);
 
-  // Hàm đảo ngược bàn cờ thủ công
-  const handleFlipBoard = () => {
-    setBoardOrientation((prev) => (prev === "white" ? "black" : "white"));
-  };
-
-  // 5. Logic OnPieceDrop
-  const onPieceDrop = useCallback(
-    ({ sourceSquare, targetSquare }) => {
-      const tempGame = new Chess(fen);
-      try {
-        const move = tempGame.move({
-          from: sourceSquare,
-          to: targetSquare,
-          promotion: "q",
-        });
-
-        if (!move) return false;
-
-        addMove(move.san, tempGame.fen());
-        setFen(tempGame.fen());
-
-        return true;
-      } catch (e) {
-        console.log(e);
-        return false;
-      }
-    },
-    [fen, addMove]
-  );
-
-  // --- LOGIC RENDER PLAYER INFO BOX ---
-  // Xác định ai nằm trên (Top) ai nằm dưới (Bottom) dựa vào orientation
+  // Player Info & Layout Data
   const isFlipped = boardOrientation === "black";
-
-  // Data người chơi
-  const whitePlayerInfo = {
-    name: pgnHeaders.White || "White",
-    rating: pgnHeaders.WhiteElo,
-  };
-  const blackPlayerInfo = {
-    name: pgnHeaders.Black || "Black",
-    rating: pgnHeaders.BlackElo,
-  };
-
-  // Data Report (nếu có)
-  const whiteReport = report?.white;
-  const blackReport = report?.black;
-
-  // Xác định Top/Bottom Component data
-  // Nếu Board White: Top là Đen, Bottom là Trắng
-  // Nếu Board Black (Flipped): Top là Trắng, Bottom là Đen
+  const whitePlayerInfo = { name: pgnHeaders.White || "White", rating: pgnHeaders.WhiteElo };
+  const blackPlayerInfo = { name: pgnHeaders.Black || "Black", rating: pgnHeaders.BlackElo };
+  
   const topPlayer = isFlipped ? whitePlayerInfo : blackPlayerInfo;
-  const topReport = isFlipped ? whiteReport : blackReport;
-  const topSide = isFlipped ? "white" : "black"; // Side để quyết định màu Avatar
+  const topReport = isFlipped ? report?.white : report?.black;
+  const topSide = isFlipped ? "white" : "black";
 
   const bottomPlayer = isFlipped ? blackPlayerInfo : whitePlayerInfo;
-  const bottomReport = isFlipped ? blackReport : whiteReport;
+  const bottomReport = isFlipped ? report?.black : report?.white;
   const bottomSide = isFlipped ? "black" : "white";
 
   const chessboardOptions = useMemo(
@@ -292,6 +203,8 @@ function AnalysisPage() {
       }}
     />
   );
+
+  if (loading) return <div className="text-center p-5">Loading game data...</div>;
 
   return (
     <div className={clsx(styles.wrapper, "row", "gx-6")}>

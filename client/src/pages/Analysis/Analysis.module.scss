@@ -39,7 +39,6 @@
 
 /* --- CỘT 2: BOARD CONTAINER --- */
 .boardContainerFlex {
-  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -72,6 +71,8 @@
 }
 
 .panelContainer {
+  position: relative;
+
   background-color: var(--color-board-control, #302e2c);
   border-radius: 8px;
   height: 100%;
@@ -79,6 +80,7 @@
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  overflow: visible;
 }
 
 .panelHeader {
@@ -160,8 +162,8 @@ input:checked + .slider:before {
 
 .flipBtn {
   position: absolute;
-  top: 0px; 
-  right: 0px;
+  top: -36px; 
+  left: 0px;
   background-color: transparent;
   border: none;
   color: #999;

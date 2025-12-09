@@ -349,6 +349,12 @@ function AnalysisPage() {
 
         <div className={styles.boardWrapper}>
           <Chessboard options={chessboardOptions} />
+        </div>
+      </div>
+
+      {/* --- CỘT 3 (3/12): PANEL PHÂN TÍCH --- */}
+      <div className={clsx("col-3", styles.panelArea)}>
+        <div className={styles.panelContainer}>
           <button
             className={styles.flipBtn}
             onClick={handleFlipBoard}
@@ -356,12 +362,6 @@ function AnalysisPage() {
           >
             <i className="fa-solid fa-retweet"></i>
           </button>
-        </div>
-      </div>
-
-      {/* --- CỘT 3 (3/12): PANEL PHÂN TÍCH --- */}
-      <div className={clsx("col-3", styles.panelArea)}>
-        <div className={styles.panelContainer}>
           <div className={styles.panelHeader}>
             <h2>Phân tích & Engine</h2>
             <label className={styles.engineToggle}>

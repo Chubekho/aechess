@@ -15,6 +15,7 @@ import {
 } from "@/hooks/index";
 
 import { useAnalysisData } from "./hooks/useAnalysisData";
+import { getPlayerLayout } from "@/utils/chessUtils";
 
 // Components
 import MoveBoard from "@/components/MoveBoard";
@@ -146,7 +147,6 @@ function AnalysisPage() {
     [fen, addMove]
   );
 
-
   // 4. Arrows logic
   const arrows = useMemo(() => {
     const result = [];
@@ -170,17 +170,23 @@ function AnalysisPage() {
   }, [lines, isAnalyzing]);
 
   // Player Info & Layout Data
-  const isFlipped = boardOrientation === "black";
-  const whitePlayerInfo = { name: pgnHeaders.White || "White", rating: pgnHeaders.WhiteElo };
-  const blackPlayerInfo = { name: pgnHeaders.Black || "Black", rating: pgnHeaders.BlackElo };
-  
-  const topPlayer = isFlipped ? whitePlayerInfo : blackPlayerInfo;
-  const topReport = isFlipped ? report?.white : report?.black;
-  const topSide = isFlipped ? "white" : "black";
+  const whitePlayerInfo = {
+    name: pgnHeaders.White || "White",
+    rating: pgnHeaders.WhiteElo,
+  };
+  const blackPlayerInfo = {
+    name: pgnHeaders.Black || "Black",
+    rating: pgnHeaders.BlackElo,
+  };
 
-  const bottomPlayer = isFlipped ? blackPlayerInfo : whitePlayerInfo;
-  const bottomReport = isFlipped ? report?.black : report?.white;
-  const bottomSide = isFlipped ? "black" : "white";
+  // 2. Gọi Helper (Truyền cả Report)
+  const { top, bottom } = getPlayerLayout(
+    boardOrientation,
+    whitePlayerInfo,
+    blackPlayerInfo,
+    report?.white,
+    report?.black
+  );
 
   const chessboardOptions = useMemo(
     () => ({
@@ -204,7 +210,8 @@ function AnalysisPage() {
     />
   );
 
-  if (loading) return <div className="text-center p-5">Loading game data...</div>;
+  if (loading)
+    return <div className="text-center p-5">Loading game data...</div>;
 
   return (
     <div className={clsx(styles.wrapper, "row", "gx-6")}>
@@ -213,14 +220,14 @@ function AnalysisPage() {
         {/* PLAYER Ở TRÊN (TOP) */}
         <div className={styles.playerBlock}>
           <PlayerInfoBox
-            player={topPlayer}
+            player={top.player}
             timeControl={pgnHeaders.TimeControl}
             variant="top"
-            side={topSide}
+            side={top.side}
           />
-          {!isReportAnalyzing && topReport && (
+          {!isReportAnalyzing && top.report && (
             <div className={styles.reportWrapper}>
-              <PlayerReportCard stats={topReport} />
+              <PlayerReportCard stats={top.report} />
             </div>
           )}
         </div>
@@ -230,14 +237,14 @@ function AnalysisPage() {
         {/* PLAYER Ở DƯỚI (BOTTOM) */}
         <div className={styles.playerBlock}>
           <PlayerInfoBox
-            player={bottomPlayer}
+            player={bottom.player}
             timeControl={pgnHeaders.TimeControl}
             variant="bottom"
-            side={bottomSide}
+            side={bottom.side}
           />
-          {!isReportAnalyzing && bottomReport && (
+          {!isReportAnalyzing && bottom.report && (
             <div className={styles.reportWrapper}>
-              <PlayerReportCard stats={bottomReport} />
+              <PlayerReportCard stats={bottom.report} />
             </div>
           )}
         </div>

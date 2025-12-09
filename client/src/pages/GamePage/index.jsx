@@ -1,11 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { useSocket } from "@/context/SocketContext";
-import { useGameNavigation, useOnlineGame } from "@/hooks/index";
-
 import { Chessboard } from "react-chessboard";
 import clsx from "clsx";
 import styles from "./GamePage.module.scss";
+
+import { useGameNavigation, useOnlineGame } from "@/hooks/index";
+import { getPlayerLayout } from "@/utils/chessUtils";
 
 import PlayerInfoBox from "@/components/PlayerInfoBox";
 import GameInfoPanel from "@/components/GameInfoPanel";
@@ -57,31 +58,28 @@ function GamePage() {
   };
 
   // === 6. RENDER ===
-  const me =
-    gameData && myColor
-      ? myColor === "w"
-        ? gameData.whitePlayer
-        : gameData.blackPlayer
-      : null;
-  const opponent =
-    gameData && myColor
-      ? myColor === "w"
-        ? gameData.blackPlayer
-        : gameData.whitePlayer
-      : null;
-  const opponentColor = myColor === "w" ? "b" : "w";
+  const boardOrientation = myColor === "b" ? "black" : "white";
 
-  const topPlayerSide = opponentColor === "w" ? "white" : "black";
-  const bottomPlayerSide = myColor === "w" ? "white" : "black";
+  const whitePlayer = gameData?.whitePlayer;
+  const blackPlayer = gameData?.blackPlayer;
+
+  const { top, bottom } = getPlayerLayout(
+    boardOrientation,
+    whitePlayer,
+    blackPlayer
+  );
+
+  const topClock = clocks[top.side === "white" ? "w" : "b"];
+  const bottomClock = clocks[bottom.side === "white" ? "w" : "b"];
 
   const chessboardOptions = useMemo(
     () => ({
       position: fen,
       onPieceDrop: onPieceDrop,
       id: "PlayVsPerson",
-      boardOrientation: myColor === "b" ? "black" : "white",
+      boardOrientation: boardOrientation,
     }),
-    [fen, onPieceDrop, myColor]
+    [fen, onPieceDrop, boardOrientation]
   );
 
   return (
@@ -91,10 +89,10 @@ function GamePage() {
         {/* Đối thủ (Luôn ở trên) */}
         <div className={styles.playerBlock}>
           <PlayerInfoBox
-            player={opponent}
-            timeControl={clocks[opponentColor]} // Truyền giây còn lại vào
+            player={top.player}
+            timeControl={clocks[topClock]} // Truyền giây còn lại vào
             variant="top"
-            side={topPlayerSide}
+            side={top.side}
           />
         </div>
 
@@ -111,10 +109,10 @@ function GamePage() {
         {/* Mình (Luôn ở dưới) */}
         <div className={styles.playerBlock}>
           <PlayerInfoBox
-            player={me}
-            timeControl={clocks[myColor]} // Truyền giây còn lại vào
+            player={bottom.player}
+            timeControl={bottomClock} // Truyền giây còn lại vào
             variant="bottom"
-            side={bottomPlayerSide}
+            side={bottom.side}
           />
         </div>
       </div>

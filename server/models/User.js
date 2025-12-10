@@ -31,6 +31,11 @@ const UserSchema = new mongoose.Schema(
       rapid: { type: Number, default: 1200 },
       classical: { type: Number, default: 1200 },
     },
+    puzzleStats: {
+      rating: { type: Number, default: 1500 }, // Điểm hiển thị
+      rd: { type: Number, default: 350 }, // Độ lệch chuẩn (Rating Deviation)
+      vol: { type: Number, default: 0.06 }, // Độ biến động (Volatility)
+    },
   },
   { timestamps: true }
 ); // Tự động thêm createdAt, updatedAt

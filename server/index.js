@@ -18,6 +18,7 @@ import "./config/passport.js";
 import authRoutes from "./routes/authRoutes.js";
 import gameRoutes from "./routes/gameRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import puzzleRoutes from "./routes/puzzleRoutes.js"
 
 // Import middleware
 import logger from "./middleware/logger.js"
@@ -61,6 +62,7 @@ mongoose
 app.use("/api/auth", authRoutes); 
 app.use("/api/games", gameRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/puzzle", puzzleRoutes)
 
 initializeSocket(io);
 

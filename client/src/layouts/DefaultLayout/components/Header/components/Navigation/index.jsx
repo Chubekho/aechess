@@ -20,6 +20,10 @@ const navItems = [
     ],
   },
   {
+    title: "CÂU ĐỐ",
+    subItems: [{ to: "/puzzle", title: "Câu đố" }],
+  },
+  {
     title: "CÔNG CỤ",
     subItems: [
       {

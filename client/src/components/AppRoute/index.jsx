@@ -16,7 +16,8 @@ import Register from "@/pages/Auth/Register";
 import AuthCallback from "@/pages/Auth/AuthCallback";
 import Profile from "@/pages/Profile";
 import AnalysisPage from "@/pages/Analysis";
-import ImportPage from "@/pages/Import"
+import ImportPage from "@/pages/Import";
+import Puzzle from "@/pages/Puzzle";
 
 function AppRoute() {
   return (
@@ -32,6 +33,7 @@ function AppRoute() {
               <Route path="/game/:gameId" element={<GamePage />} />
               <Route path="/profile/:id" element={<Profile />} />
               <Route path="/import" element={<ImportPage />} />
+              <Route path="/puzzle" element={<Puzzle />} />
               <Route path="/analysis" element={<AnalysisPage />} />
               <Route path="/analysis/:id" element={<AnalysisPage />} />
             </Route>

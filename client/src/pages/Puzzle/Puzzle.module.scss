@@ -1,0 +1,253 @@
+/* Puzzle.module.scss */
+
+.wrapper {
+  height: calc(100vh - var(--header-height));
+  width: 100%;
+  display: flex;
+}
+
+/* --- LEFT PANEL: INFO --- */
+.infoPanel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Căn giữa dọc */
+}
+
+.infoContent {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ratingBox {
+  background-color: var(--color-board-dark);
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 20px;
+
+  .label {
+    text-transform: uppercase;
+    font-size: 1.5rem;
+    color: var(--color-text-primary);
+    letter-spacing: 1px;
+  }
+
+  .score {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+}
+
+.gain {
+  color: var(--color-btn-green);
+  font-size: 1.5rem;
+}
+.loss {
+  color: var(--color-text-error);
+  font-size: 1.5rem;
+}
+
+.puzzleMeta {
+  background-color: var(--color-board-dark);
+  padding: 15px;
+  border-radius: 8px;
+
+  .metaItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    color: var(--color-text-l-dark);
+    i {
+      width: 20px;
+      text-align: center;
+      color: var(--color-highlight);
+    }
+
+    .themes {
+      text-transform: capitalize;
+      font-style: italic;
+      color: var(--color-text-primary);
+    }
+  }
+}
+
+/* --- CENTER: BOARD --- */
+.boardArea {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.boardWrapper {
+  width: 80%;
+  aspect-ratio: 1/1;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+/* --- RIGHT PANEL: ACTIONS --- */
+.actionPanel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.actionContent {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.turnIndicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: var(--color-board-control);
+  color: #fff;
+
+  &.success {
+    background-color: var(--color-btn-green);
+  }
+
+  .iconWhite {
+    color: #fff;
+    text-shadow: 0 0 2px #000;
+  }
+  .iconBlack {
+    color: #000;
+    text-shadow: 0 0 1px #fff;
+  }
+}
+
+.messageBox {
+  min-height: 40px;
+  text-align: center;
+  font-weight: 500;
+
+  .textInfo {
+    color: var(--color-text-l-dark);
+  }
+  .textWarn {
+    color: var(--color-text-error);
+  }
+}
+
+.btnGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  button {
+    padding: 15px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: filter 0.2s;
+
+    &:hover {
+      filter: brightness(1.1);
+    }
+  }
+}
+
+/* Button Colors */
+.hintBtn {
+  background-color: #e58f2a;
+  color: #fff;
+}
+
+.solutionBtn {
+  background-color: var(--color-board-control);
+  color: var(--color-text-l-dark);
+}
+
+.nextBtn {
+  background-color: var(--color-btn-green);
+  color: #fff;
+  font-size: 1.2rem;
+}
+
+.retryBtn {
+  background-color: var(--color-board-control);
+  color: #fff;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .wrapper {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .infoPanel,
+  .actionPanel {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    padding: 10px 0;
+  }
+
+  .boardArea {
+    padding: 10px;
+  }
+}
+
+/* HISTORY BAR */
+.historyBar {
+  display: flex;
+  gap: 5px;
+  margin-top: 15px; /* Cách rating box một chút */
+  flex-wrap: wrap;
+}
+
+.historyItem {
+  width: 35px;
+  height: 35px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.2s, filter 0.2s;
+  background-color: var(--color-board-control); /* Mặc định */
+
+  &:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+  }
+
+  &.success {
+    background-color: var(--color-btn-green);
+  }
+
+  &.failed {
+    background-color: var(--color-text-error);
+  }
+
+  &.current {
+    background-color: #d64f00; /* Màu cam highlight */
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+}

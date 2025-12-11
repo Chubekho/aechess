@@ -115,6 +115,7 @@ export const getMe = async (req, res) => {
     email: user.email,
     displayName: user.displayName,
     ratings: user.ratings,
+    puzzleStats: user.puzzleStats,
     createdAt: user.createdAt,
   };
 

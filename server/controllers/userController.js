@@ -16,6 +16,7 @@ export const getUserById = async (req, res) => {
       id: user._id,
       displayName: user.displayName,
       ratings: user.ratings,
+      puzzleStats: user.puzzleStats,
       createdAt: user.createdAt,
     });
   } catch (err) {

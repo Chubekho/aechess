@@ -11,17 +11,18 @@ dotenv.config();
 import passport from "passport";
 import cors from "cors";
 
-// Import file config Passport 
+// Import file config Passport
 import "./config/passport.js";
 
-// Import routes 
+// Import routes
 import authRoutes from "./routes/authRoutes.js";
 import gameRoutes from "./routes/gameRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-import puzzleRoutes from "./routes/puzzleRoutes.js"
+import puzzleRoutes from "./routes/puzzleRoutes.js";
+import friendRoutes from "./routes/friendRoutes.js";
 
 // Import middleware
-import logger from "./middleware/logger.js"
+import logger from "./middleware/logger.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -31,15 +32,15 @@ const httpServer = createServer(app); // Gói app Express
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.CLIENT_URL, // Cho phép client kết nối
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
 
 // === Middlewares ===
 // 1. CORS
 app.use(
   cors({
-    origin: process.env.CLIENT_URL, 
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
@@ -59,13 +60,14 @@ mongoose
   .catch((err) => console.error("Lỗi kết nối MongoDB:", err));
 
 // === Routes ===
-app.use("/api/auth", authRoutes); 
+app.use("/api/auth", authRoutes);
 app.use("/api/games", gameRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/puzzle", puzzleRoutes)
+app.use("/api/puzzle", puzzleRoutes);
+app.use("/api/friends", friendRoutes);
 
 initializeSocket(io);
 
 httpServer.listen(PORT, () => {
-  console.log(`Server đang chạy (HTTP & Sockets) tại http://localhost:${PORT}`); 
+  console.log(`Server đang chạy (HTTP & Sockets) tại http://localhost:${PORT}`);
 });

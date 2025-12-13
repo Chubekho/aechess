@@ -1,73 +1,246 @@
-/* pages/Profile/Profile.module.scss */
+/* Variables Mapping (Giả sử file global) */
+/* Bạn có thể dùng trực tiếp mã màu hex nếu biến chưa có */
 
 .wrapper {
-  padding: 20px 28px;
-  min-height: calc(100vh - var(--header-height));
+  padding: 20px;
   width: 100%;
-  max-width: 1200px; /* Giới hạn chiều rộng trang */
-  margin: 0 auto; /* Căn giữa */
-  color: var(--color-text-primary);
+  max-width: 1100px;
+  margin: 0 auto;
+  color: #cdd2d6; /* Màu chữ sáng nhẹ giống Chess.com */
+  font-size: 1.4rem;
 }
 
 .loading {
   padding: 50px;
   text-align: center;
-  font-size: 1.8rem;
-  color: #a0a0a0;
+  color: #888;
 }
 
+/* --- HEADER SECTION --- */
 .profileHeader {
   display: flex;
+  background-color: var(--color-board-control, #3b3934);
+  padding: 24px;
+  border-radius: 8px 8px 0 0; /* Bo góc trên */
+  gap: 24px;
   align-items: center;
-  gap: 30px;
-  padding: 20px;
-  background-color: var(--color-board-control, #302e2c);
-  border-radius: 8px;
-  margin-bottom: 30px;
-}
-
-.avatar {
-  font-size: 8rem;
-  width: 120px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #4a4a4a;
-  border-radius: 50%;
-  color: #e0e0e0;
-}
-
-.displayName {
-  font-size: 3rem;
-  font-weight: 600;
-  margin: 0 0 15px 0;
-}
-
-/* Tái sử dụng style từ Lobby (hơi khác 1 chút) */
-.ratingsRow {
-  display: flex;
-  gap: 25px; /* Giãn cách các rating */
-  align-items: center;
-  padding: 10px 0;
-}
-
-.ratingItem {
-  display: flex;
-  /* Sửa: Hiển thị icon và số ngang hàng */
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: #c0c0c0;
-
-  .icon {
-    font-size: 1.8rem;
-    color: var(--color-btn-green, #7fa650);
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    text-align: center;
   }
 }
 
-.historyContainer {
-  /* Container này sẽ chứa component GameHistory */
+.avatarCol {
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 100px;
+  height: 100px;
+  background-color: #3c3b39;
+  border-radius: 4px; /* Chess.com dùng avatar vuông bo nhẹ */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #787775;
+  border: 2px solid #403e3c;
+}
+
+.infoCol {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.displayName {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.metaRow {
+  display: flex;
+  gap: 20px;
+  font-size: 1.4rem;
+  color: #979694;
+  
+  @media (max-width: 768px) {
+    justify-content: center;
+    gap: 15px;
+  }
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+
+.actionCol {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+/* BUTTON STYLES */
+button {
+  padding: 10px 16px;
+  border-radius: 4px!important;
+  border: none!important;
+  outline: none;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  transition: filter 0.2s;
+  
+  &:hover { filter: brightness(1.1); }
+}
+
+.btnEdit {
+  background-color: #3c3b39;
+  color: #cdd2d6;
+}
+
+.btnGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.btnChallenge {
+  background-color: #3c3b39; /* Màu cam đặc trưng challenge */
+  color: #cdd2d6;
+}
+
+.btnAddFriend {
+  background-color: #81b64c;
+  color: #fff;
+}
+
+.btnMore {
+  background-color: transparent;
+  color: #888;
+  font-size: 1.2rem;
+  padding: 0 10px;
+}
+
+/* --- NAVIGATION TABS --- */
+.navTabs {
+  display: flex;
+  background-color: #21201d; /* Màu nền tối hơn header */
+  border-bottom: 1px solid #3c3b39;
+  padding: 0 24px;
+  gap: 20px;
+  overflow-x: auto; /* Scroll ngang trên mobile */
+  overflow-y: hidden;
+}
+
+.tabItem {
+  padding: 15px 0;
+  cursor: pointer;
+  color: #979694;
+  font-weight: 600;
+  position: relative;
+  white-space: nowrap;
+  
+  &:hover { color: #fff; }
+  
+  &.active {
+    color: #fff;
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; /* Đè lên border bottom */
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: #81b64c; /* Xanh lá chess.com */
+    }
+  }
+}
+
+/* --- CONTENT AREA --- */
+.mainContent {
+  background-color: #262522; /* Cùng màu header */
+  padding: 24px;
+  border-radius: 0 0 8px 8px;
+  min-height: 400px;
+}
+
+/* Overview Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.statCard {
+  background-color: #302e2c;
+  padding: 15px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  
+  .statHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #aaa;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+  
+  .statValue {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    margin-left: 24px; /* Thụt vào thẳng hàng với chữ */
+  }
+}
+
+.sectionBlock {
+  h3 {
+    margin-bottom: 15px;
+    color: #fff;
+    font-size: 1.2rem;
+    padding-bottom: 10px;
+  }
+}
+
+.placeholder {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* Friends Tab Styles */
+.friendsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    
+    h3 { margin: 0; color: #fff; }
+}
+
+.friendActions {
+    display: flex;
+    gap: 10px;
+}
+
+.btnSecondary {
+    background-color: #3c3b39;
+    color: #ccc;
+    font-size: 0.85rem;
+    padding: 8px 12px;
 }

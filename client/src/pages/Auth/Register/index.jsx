@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/index"; // Sửa đường dẫn nếu cần
 import { useNavigate, Link } from "react-router";
 
-import styles from "../Auth.module.scss"; 
+import styles from "../Auth.module.scss";
 
 function Register() {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState(""); // Thêm để xác nhận pass
@@ -29,13 +30,13 @@ function Register() {
     // --- Kết thúc kiểm tra ---
 
     try {
-      await register(email, password);
+      await register(username, email, password);
       navigate("/"); // Đăng ký thành công -> về trang chủ
     } catch (err) {
       setError(err.message); // Hiển thị lỗi từ server
     }
   };
-  
+
   // Xử lý Google Login (chuyển đến API backend)
   const handleGoogleLogin = () => {
     window.location.href = "http://localhost:8080/api/auth/google";
@@ -45,11 +46,9 @@ function Register() {
     <div className={styles.wrapper}>
       <div className={styles.formBox}>
         <h2 className={styles.title}>Đăng ký tài khoản</h2>
-        
+
         {/* Hiển thị lỗi ở đây */}
-        <p className={styles.error}>
-          {error}
-        </p>
+        <p className={styles.error}>{error}</p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputGroup}>
@@ -65,10 +64,18 @@ function Register() {
             />
           </div>
           <div className={styles.inputGroup}>
+            <label>Username (Tên đăng nhập)</label>
+            <input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              required
+            />
+          </div>
+          <div className={styles.inputGroup}>
             <label htmlFor="password">Mật khẩu</label>
             <input
               id="password"
-            
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -93,16 +100,13 @@ function Register() {
             Đăng ký
           </button>
         </form>
-        
+
         <hr className={styles.separator} />
-        
-        <button 
-          onClick={handleGoogleLogin} 
-          className={styles.buttonGoogle}
-        >
+
+        <button onClick={handleGoogleLogin} className={styles.buttonGoogle}>
           Đăng ký với Google
         </button>
-        
+
         <p className={styles.footerText}>
           Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
         </p>

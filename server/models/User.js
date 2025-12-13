@@ -10,6 +10,14 @@ const UserSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: 3,
+      lowercase: true, // Lưu thường để không phân biệt hoa thường khi login
+    },
     // Không 'required' vì user có thể login bằng Google
     passwordHash: {
       type: String,

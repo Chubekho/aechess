@@ -13,6 +13,7 @@ import {
   googleCallback,
   login,
   register,
+  setUsername,
 } from "../controllers/authController.js";
 
 const router = express.Router();
@@ -31,5 +32,8 @@ router.get("/google", googleAuth);
 
 // Route callback Google sẽ redirect về
 router.get("/google/callback", googleCallback);
+
+// set username khi người dùng mới đăng ký hoặc đăng nhập lần đầu tiên với google
+router.post("/set-username", checkAuth, setUsername);
 
 export default router;

@@ -9,12 +9,10 @@ node_modules
 /client/dist
 /client/dist-ssr
 
-#Bỏ qua thư mục ở server
-server/.env
-
 # Environment Variables
+/server/.env
+/client/.env
 # Bỏ qua tất cả các file .env và .local
-.env
 .env.*
 *.local
 

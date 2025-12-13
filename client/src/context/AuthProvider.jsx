@@ -7,22 +7,24 @@ import { AuthContext } from "./AuthContext";
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(
-    () => localStorage.getItem("token") || null
+    () => localStorage.getItem("accessToken") || null
   );
-  const [loading, setLoading] = useState(true); // State check "đang tải"
+  const [loading, setLoading] = useState(true);
 
   // Cấu hình axios gửi token theo mỗi request
   const api = useMemo(
     () =>
       axios.create({
-        baseURL: "http://localhost:8080/api", // Địa chỉ backend
+        baseURL: "http://localhost:8080/api",
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
     []
   );
 
   // Logic này sẽ chạy lại mỗi khi 'token' hoặc 'api' thay đổi
   useEffect(() => {
-    // Cài đặt interceptor
     const interceptor = api.interceptors.request.use((config) => {
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -34,11 +36,12 @@ export const AuthProvider = ({ children }) => {
     return () => {
       api.interceptors.request.eject(interceptor);
     };
-  }, [api, token]); // Phụ thuộc vào api và token
+  }, [api, token]);
 
   const logout = useCallback(() => {
     setToken(null);
     setUser(null);
+    localStorage.removeItem("accessToken");
   }, [setToken, setUser]);
 
   // useEffect để tự động lấy thông tin user khi có token
@@ -46,15 +49,15 @@ export const AuthProvider = ({ children }) => {
     const fetchUser = async () => {
       if (token) {
         try {
-          localStorage.setItem("token", token);
+          localStorage.setItem("accessToken", token);
           const res = await api.get("/auth/me");
           setUser(res.data);
         } catch (err) {
-          console.error("Token không hợp lệ, đăng xuất:", err);
+          console.error("Token hết hạn hoặc không hợp lệ, đăng xuất:", err);
           logout();
         }
       } else {
-        localStorage.removeItem("token");
+        localStorage.removeItem("accessToken");
       }
       setLoading(false);
     };
@@ -63,23 +66,32 @@ export const AuthProvider = ({ children }) => {
 
   // === Các hàm (Actions) ===
 
-  const login = async (email, password) => {
+  const login = async (loginId, password) => {
     try {
-      const res = await api.post("/auth/login", { email, password });
-      setToken(res.data.token); // Kích hoạt useEffect
+      // Backend mong đợi: req.body = { loginId, password }
+      const res = await api.post("/auth/login", { loginId, password });
+      setToken(res.data.token);
     } catch (err) {
       console.error("Lỗi đăng nhập:", err);
-      throw new Error(err.response.data.msg || "Đăng nhập thất bại");
+      // Lấy msg lỗi từ backend trả về
+      const msg = err.response?.data?.msg || "Đăng nhập thất bại";
+      throw new Error(msg);
     }
   };
 
-  const register = async (email, password) => {
+  const register = async (username, email, password) => {
     try {
-      const res = await api.post("/auth/register", { email, password });
-      setToken(res.data.token); // Kích hoạt useEffect
+      // Backend mong đợi: req.body = { username, email, password }
+      const res = await api.post("/auth/register", {
+        username,
+        email,
+        password,
+      });
+      setToken(res.data.token);
     } catch (err) {
       console.error("Lỗi đăng ký:", err);
-      throw new Error(err.response.data.msg || "Đăng ký thất bại");
+      const msg = err.response?.data?.msg || "Đăng ký thất bại";
+      throw new Error(msg);
     }
   };
 

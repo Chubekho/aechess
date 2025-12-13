@@ -17,19 +17,21 @@ const createToken = (user) => {
 // @route: POST /api/auth/register
 export const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
 
     // 1. Check input
-    if (!email || !password) {
+    if (!username || !email || !password) {
       return res
         .status(400)
         .json({ msg: "Vui lòng nhập đủ email và password." });
     }
 
-    // 2. Check user tồn tại
-    const existingUser = await User.findOne({ email });
+    // 2. Check trùng username hoặc email
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      return res.status(400).json({ msg: "Email này đã được sử dụng." });
+      return res
+        .status(400)
+        .json({ msg: "Email hoặc Username đã được sử dụng." });
     }
 
     // 3. Băm mật khẩu
@@ -38,9 +40,10 @@ export const register = async (req, res) => {
 
     // 4. Tạo user mới
     const newUser = new User({
+      username,
       email,
       passwordHash,
-      displayName: email.split("@")[0], // Tên mặc định là phần trước @
+      displayName: username, // Tên mặc định là phần trước @
     });
 
     const savedUser = await newUser.save();
@@ -49,12 +52,7 @@ export const register = async (req, res) => {
     const token = createToken(savedUser);
     res.status(201).json({
       token,
-      user: {
-        id: savedUser._id,
-        email: savedUser.email,
-        displayName: savedUser.displayName,
-        rating: savedUser.rating,
-      },
+      user: savedUser,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -65,10 +63,12 @@ export const register = async (req, res) => {
 // @route: POST /api/auth/login
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
+    const { loginId, password } = req.body;
+    
     // 1. Check user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [{ email: loginId }, { username: loginId.toLowerCase() }],
+    });
     if (!user) {
       return res.status(400).json({ msg: "Email hoặc mật khẩu không đúng." });
     }
@@ -82,19 +82,16 @@ export const login = async (req, res) => {
     // 3. So sánh password
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(400).json({ msg: "Email hoặc mật khẩu không đúng." });
+      return res
+        .status(400)
+        .json({ msg: "Email, username hoặc mật khẩu không đúng." });
     }
 
     // 4. Tạo JWT và trả về
     const token = createToken(user);
     res.status(200).json({
       token,
-      user: {
-        id: user._id,
-        email: user.email,
-        displayName: user.displayName,
-        rating: user.rating,
-      },
+      user: user,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -109,9 +106,8 @@ export const getMe = async (req, res) => {
     return res.status(404).json({ msg: "User not found" });
   }
 
-  // SỬA LỖI: Chuyển đổi sang object thường và map _id thành id
   const userData = {
-    id: user._id, // Map _id -> id
+    id: user._id,
     email: user.email,
     displayName: user.displayName,
     ratings: user.ratings,
@@ -141,14 +137,49 @@ const passportAuth = passport.authenticate("google", {
 
 // 2. Handler cuối cùng (sau khi Passport chạy thành công)
 const finalHandler = (req, res) => {
-  // Đăng nhập thành công, req.user chứa thông tin user từ Passport
-  const token = createToken(req.user);
+  // req.user được trả về từ passport.js (Xem file config bên dưới)
+  const { user, isNew } = req.user;
 
-  // Redirect về CLIENT với token
-  res.redirect(`${process.env.CLIENT_URL}/auth-callback?token=${token}`);
+  const token = createToken(user);
+
+  if (isNew) {
+    // Nếu là user mới -> Redirect về trang đặt username
+    // Truyền token qua query (Client sẽ lấy token này để gọi API update username)
+    res.redirect(`${process.env.CLIENT_URL}/set-username?token=${token}`);
+  } else {
+    // User cũ -> Về trang chủ/dashboard
+    res.redirect(`${process.env.CLIENT_URL}/auth-callback?token=${token}`);
+  }
 };
 
 // 3. Export cả hai dưới dạng một mảng
 // @desc: Google OAuth callback URL (handles redirect)
 // @route: GET /api/auth/google/callback
 export const googleCallback = [passportAuth, finalHandler];
+
+// @desc: Cập nhật username (Dành cho user Google mới)
+// @route: POST /api/auth/set-username
+export const setUsername = async (req, res) => {
+  try {
+    const { username } = req.body;
+    const userId = req.user.id; // Lấy từ middleware auth (token gửi lên)
+
+    if (!username) return res.status(400).json({ msg: "Vui lòng nhập username" });
+
+    // Check trùng
+    const dup = await User.findOne({ username });
+    if (dup) return res.status(400).json({ msg: "Username đã tồn tại" });
+
+    // Update
+    const updatedUser = await User.findByIdAndUpdate(
+        userId, 
+        { username, displayName: username }, // Set luôn displayName ban đầu
+        { new: true }
+    );
+
+    res.json({ user: updatedUser });
+
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+}

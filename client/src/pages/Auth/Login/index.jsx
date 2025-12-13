@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router";
 import styles from "../Auth.module.scss";
 
 function Login() {
-  const [email, setEmail] = useState("");
+  const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const { login } = useAuth();
@@ -14,7 +14,7 @@ function Login() {
     e.preventDefault();
     setError(null);
     try {
-      await login(email, password);
+      await login(loginId, password);
       navigate("/"); // Đăng nhập thành công -> về trang chủ
     } catch (err) {
       setError(err.message); // Hiển thị lỗi
@@ -27,7 +27,7 @@ function Login() {
     window.location.href = "http://localhost:8080/api/auth/google";
   };
 
-  return(
+  return (
     <div className={styles.wrapper}>
       <div className={styles.formBox}>
         <h2 className={styles.title}>Đăng nhập</h2>
@@ -36,13 +36,13 @@ function Login() {
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.inputGroup}>
-            <label htmlFor="email">Email</label>
+            <label htmlFor="loginId">Email hoặc username</label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
+              id="loginId"
+              type="text"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              placeholder="Nhập email hoặc username"
               required
               className={styles.input}
             />

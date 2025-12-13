@@ -18,6 +18,7 @@ import Profile from "@/pages/Profile";
 import AnalysisPage from "@/pages/Analysis";
 import ImportPage from "@/pages/Import";
 import Puzzle from "@/pages/Puzzle";
+import SetUsername from "@/pages/Auth/SetUsername";
 
 function AppRoute() {
   return (
@@ -44,6 +45,7 @@ function AppRoute() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/auth-callback" element={<AuthCallback />} />
+              <Route path="/set-username" element={<SetUsername/>}/>
             </Route>
             {/* No Layout */}
           </Routes>

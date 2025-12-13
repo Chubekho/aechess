@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/index"; // Sửa đường dẫn nếu cần
 import { useNavigate, Link } from "react-router";
 
+import { validateEmail } from "@/utils/validators";
+
 import styles from "../Auth.module.scss";
 
 function Register() {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState(""); // Thêm để xác nhận pass
@@ -17,21 +18,28 @@ function Register() {
     e.preventDefault();
     setError(null);
 
-    // --- Kiểm tra phía Client (Front-end) ---
+    // --- VALIDATE ---
+    if (!validateEmail(email)) {
+      setError("Email không hợp lệ.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Mật khẩu không khớp.");
       return;
     }
-    // (Bạn nên thêm các kiểm tra regex phức tạp hơn ở đây nếu cần)
-    if (password.length < 8) {
-      setError("Mật khẩu phải có ít nhất 8 ký tự.");
+    if (password.length < 6) {
+      setError("Mật khẩu phải có ít nhất 6 ký tự.");
       return;
     }
-    // --- Kết thúc kiểm tra ---
 
     try {
-      await register(username, email, password);
-      navigate("/"); // Đăng ký thành công -> về trang chủ
+      const data = await register(email, password);
+
+      if (data && data.isNew) {
+        navigate("/set-username");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       setError(err.message); // Hiển thị lỗi từ server
     }
@@ -61,15 +69,6 @@ function Register() {
               placeholder="Email"
               required
               className={styles.input}
-            />
-          </div>
-          <div className={styles.inputGroup}>
-            <label>Username (Tên đăng nhập)</label>
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username"
-              required
             />
           </div>
           <div className={styles.inputGroup}>

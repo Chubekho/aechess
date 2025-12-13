@@ -16,8 +16,6 @@ function AuthCallback() {
     const token = params.get("token");
 
     if (token) {
-      // 4. SỬA: Dùng cách "React" (mượt mà hơn)
-      
       // 1. Gọi hàm để set token vào context
       // AuthContext sẽ tự động lưu vào localStorage và fetch user
       manualSetToken(token);

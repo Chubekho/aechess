@@ -2,7 +2,7 @@
 import axios from "axios";
 
 // Lấy URL từ biến môi trường (VITE_...) hoặc fallback về localhost
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
 const instance = axios.create({
   baseURL: baseURL,

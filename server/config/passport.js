@@ -27,13 +27,15 @@ passport.use(
           return done(null, { user, isNew: false });
         }
 
+        const tempUsername = "user_" + Date.now() + Math.floor(Math.random() * 1000);
+
         // 3. User mới hoàn toàn -> Tạo bản ghi tạm (chưa có username chuẩn)
         // Mẹo: Tạo username tạm ngẫu nhiên để pass validate 'required' của Mongoose
         const newUser = new User({
           googleId: profile.id,
           email: profile.emails[0].value,
           displayName: profile.displayName,
-          username: profile.displayName, // Username tạm
+          username: tempUsername, // Username tạm
         });
         await newUser.save();
         return done(null, { user: newUser, isNew: true });

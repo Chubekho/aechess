@@ -79,15 +79,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (username, email, password) => {
+  const register = async (email, password) => {
     try {
-      // Backend mong đợi: req.body = { username, email, password }
       const res = await api.post("/auth/register", {
-        username,
         email,
         password,
       });
-      setToken(res.data.token);
+      // Lưu token
+      setToken(res.data.token); 
+      return res.data;
+
     } catch (err) {
       console.error("Lỗi đăng ký:", err);
       const msg = err.response?.data?.msg || "Đăng ký thất bại";
@@ -111,7 +112,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         loading,
-        manualSetToken, // <-- Thêm hàm mới vào context
+        manualSetToken, 
       }}
     >
       {!loading && children} {/* Chỉ render khi đã check xong auth */}

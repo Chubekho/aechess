@@ -2,50 +2,77 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import axiosClient from "@/utils/axiosConfig";
+import { useAuth } from "@/hooks/index";
+import { validateUsername } from "@/utils/validators"; 
 import styles from "../Auth.module.scss";
 
 function SetUsername() {
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
+  
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  const token = searchParams.get("token");
+  // Lấy token từ Context (nếu đăng ký thường)
+  const { token: contextToken, manualSetToken } = useAuth();
+  
+  // Lấy token từ URL (nếu Google login)
+  const urlToken = searchParams.get("token");
+
+  // Token thực tế để sử dụng
+  const effectiveToken = urlToken || contextToken;
 
   useEffect(() => {
-     if (token) {
-        // Lưu token tạm vào localStorage để axiosClient tự gắn vào header
-        localStorage.setItem("accessToken", token);
-     } else {
-        navigate("/login"); // Không có token thì đá về login
+     // Nếu là luồng Google (có urlToken), cần lưu vào Context/Storage thủ công
+     if (urlToken) {
+        localStorage.setItem("accessToken", urlToken);
+        manualSetToken(urlToken);
      }
-  }, [token, navigate]);
+     
+     // Nếu không tìm thấy token ở đâu cả -> Đá về login
+     if (!effectiveToken) {
+        navigate("/login");
+     }
+  }, [urlToken, effectiveToken, navigate, manualSetToken]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    // 1. VALIDATE CLIENT
+    if (!validateUsername(username)) {
+        setError("Username phải từ 3-20 ký tự, không dấu, không khoảng trắng.");
+        return;
+    }
+
     try {
-       await axiosClient.post("http://localhost:8080/api/auth/set-username", { username });
+       // 2. GỌI API (Dùng đường dẫn tương đối, axiosClient tự gắn token)
+       await axiosClient.post("/auth/set-username", { username });
        
-       // Thành công -> Reload hoặc redirect về trang chủ (để App fetch lại user info mới nhất)
+       // 3. THÀNH CÔNG
+       // Refresh lại trang để App fetch lại thông tin user (lúc này user đã có username chuẩn)
        window.location.href = "/"; 
     } catch (err) {
-       setError(err.response?.data?.msg || "Lỗi cập nhật");
+       console.error(err);
+       setError(err.response?.data?.msg || "Lỗi cập nhật username");
     }
   };
 
   return (
      <div className={styles.wrapper}>
         <div className={styles.formBox}>
-           <h2>Chào mừng bạn mới!</h2>
-           <p>Vui lòng chọn Username để hiển thị trong game.</p>
+           <h2 className={styles.title}>Chọn Username</h2>
+           <p>Tạo danh tính của bạn trên sàn đấu!</p>
            {error && <p className={styles.error}>{error}</p>}
            
-           <form onSubmit={handleSubmit}>
+           <form onSubmit={handleSubmit} className={styles.form}>
               <div className={styles.inputGroup}>
                  <input 
                     value={username} 
                     onChange={e => setUsername(e.target.value)} 
-                    placeholder="Username..." 
+                    placeholder="Ví dụ: h4rdz_99" 
+                    required 
+                    className={styles.input}
                  />
               </div>
               <button type="submit" className={styles.buttonPrimary}>Hoàn tất</button>

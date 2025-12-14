@@ -1,0 +1,112 @@
+.container {
+  position: relative; /* Để dropdown định vị theo nút này */
+  display: inline-block;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.4rem;
+  transition: all 0.2s;
+
+  &.btnAdd {
+    background-color: #81b64c; /* Màu xanh lá Chess.com */
+    color: white;
+    &:hover {
+      background-color: #719f43;
+    }
+  }
+
+  &.btnFriend {
+    background-color: #302e2c; /* Màu xám tối */
+    color: #e0e0e0;
+    &:hover {
+      background-color: #403d3b;
+    }
+
+    .caret {
+      font-size: 0.8rem;
+      margin-left: 4px;
+    }
+  }
+
+  &.btnGray {
+    background-color: #302e2c;
+    color: #aaa;
+    &:hover {
+      background-color: #403d3b;
+    }
+  }
+
+  &.btnGreen {
+    background-color: #81b64c;
+    color: white;
+  }
+}
+
+/* --- DROPDOWN MENU --- */
+.dropdown {
+  position: absolute;
+  top: 110%; /* Nằm ngay dưới nút */
+  right: 0; /* Căn phải */
+  width: 200px;
+  background-color: #262522; /* Màu nền rất tối */
+  border: 1px solid #3c3b39;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  overflow: hidden;
+  padding: 5px;
+  animation: fadeIn 0.2s ease;
+}
+
+.item {
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #cdd2d6;
+  font-size: 1.4rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.1s;
+
+  &:hover {
+    background-color: #3c3b39;
+  }
+
+  &.danger {
+    color: #ff5b5b; /* Màu đỏ cho hủy kết bạn */
+    &:hover {
+      background-color: rgba(255, 91, 91, 0.1);
+    }
+  }
+}
+
+.divider {
+  height: 1px;
+  background-color: #3c3b39;
+  margin: 4px 0;
+}
+
+.btnGroup {
+  display: flex;
+  gap: 8px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

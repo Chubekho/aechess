@@ -103,7 +103,7 @@ function Register() {
         <hr className={styles.separator} />
 
         <button onClick={handleGoogleLogin} className={styles.buttonGoogle}>
-          <i class="fa-brands fa-google"></i>
+          <i className="fa-brands fa-google"></i>
           Đăng ký với Google
         </button>
 

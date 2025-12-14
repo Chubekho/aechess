@@ -14,6 +14,7 @@ export const getUserById = async (req, res) => {
     // Trả về format thống nhất
     res.status(200).json({
       id: user._id,
+      username: user.username,
       displayName: user.displayName,
       ratings: user.ratings,
       puzzleStats: user.puzzleStats,

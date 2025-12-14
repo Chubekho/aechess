@@ -56,20 +56,18 @@ export const sendFriendRequest = async (req, res) => {
 // 2. Chấp nhận lời mời
 export const acceptFriendRequest = async (req, res) => {
   try {
-    const userId = req.user.id; // Người đang thao tác (phải là người nhận - recipient)
-    const { friendshipId } = req.body;
+    const userId = req.user.id; // Mình là người nhận (Recipient)
+    const { requesterId } = req.body; // ID người gửi
 
-    const friendship = await Friendship.findById(friendshipId);
+    // Tìm lời mời đang pending giữa 2 người
+    const friendship = await Friendship.findOne({
+      requester: requesterId,
+      recipient: userId,
+      status: "pending",
+    });
 
     if (!friendship)
-      return res.status(404).json({ message: "Không tìm thấy lời mời" });
-
-    // Kiểm tra quyền: Chỉ người nhận (recipient) mới được accept
-    if (friendship.recipient.toString() !== userId) {
-      return res
-        .status(403)
-        .json({ message: "Bạn không có quyền chấp nhận lời mời này" });
-    }
+      return res.status(404).json({ message: "Không tìm thấy lời mời." });
 
     friendship.status = "accepted";
     await friendship.save();
@@ -109,7 +107,7 @@ export const getFriendsList = async (req, res) => {
 export const getPendingRequests = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     // Tìm các lời mời mà mình là người NHẬN (recipient) và status là 'pending'
     const requests = await Friendship.find({
       recipient: userId,
@@ -118,6 +116,47 @@ export const getPendingRequests = async (req, res) => {
 
     res.status(200).json(requests);
   } catch (error) {
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+// Lấy danh sách mình đi gửi người ta (Pending)
+export const getSentRequests = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const requests = await Friendship.find({
+      requester: userId,
+      status: 'pending'
+    }).populate('recipient', 'username displayName avatar ratings'); // Populate người nhận
+
+    res.status(200).json(requests);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+export const unfriend = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { targetUserId } = req.body;
+
+    // Tìm và xóa record friendship (bất kể ai là người gửi)
+    const deleted = await Friendship.findOneAndDelete({
+      $or: [
+        { requester: userId, recipient: targetUserId },
+        { requester: targetUserId, recipient: userId },
+      ],
+    });
+
+    if (!deleted) {
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy quan hệ bạn bè." });
+    }
+
+    res.status(200).json({ message: "Đã hủy kết bạn/lời mời." });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Lỗi server" });
   }
 };

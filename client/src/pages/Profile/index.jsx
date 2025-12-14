@@ -1,8 +1,10 @@
 import { useNavigate, useParams } from "react-router";
 import { useEffect, useState } from "react";
-import clsx from "clsx";
-import axios from "axios";
 import { useAuth } from "@/hooks/index";
+
+import clsx from "clsx";
+import axiosClient from "@/utils/axiosConfig";
+
 import GameHistory from "@/components/GameHistory";
 import styles from "./Profile.module.scss";
 
@@ -17,14 +19,12 @@ function Profile() {
   const { id } = useParams();
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
-
   const [profileUser, setProfileUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
   // Giả lập số liệu bạn bè/views (vì API user hiện tại chưa có, sau này populate sau)
   const friendCount = 0; 
-  const viewCount = 120; // Fake số liệu cho đẹp UI
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -35,8 +35,7 @@ function Profile() {
         else if (!id && !currentUser) return navigate("/login");
 
         // Gọi API lấy thông tin user
-        // Tốt nhất nên cấu hình axios base URL để chỉ cần gọi /api/users/...
-        const res = await axios.get(`http://localhost:8080/api/users/${userIdToFetch}`);
+        const res = await axiosClient.get(`/users/${userIdToFetch}`);
         setProfileUser(res.data);
       } catch (error) {
         console.error("Lỗi tải profile:", error);
@@ -148,10 +147,6 @@ function Profile() {
                 <div className={styles.metaItem} title="Số bạn bè">
                     <i className="fa-solid fa-user-group"></i>
                     <span>{friendCount} bạn bè</span>
-                </div>
-                <div className={styles.metaItem} title="Lượt xem">
-                    <i className="fa-solid fa-eye"></i>
-                    <span>{viewCount} Views</span>
                 </div>
             </div>
         </div>

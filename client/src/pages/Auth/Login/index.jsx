@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/index";
 import { useNavigate, Link } from "react-router";
+
 import styles from "../Auth.module.scss";
 
 function Login() {
@@ -67,6 +68,7 @@ function Login() {
         <hr className={styles.separator} />
 
         <button onClick={handleGoogleLogin} className={styles.buttonGoogle}>
+          <i class="fa-brands fa-google"></i>
           Đăng nhập với Google
         </button>
 

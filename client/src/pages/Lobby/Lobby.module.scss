@@ -23,6 +23,8 @@
 }
 
 .poolButton {
+  display: flex;
+  flex-direction: column;
   background-color: hsl(37deg 7% 19% / 66%);
   border: none;
   outline: none;

@@ -32,7 +32,7 @@ function AppRoute() {
               <Route path="/play/ai" element={<PlayAI />} />
               <Route path="/play/friend" element={<PlayFriend />} />
               <Route path="/game/:gameId" element={<GamePage />} />
-              <Route path="/profile/:id" element={<Profile />} />
+              <Route path="/profile/:username" element={<Profile />} />
               <Route path="/import" element={<ImportPage />} />
               <Route path="/puzzle" element={<Puzzle />} />
               <Route path="/analysis" element={<AnalysisPage />} />

@@ -48,7 +48,7 @@ export const useAnalysisData = (
               axios.get(`http://localhost:8080/api/games/${gameId}`, {
                 headers: { Authorization: `Bearer ${token}` },
               }),
-              axios.get(`http://localhost:8080/api/users/${user.id}`, {
+              axios.get(`http://localhost:8080/api/users/${user?.username}`, {
                 headers: { Authorization: `Bearer ${token}` },
               }),
             ]);

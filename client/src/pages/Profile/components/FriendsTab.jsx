@@ -46,9 +46,6 @@ function FriendsTab({ user, isMe }) {
   const [dataList, setDataList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  console.log("is me: ", isMe);
-  console.log("user: ", user);
-
   // Lấy ID chuẩn (ưu tiên _id của Mongo)
   const targetUserId = user?._id || user?.id;
 
@@ -88,7 +85,7 @@ function FriendsTab({ user, isMe }) {
     };
 
     fetchData();
-  }, [activeSubTab, isMe, targetUserId]); // <--- FIX: Dùng targetUserId đã xử lý an toàn
+  }, [activeSubTab, isMe, targetUserId]);
 
   // Logic Search
   const filteredList = dataList.filter((item) => {

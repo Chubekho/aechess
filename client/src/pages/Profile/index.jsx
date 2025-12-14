@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/index";
 
@@ -18,37 +18,32 @@ const TABS = [
 ];
 
 function Profile() {
-  const { id } = useParams();
+  const { username } = useParams();
   const { user: currentUser } = useAuth();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [profileUser, setProfileUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Giả lập số liệu bạn bè/views (vì API user hiện tại chưa có, sau này populate sau)
   const friendCount = 0;
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      setLoading(true);
+    const fetchUser = async () => {
       try {
-        let userIdToFetch = id;
-        if (!id && currentUser) userIdToFetch = currentUser.id;
-        else if (!id && !currentUser) return navigate("/login");
-
-        // Gọi API lấy thông tin user
-        const res = await axiosClient.get(`/users/${userIdToFetch}`);
+        setLoading(true);
+        // Gọi API với username
+        const res = await axiosClient.get(`/users/${username}`);
         setProfileUser(res.data);
-      } catch (error) {
-        console.error("Lỗi tải profile:", error);
-        // navigate("/"); // Tạm thời comment để debug nếu lỗi
+      } catch (err) {
+        // Xử lý lỗi 404 nếu gõ sai username
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfile();
-  }, [id, currentUser, navigate]);
+    if (username) fetchUser();
+  }, [username]);
 
   if (loading) return <div className={styles.loading}>Đang tải...</div>;
   if (!profileUser)
@@ -62,7 +57,7 @@ function Profile() {
       case "overview":
         return <OverviewTab user={profileUser} />;
       case "friends":
-        return <FriendsTab user={profileUser} isMe={isMe} />; 
+        return <FriendsTab user={profileUser} isMe={isMe} />;
       case "clubs":
         return <div className={styles.placeholder}>Clubs Coming Soon</div>;
       default:

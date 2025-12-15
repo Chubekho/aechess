@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/index";
 import { Link } from "react-router";
-import axios from "axios";
+import axiosClient from "@/utils/axiosConfig";
 import clsx from "clsx";
 import styles from "./GameHistory.module.scss";
 
@@ -22,12 +22,7 @@ function GameHistory({ limit = 5, userId }) {
       setLoading(true);
       try {
         // Gửi targetId vào query params
-        const res = await axios.get(
-          `http://localhost:8080/api/games/history?limit=${limit}&userId=${targetId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const res = await axiosClient.get(`/games/history?limit=${limit}&userId=${targetId}`);
         setGames(res.data);
       } catch (err) {
         console.error("Lỗi lấy lịch sử đấu:", err);

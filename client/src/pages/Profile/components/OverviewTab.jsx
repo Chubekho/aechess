@@ -1,5 +1,8 @@
+// client/src/pages/Profile/components/OverviewTab.jsx
+
 import GameHistory from "@/components/GameHistory";
 import styles from "../Profile.module.scss"; // Import ngược styles từ cha
+import StatsChart from "./StatsChart";
 
 function OverviewTab({ user }) {
   return (
@@ -43,6 +46,9 @@ function OverviewTab({ user }) {
           </div>
         </div>
       </div>
+
+      {/* --- Hàng 2 (MỚI): Biểu đồ thống kê --- */}
+      <StatsChart user={user} />
 
       {/* Hàng 2: Lịch sử đấu */}
       <div className={styles.sectionBlock}>

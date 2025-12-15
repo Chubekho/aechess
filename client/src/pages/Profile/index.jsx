@@ -1,3 +1,4 @@
+// client/src/pages/Profile/index.jsx
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/index";
@@ -20,7 +21,6 @@ const TABS = [
 function Profile() {
   const { username } = useParams();
   const { user: currentUser } = useAuth();
-  // const navigate = useNavigate();
   const [profileUser, setProfileUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");

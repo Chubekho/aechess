@@ -81,20 +81,40 @@ export const acceptFriendRequest = async (req, res) => {
 // 3. Lấy danh sách bạn bè (Đã accept)
 export const getFriendsList = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const currentUserId = req.user.id; // ID người đang đăng nhập
+    let targetUserId = req.query.userId; // ID người muốn xem profile
 
-    // Tìm tất cả record mà user là requester HOẶC recipient, VÀ status là 'accepted'
+
+    // Nếu không truyền userId trên query params, mặc định xem của chính mình
+    if (
+      !targetUserId ||
+      targetUserId === "undefined" ||
+      targetUserId === "null"
+    ) {
+      targetUserId = currentUserId;
+    }
+
+    console.log(targetUserId);
+
+    // 1. Query DB: Phải tìm bạn bè của targetUserId, KHÔNG PHẢI của currentUserId (userId cũ)
     const friendships = await Friendship.find({
-      $or: [{ requester: userId }, { recipient: userId }],
+      $or: [{ requester: targetUserId }, { recipient: targetUserId }],
       status: "accepted",
     })
-      .populate("requester", "displayName avatar ratings") // Lấy thông tin user
-      .populate("recipient", "displayName avatar ratings");
+      .populate("requester", "username displayName avatar ratings") // Lấy thêm username
+      .populate("recipient", "username displayName avatar ratings");
 
-    // Format lại dữ liệu để trả về list user đơn giản
+    // 2. Map dữ liệu: Lọc ra người "kia" trong mối quan hệ
     const friends = friendships.map((f) => {
-      // Nếu mình là requester thì bạn là recipient và ngược lại
-      return f.requester._id.toString() === userId ? f.recipient : f.requester;
+      // Logic cũ: so sánh với userId (người đang login) -> SAI khi xem profile người khác
+      // Logic mới: so sánh với targetUserId (người đang xem profile)
+
+      // Nếu targetUserId là người gửi, thì lấy người nhận (recipient)
+      if (f.requester._id.toString() === targetUserId.toString()) {
+        return f.recipient;
+      }
+      // Ngược lại, lấy người gửi (requester)
+      return f.requester;
     });
 
     res.status(200).json(friends);
@@ -126,8 +146,8 @@ export const getSentRequests = async (req, res) => {
     const userId = req.user.id;
     const requests = await Friendship.find({
       requester: userId,
-      status: 'pending'
-    }).populate('recipient', 'username displayName avatar ratings'); // Populate người nhận
+      status: "pending",
+    }).populate("recipient", "username displayName avatar ratings"); // Populate người nhận
 
     res.status(200).json(requests);
   } catch (error) {

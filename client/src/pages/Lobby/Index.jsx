@@ -53,8 +53,10 @@ function Lobby() {
 
   // MỚI: State quản lý 3 trạng thái
   const [searchState, setSearchState] = useState("idle"); // idle, searching, found
-  const [searchTime, setSearchTime] = useState(0);
   const [foundMatchData, setFoundMatchData] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0); // State hiển thị thời gian trôi qua (để render UI)
+  const startTimeRef = useRef(null); // Ref lưu thời điểm BẮT ĐẦU tìm kiếm (Timestamp)
+  const intervalRef = useRef(null); // Ref lưu ID của interval để cleanup
   const timerRef = useRef(null);
 
   // === Xử lý Socket Events ===
@@ -102,20 +104,30 @@ function Lobby() {
 
   // === useEffect cho Timer "Đang tìm" ===
   useEffect(() => {
-    // SỬA: Timer chạy ở cả 2 trạng thái "searching"
-    if (
-      searchState === "searching_modal" ||
-      searchState === "searching_panel"
-    ) {
-      setSearchTime(0); // Reset
-      timerRef.current = setInterval(() => {
-        setSearchTime((prev) => prev + 1);
+    // Chỉ chạy timer khi đang ở trạng thái tìm kiếm
+    const isSearching =
+      searchState === "searching_modal" || searchState === "searching_panel";
+
+    if (isSearching) {
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+        setElapsedTime(0);
+      }
+      // Tạo interval cập nhật UI mỗi giây
+      intervalRef.current = setInterval(() => {
+        // Tính thời gian dựa trên độ chênh lệch hiện tại - lúc bắt đầu
+        const now = Date.now();
+        const secondsPassed = Math.floor((now - startTimeRef.current) / 1000);
+        setElapsedTime(secondsPassed);
       }, 1000);
     } else {
-      if (timerRef.current) clearInterval(timerRef.current);
+      // Nếu không tìm nữa (idle, found...), reset mọi thứ
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      startTimeRef.current = null;
+      setElapsedTime(0);
     }
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [searchState]);
 
@@ -137,13 +149,18 @@ function Lobby() {
   const handleFindMatch = (timeControl) => {
     if (!socket) return alert("Chưa kết nối server!");
     if (timeControl === "custom") return alert("Chưa hỗ trợ!");
+
+    // Reset timer thủ công trước khi bắt đầu tìm mới (để chắc chắn)
+    startTimeRef.current = null;
+    setElapsedTime(0);
+
     socket.emit("findMatch", { timeControl, isRated: true });
-    setSearchState("searching_modal"); // 6. SỬA: Mở modal
+    setSearchState("searching_modal");
   };
 
   // 8. Xử lý click overlay của modal "Searching"
   const handleCloseSearchingModal = () => {
-    setSearchState("searching_panel"); // Chuyển sang state panel
+    setSearchState("searching_panel");
   };
 
   const handleCancelSearch = () => {
@@ -155,14 +172,13 @@ function Lobby() {
   const handleAcceptMatch = () => {
     if (!socket) return;
     socket.emit("acceptMatch", { matchId: foundMatchData.matchId });
-    // 9. SỬA: Chuyển sang state accepted modal
     setSearchState("accepted_modal");
   };
 
   const handleDeclineMatch = () => {
     if (!socket) return;
     socket.emit("declineMatch", { matchId: foundMatchData.matchId });
-    setSearchState("idle"); // Quay về
+    setSearchState("idle");
   };
 
   // Format MM:SS
@@ -199,7 +215,8 @@ function Lobby() {
     >
       <div className={styles.searchingAnimation}></div>
       <h3>Đang tìm trận...</h3>
-      <div className={styles.searchingTimer}>{formatTime(searchTime)}</div>
+      {/* Hiển thị elapsedTime thay vì searchTime */}
+      <div className={styles.searchingTimer}>{formatTime(elapsedTime)}</div>
       <button onClick={handleCancelSearch} className={styles.cancelButton}>
         Hủy
       </button>
@@ -212,11 +229,6 @@ function Lobby() {
     <div className={styles.matchFoundBox}>
       <h3>{isDeclined ? "Đã từ chối" : "Đã tìm thấy trận!"}</h3>
 
-      {/* Bỏ hiển thị thông tin đối thủ trước khi vào game */}
-      {/* <div className={styles.opponentInfo}>
-        <span>{foundMatchData.opponent.displayName}</span>
-        <span>({foundMatchData.opponent.rating})</span>
-      </div> */}
       {/* Thanh duration 10s */}
       <div className={styles.durationBar}>
         {/* Thêm class 'declinedBar' nếu 'isDeclined' = true */}
@@ -278,7 +290,7 @@ function Lobby() {
               {user ? (
                 <>
                   <Link
-                    to={`/profile/${user.id}`}
+                    to={`/profile/${user.username}`}
                     className={styles.playerInfoLink}
                   >
                     <h4>{user.displayName}</h4>

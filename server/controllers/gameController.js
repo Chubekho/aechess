@@ -23,8 +23,8 @@ export const getGameHistory = async (req, res) => {
     const games = await Game.find({
       $or: [{ whitePlayer: targetUserId }, { blackPlayer: targetUserId }],
     })
-    .populate("whitePlayer", "displayName ratings")
-    .populate("blackPlayer", "displayName ratings")
+    .populate("whitePlayer", "username displayName ratings")
+    .populate("blackPlayer", "username displayName ratings")
     .sort({ createdAt: -1 })
     .limit(limit);
 

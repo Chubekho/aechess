@@ -35,7 +35,6 @@ export const getUserById = async (req, res) => {
 export const getUserProfile = async (req, res) => {
   try {
     const { username } = req.params;
-    console.log(username);
     
     // Tìm trong DB theo username
     const user = await User.findOne({

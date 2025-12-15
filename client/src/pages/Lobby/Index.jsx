@@ -293,7 +293,7 @@ function Lobby() {
                     to={`/profile/${user.username}`}
                     className={styles.playerInfoLink}
                   >
-                    <h4>{user.displayName}</h4>
+                    <h4>{user.username}</h4>
                   </Link>
 
                   <div className={styles.ratingsRow}>

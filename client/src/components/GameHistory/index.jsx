@@ -1,12 +1,38 @@
 // client/src/components/GameHistory/index.jsx
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/index";
-import { Link } from "react-router";
+import { Link } from "react-router"; // hoặc 'react-router-dom'
 import axiosClient from "@/utils/axiosConfig";
 import clsx from "clsx";
 import styles from "./GameHistory.module.scss";
-
 import { TimeControlIcon, formatDate } from "./helpers.jsx";
+
+// --- SUB-COMPONENT: Hiển thị thông tin 1 người chơi ---
+// Giúp code gọn hơn, không bị lặp lại logic White/Black
+const PlayerInfo = ({ player, rating, color }) => {
+  // Kiểm tra xem user có tồn tại và có username hợp lệ không
+  const hasProfile = player && player.username && player.username !== "undefined";
+  const displayName = player?.username || "Anonymous"; // Hoặc hiển thị "Người chơi ẩn danh"
+
+  return (
+    <div className={styles.player}>
+      <span className={clsx(styles.colorIcon, styles[color])}></span>
+      
+      {/* Logic: Nếu có profile thì Link, không thì hiện Text thường */}
+      {hasProfile ? (
+        <Link to={`/profile/${player.username}`} className={styles.playerInfoLink}>
+          <h4>{displayName}</h4>
+        </Link>
+      ) : (
+        <span className={styles.playerInfoLink} style={{ cursor: "default", textDecoration: "none" }}>
+          <h4>{displayName}</h4>
+        </span>
+      )}
+      
+      <span className={styles.rating}>({rating})</span>
+    </div>
+  );
+};
 
 function GameHistory({ limit = 5, userId }) {
   const { token, user } = useAuth();
@@ -21,19 +47,22 @@ function GameHistory({ limit = 5, userId }) {
     const fetchHistory = async () => {
       setLoading(true);
       try {
-        // Gửi targetId vào query params
-        const res = await axiosClient.get(`/games/history?limit=${limit}&userId=${targetId}`);
+        const res = await axiosClient.get(
+          `/games/history?limit=${limit}&userId=${targetId}`
+        );
+        console.log(res.data);
+        
         setGames(res.data);
       } catch (err) {
         console.error("Lỗi lấy lịch sử đấu:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchHistory();
-  }, [token, limit, targetId]); // Thêm 'user' để fetch lại khi user thay đổi
+  }, [token, limit, targetId]);
 
-  // if (!user) return null; // Ẩn nếu không đăng nhập
   if (loading) return <div className={styles.loading}>Đang tải lịch sử...</div>;
 
   return (
@@ -52,44 +81,41 @@ function GameHistory({ limit = 5, userId }) {
         <tbody>
           {games.length === 0 ? (
             <tr>
-              <td colSpan="4" className={styles.noGames}>
+              <td colSpan="5" className={styles.noGames}>
                 Chưa có ván đấu nào.
               </td>
             </tr>
           ) : (
             games.map((game) => (
               <tr key={game._id}>
+                {/* Cột 1: Time Control */}
                 <td>
                   <div className={styles.timeControl}>
                     <TimeControlIcon timeControl={game.timeControl} />
                     <span>{game.timeControl}</span>
                   </div>
                 </td>
-                {/* 1. Các kỳ thủ */}
+
+                {/* Cột 2: Players (Đã tối ưu) */}
                 <td className={styles.players}>
                   <div className={styles.playerNames}>
-                    <div className={styles.player}>
-                      <span
-                        className={clsx(styles.colorIcon, styles.white)}
-                      ></span>
-                      {game.whitePlayer.displayName}
-                      <span className={styles.rating}>
-                        ({game.whiteRating})
-                      </span>
-                    </div>
-                    <div className={styles.player}>
-                      <span
-                        className={clsx(styles.colorIcon, styles.black)}
-                      ></span>
-                      {game.blackPlayer.displayName}
-                      <span className={styles.rating}>
-                        ({game.blackRating})
-                      </span>
-                    </div>
+                    {/* Render White Player */}
+                    <PlayerInfo 
+                      player={game.whitePlayer} 
+                      rating={game.whiteRating} 
+                      color="white" 
+                    />
+                    
+                    {/* Render Black Player */}
+                    <PlayerInfo 
+                      player={game.blackPlayer} 
+                      rating={game.blackRating} 
+                      color="black" 
+                    />
                   </div>
                 </td>
 
-                {/* 2. SỬA LỖI: Bọc nội dung trong <div> */}
+                {/* Cột 3: Kết quả */}
                 <td className={styles.result}>
                   <div className={styles.resultContent}>
                     {game.result === "1-0" && <strong>1 - 0</strong>}
@@ -98,21 +124,24 @@ function GameHistory({ limit = 5, userId }) {
                     <Link
                       to={`/analysis/${game._id}`}
                       className={styles.analysisButton}
+                      title="Phân tích ván đấu"
                     >
                       <i className="fa-solid fa-magnifying-glass-chart"></i>
                     </Link>
                   </div>
                 </td>
 
-                {/* 3. Số nước đi */}
+                {/* Cột 4: Số nước đi */}
                 <td className={styles.moves}>{game.moveCount}</td>
-                {/* 4. Ngày */}
+                
+                {/* Cột 5: Ngày */}
                 <td className={styles.date}>{formatDate(game.createdAt)}</td>
               </tr>
             ))
           )}
         </tbody>
       </table>
+      
       {limit === 5 && (
         <div className={styles.viewMore}>
           <Link to={`/profile/${targetId}`}>Xem tất cả</Link>

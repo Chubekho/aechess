@@ -28,21 +28,28 @@ function Profile() {
   const friendCount = 0;
 
   useEffect(() => {
+    // 1. Reset state ngay lập tức khi username thay đổi
+    setProfileUser(null);
+    setLoading(true);
+
+    // 2. Kiểm tra nếu username bị undefined (do click vào link lỗi)
+    if (!username || username === "undefined" || username === "null") {
+      setLoading(false);
+      return;
+    }
+
     const fetchUser = async () => {
       try {
-        setLoading(true);
-        // Gọi API với username
         const res = await axiosClient.get(`/users/${username}`);
         setProfileUser(res.data);
       } catch (err) {
-        // Xử lý lỗi 404 nếu gõ sai username
-        console.error(err);
+        console.error("Lỗi tải profile:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (username) fetchUser();
+    fetchUser();
   }, [username]);
 
   if (loading) return <div className={styles.loading}>Đang tải...</div>;

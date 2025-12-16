@@ -1,0 +1,13 @@
+.flipBtn {
+  background: none;
+  border: none;
+  color: #8b8987; // Màu xám nhạt (giống Chess.com)
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 8px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #fff;
+  }
+}

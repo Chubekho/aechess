@@ -9,12 +9,12 @@ function GameInfoPanel({
   showVariations = false,
   onResign,
   gameStatus,
+  isSpectator = false,
 }) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.tabs}>
         <button className={styles.tabActive}>Lịch sử</button>
-        <button>Chat</button>
       </div>
 
       <div className={styles.moveListContainer}>
@@ -27,10 +27,14 @@ function GameInfoPanel({
       </div>
 
       <div className={styles.controls}>
-        <button onClick={onResign} disabled={gameStatus === "gameOver"}>
-          Đầu hàng
-        </button>
-        <button disabled={gameStatus === "gameOver"}>Cầu hòa</button>
+        {!isSpectator && (
+          <>
+            <button onClick={onResign} disabled={gameStatus === "gameOver"}>
+              Đầu hàng
+            </button>
+            <button disabled={gameStatus === "gameOver"}>Cầu hòa</button>
+          </>
+        )}
       </div>
     </div>
   );

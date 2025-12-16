@@ -24,6 +24,7 @@ import EngineOutput from "./components/EngineOutput";
 import PlayerInfoBox from "@/components/PlayerInfoBox";
 import AnalysisSettings from "./components/AnalysisSettings";
 import PlayerReportCard from "./components/PlayerReportCard";
+import FlipBoardButton from "@/components/FlipBoardButton";
 
 // FEN chuẩn của bàn cờ vua khi bắt đầu
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -275,13 +276,9 @@ function AnalysisPage() {
       {/* --- CỘT 3 (3/12): PANEL PHÂN TÍCH --- */}
       <div className={clsx("col-3", styles.panelArea)}>
         <div className={styles.panelContainer}>
-          <button
-            className={styles.flipBtn}
-            onClick={handleFlipBoard}
-            title="Xoay bàn cờ"
-          >
-            <i className="fa-solid fa-retweet"></i>
-          </button>
+          <div className={styles.panelHeaderActions}>
+            <FlipBoardButton onClick={handleFlipBoard} />
+          </div>
           <div className={styles.panelHeader}>
             <h2>Phân tích & Engine</h2>
             <label className={styles.engineToggle}>

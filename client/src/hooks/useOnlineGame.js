@@ -16,6 +16,7 @@ export const useOnlineGame = (
   const gameRef = useRef(new Chess());
 
   const [myColor, setMyColor] = useState(null);
+  const [isSpectator, setIsSpectator] = useState(false);
   const [gameStatus, setGameStatus] = useState("waiting");
   const [clocks, setClocks] = useState({ w: 0, b: 0 });
   const [gameData, setGameData] = useState(null);
@@ -88,12 +89,20 @@ export const useOnlineGame = (
         alert(response.error);
         navigate("/");
       } else {
-        setMyColor(response.assignedColor);
+        if (response.role === "spectator") {
+          setIsSpectator(true);
+          setMyColor(null); // Spectator không có màu phe
+          console.log("Joined as Spectator");
+        } else {
+          setIsSpectator(false);
+          setMyColor(response.assignedColor);
+        }
+
+        // Sync data cho cả Player và Spectator
         if (
           response.status === "playing" ||
           response.status === "waiting_as_host"
         ) {
-          // Reconnect
           syncGameFromServer({ ...response });
         }
       }
@@ -110,7 +119,7 @@ export const useOnlineGame = (
     socket.on(
       "movePlayed",
       ({ newFen, lastMove, clocks: serverClocks, moverSocketId }) => {
-        if (socket.id === moverSocketId) {
+        if (!isSpectator && socket.id === moverSocketId) {
           setClocks(serverClocks);
           return;
         }
@@ -124,8 +133,9 @@ export const useOnlineGame = (
 
     socket.on("error", (message) => alert(message));
     socket.on("gameOver", (data) => {
-      alert(`Game tàn! ${data.result}`);
       setGameStatus("gameOver");
+      if (isSpectator) console.log("Trận đấu kết thúc", data.result);
+      else alert(`Game tàn! ${data.result}`);
     });
 
     return () => {
@@ -134,11 +144,21 @@ export const useOnlineGame = (
       socket.off("error");
       socket.off("gameOver");
     };
-  }, [socket, gameId, navigate, syncGameFromServer, addMove, setFen]);
+  }, [
+    socket,
+    gameId,
+    navigate,
+    syncGameFromServer,
+    addMove,
+    setFen,
+    isSpectator,
+  ]);
 
   // Logic Make Move (Wrapper)
   const makeMove = useCallback(
     ({ sourceSquare, targetSquare }) => {
+      // Chặn Spectator đi cờ
+      if (isSpectator) return false;
       // Validate move
       if (gameRef.current.turn() !== myColor) {
         console.log("not your turrn");
@@ -172,7 +192,7 @@ export const useOnlineGame = (
         return false;
       }
     },
-    [myColor, socket, addMove, gameId, setFen]
+    [myColor, socket, addMove, gameId, setFen, isSpectator]
   );
 
   return {
@@ -181,6 +201,7 @@ export const useOnlineGame = (
     clocks,
     gameData,
     gameRef,
-    makeMove, // Trả về hàm này để UI gọi
+    makeMove, 
+    isSpectator,
   };
 };

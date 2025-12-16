@@ -3,7 +3,7 @@
 ## Purpose
 
 - Provide a concise, self-contained description of the repository so an AI can reason about architecture, run/develop steps, key files, and event shapes.
-- **Current Status**: Polishing "Profile" UX (Navigation, History) and "Lobby" features.
+- **Current Status**: Implemented **Spectator Mode** and polished Game UI components.
 
 ## Repository Overview
 
@@ -20,13 +20,20 @@
   - `SocketProvider.jsx`: Socket connection with JWT token query.
 - **Key Pages & Components**:
   - `Lobby/index.jsx`: Matchmaking hub with `useRef` based timer logic.
-  - `GamePage`: Chessboard logic.
-  - `Profile/index.jsx`: Main profile wrapper. Handles `username` param validation.
+  - `GamePage`: Chessboard logic. Handles both Players and Spectators.
+    - **Spectator Logic**: Disables board interaction (`arePiecesDraggable=false`), shows "Watching" badge, uses `FlipBoardButton` for manual orientation.
+  - `AnalysisPage`: Game analysis tool. Now uses shared `FlipBoardButton`.
+  - `Profile/index.jsx`: Main profile wrapper.
     - `StatsChart.jsx`: Renders Radar Chart (Skills) & Doughnut Chart (Win/Loss).
-    - `FriendsTab.jsx`: Friend list management.
-    - `GameHistory/index.jsx`: **(Updated)** Table of recent games.
-      - **Logic**: Uses `PlayerInfo` sub-component to handle safe navigation. Links to `/profile/:username`. Handles anonymous/undefined users gracefully.
-- **Utilities**: `client/src/utils/axiosConfig.js` (Interceptor setup).
+    - `GameHistory/index.jsx`: Uses `PlayerInfo` sub-component for safe navigation.
+- **Shared Components**:
+  - `FlipBoardButton`: **(New)** Reusable component for flipping board orientation (Used in GamePage, Analysis).
+  - `GameInfoPanel`: Displays move list and game controls.
+    - **Logic**: Accepts `isSpectator` prop to hide "Resign" and "Draw" buttons.
+  - `PlayerInfoBox`: Displays avatar, name, rating, and timer.
+- **Hooks**:
+  - `useOnlineGame.js`: **(Updated)** Handles socket events for gameplay.
+    - **Logic**: Identifies `role` ('player' vs 'spectator') from `joinRoom` response. If spectator, disables `makeMove` emission but listens to `movePlayed`.
 
 ## Server (`server/`)
 
@@ -35,8 +42,11 @@
 - **Middleware**: `authMiddleware.js` (REST), `socketAuth.js` (Socket).
 - **Controllers**:
   - `friendController.js`: Friend list logic.
-  - `gameController.js`: **(Updated)** `getGameHistory` now ensures `whitePlayer` and `blackPlayer` populate the `username` field for frontend navigation.
-- **Socket Handlers**: `socketHandler.js`, `roomHandlers.js`, `gameHandlers.js`.
+  - `gameController.js`: History API returns populated usernames.
+- **Socket Handlers**:
+  - `roomHandlers.js`: **(Updated)** Handles `joinRoom` logic.
+    - **Logic**: Checks if room is full (2 players). If full and user is not a reconnecting player -> returns `{ success: true, role: 'spectator' }`.
+  - `gameHandlers.js`: Handles moves and game state.
 
 ## DB Schema Fields
 
@@ -53,7 +63,7 @@
 
 ### `Game` (`server/models/Game.js`)
 
-- **Confirmed Structure** (Ref: `image_0b3820.png`):
+- **Confirmed Structure**:
   - `_id`: ObjectId
   - `whitePlayer`: ObjectId (Ref `User`)
   - `blackPlayer`: ObjectId (Ref `User`)
@@ -61,7 +71,7 @@
   - `isRated`: Boolean
   - `whiteRating`: Number (Rating snapshot)
   - `blackRating`: Number (Rating snapshot)
-  - `pgn`: String (Contains tags like `[Event]`, `[Site]`, `[Date]`)
+  - `pgn`: String
   - `timeControl`: String (e.g., "10+5")
   - `createdAt`, `updatedAt`: Date
 
@@ -73,26 +83,31 @@
 
 ## Key API Flows & Implementations
 
-### 1. Game History & Navigation
+### 1. Spectator Mode Flow
 
-- **Endpoint**: `GET /games/history`
-- **Logic**:
-  - Backend returns game list with populated players (`username`, `displayName`).
-  - Frontend (`GameHistory`) renders links pointing to `/profile/${username}`.
-  - **Null Safety**: If a user is missing or username is undefined (e.g., deleted account), the link is disabled to prevent routing errors (`/profile/undefined`).
+- **Client**: Emits `joinRoom`.
+- **Server**: Checks `activeGames`.
+  - If `players.length < 2`: Adds as Player (role: 'player').
+  - If `players.length >= 2` & not reconnecting: Adds to room but returns `role: 'spectator'`.
+- **Client**:
+  - Sets `isSpectator = true`.
+  - Disables board inputs.
+  - Hides Action Buttons (Resign/Draw).
+  - Listens to `movePlayed` to update board state in real-time.
 
 ### 2. Lobby & Matchmaking
 
 - **States**: `idle` -> `searching` (Modal/Panel) -> `found` -> `gameStart`.
-- **Timer**: Uses `useRef` to track `startTime` for consistent countdowns across re-renders.
+- **Timer**: Uses `useRef` to track `startTime` for consistent countdowns.
 
-### 3. Profile Statistics
+### 3. Game History & Navigation
 
-- **Logic**: Frontend fetches last 100 games to calculate Win/Loss/Draw rates dynamically using Chart.js.
+- **Endpoint**: `GET /games/history`.
+- **Logic**: Returns populated players. Frontend links to `/profile/${username}`.
 
 ## Conventions & Notes
 
-- **User Identification**: Always prefer `_id` for logic, `username` for URLs/Navigation.
+- **User Identification**: Always prefer `_id` for logic, `username` for URLs.
 - **Frontend ID Check**: Convert to string (`id.toString()`) before comparing.
 - **Styling**: SCSS Modules.
 
@@ -100,10 +115,11 @@
 
 ## Recent Work Log
 
-1.  **Refactored GameHistory**:
-    - Optimized component by creating `PlayerInfo` sub-component.
-    - Updated navigation to use `username` in URL instead of `id`.
-    - Added safety checks for anonymous/undefined users.
-2.  **API Update**: Updated `gameController` to ensure usernames are sent in history response.
-3.  **Lobby UX**: Optimized matchmaking timer and state management.
-4.  **Profile Page**: Fixed potential crash when navigating to invalid/undefined profiles.
+1.  **Implemented Spectator Mode**:
+    - Updated `roomHandlers.js` to support non-player connections.
+    - Updated `useOnlineGame` hook to handle spectator state.
+    - UI updates in `GamePage` (Badge, Board lock).
+2.  **UI Refactoring**:
+    - Created `FlipBoardButton` component and applied to `GamePage` & `AnalysisPage`.
+    - Updated `GameInfoPanel` to handle spectator view (hidden controls).
+3.  **Refactored GameHistory**: Optimized component with `PlayerInfo` sub-component and safer navigation.

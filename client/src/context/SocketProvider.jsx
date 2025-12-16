@@ -1,3 +1,4 @@
+//client/src/context/SocketProvider.jsx
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "@/hooks/index"; // Dùng để xác thực (nếu cần)
@@ -12,11 +13,6 @@ export const SocketProvider = ({ children }) => {
     // Chỉ kết nối socket nếu user đã đăng nhập
     if (user) {
       // Kết nối tới server
-      // Bạn có thể gửi 'token' để xác thực socket
-      // const newSocket = io("http://localhost:8080", {
-      //   query: { token: token } 
-      // });
-      
       const newSocket = io("http://localhost:8080", { // (Hoặc IP nội bộ)
         query: {
           token: token 

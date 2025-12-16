@@ -7,5 +7,4 @@ function createShortId(length = 8) {
   return result;
 }
 
-// Export hàm này để file khác có thể dùng
 export default createShortId;

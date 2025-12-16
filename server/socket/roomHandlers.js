@@ -4,7 +4,6 @@ import createShortId from "../utils/CreateShortId.js";
 
 // Đăng ký các event 'createRoom' và 'joinRoom'
 export const registerRoomHandlers = (io, socket, activeGames) => {
-  
   // === 1. TẠO PHÒNG ===
   socket.on("createRoom", (roomConfig, callback) => {
     if (typeof callback !== "function") return;
@@ -73,14 +72,30 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
         pgn: gameData.game.pgn(),
         clocks: gameData.clocks,
         config: gameData.config,
-        whitePlayer: whitePlayer, // Gửi nguyên object
-        blackPlayer: blackPlayer, // Gửi nguyên object
+        whitePlayer: whitePlayer,
+        blackPlayer: blackPlayer,
         status: status,
       });
     }
 
     if (gameData.players.length >= 2) {
-      return callback({ error: "Phòng đã đầy." });
+      socket.join(gameId); // Join để nhận event 'move', 'gameOver'
+      console.log(`${socket.user.email} đang xem phòng ${gameId} (Spectator)`);
+
+      const whitePlayer = gameData.players.find((p) => p.color === "w");
+      const blackPlayer = gameData.players.find((p) => p.color === "b");
+
+      return callback({
+        success: true,
+        role: "spectator", // Frontend check cái này để disable bàn cờ
+        fen: gameData.game.fen(),
+        pgn: gameData.game.pgn(),
+        clocks: gameData.clocks,
+        config: gameData.config,
+        whitePlayer: whitePlayer,
+        blackPlayer: blackPlayer,
+        status: "playing", // Spectator vào xem thì game thường đang chạy
+      });
     }
 
     // Thêm người chơi B
@@ -96,9 +111,9 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
       color: guestColor,
     };
     gameData.players.push(guestPlayer);
-    
+
     socket.join(gameId);
-    console.log(`${socket.user.email} đã tham gia phòng ${gameId}`);
+    console.log(`${socket.user.username} đã tham gia phòng ${gameId}`);
 
     const whitePlayer = gameData.players.find((p) => p.color === "w");
     const blackPlayer = gameData.players.find((p) => p.color === "b");
@@ -108,12 +123,16 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
     io.to(gameId).emit("gameStart", {
       gameId: gameId,
       fen: gameData.game.fen(),
-      whitePlayer: whitePlayer, // Gửi object
-      blackPlayer: blackPlayer, // Gửi object
+      whitePlayer: whitePlayer,
+      blackPlayer: blackPlayer,
       config: gameData.config,
       clocks: gameData.clocks,
     });
 
-    callback({ success: true, assignedColor: guestColor, status: "joining_as_guest" });
+    callback({
+      success: true,
+      assignedColor: guestColor,
+      status: "joining_as_guest",
+    });
   });
 };

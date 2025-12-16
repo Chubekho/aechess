@@ -255,6 +255,8 @@
   gap: 15px;
 }
 .actionButton {
+  display: flex;
+  justify-content: center;
   padding: 12px 20px;
   font-size: 1.8rem;
   font-weight: 600;

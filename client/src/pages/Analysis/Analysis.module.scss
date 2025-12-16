@@ -159,21 +159,3 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(18px);
 }
-
-.flipBtn {
-  position: absolute;
-  top: -36px; 
-  left: 0px;
-  background-color: transparent;
-  border: none;
-  color: #999;
-  font-size: 1.8rem;
-  cursor: pointer;
-  transition: color 0.2s;
-  padding: 5px;
-  z-index: 9999;
-
-  &:hover {
-    color: #fff;
-  }
-}

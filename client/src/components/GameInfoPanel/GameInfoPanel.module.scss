@@ -1,3 +1,8 @@
+// GameInfoPanel.module.scss
+
+// Import biến màu nếu file variable nằm ở src/styles/variables.scss (tuỳ cấu trúc dự án của bạn)
+// @import "@/styles/variables.scss"; 
+
 .wrapper {
   display: flex;
   flex-direction: column;
@@ -10,7 +15,7 @@
 .moveListContainer {
   flex: 1;
   overflow-y: auto;
-  /* Style thanh cuộn cho đẹp */
+  /* Style thanh cuộn */
   &::-webkit-scrollbar {
     width: 6px;
   }
@@ -23,56 +28,137 @@
   }
 }
 
+/* --- FOOTER --- */
 .footer {
-  background-color: #21201d; /* Màu nền footer tối hơn 1 chút */
+  background-color: #21201d;
   padding: 15px;
   border-top: 1px solid #3a3836;
+  
+  /* Đảm bảo nội dung bên trong footer luôn căn giữa nếu footer rộng */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* --- 1. Style cho Footer mặc định (Đầu hàng / Cầu hòa) --- */
+/* --- 1. Style cho Footer Play (Đầu hàng / Cầu hòa) --- */
 .actionsFooter {
   display: flex;
-  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  gap: 15px; /* Khoảng cách giữa 2 nút */
+  width: 100%; /* Chiếm hết chiều rộng footer */
+}
 
-  button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    font-size: 1.4rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background 0.2s;
-    color: #ccc;
+/* Wrapper bao quanh nút để xử lý logic hiển thị Confirm */
+.resignWrapper,
+.drawWrapper {
+  flex: 1; /* Chia đều 50-50 không gian */
+  height: 45px; /* Chiều cao cố định để không bị giật khi đổi UI */
+  position: relative;
+}
 
-    &.btnResign {
-      background-color: #3c3b39;
-      &:hover:not(:disabled) {
-        background-color: #4f4d4b;
-        color: #fff;
-      }
-    }
+/* Style chung cho nút chính (Đầu hàng/Cầu hoà) */
+.btnResign,
+.btnDraw {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  
+  /* YÊU CẦU: Cỡ chữ mặc định 1.4rem */
+  font-size: 1.4rem; 
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s, transform 0.1s;
+  color: #bababa;
+  background-color: #3c3b39;
 
-    &.btnDraw {
-      background-color: #3c3b39;
-      &:hover:not(:disabled) {
-        background-color: #4f4d4b;
-        color: #fff;
-      }
-    }
+  &:hover:not(:disabled) {
+    background-color: #4f4d4b;
+    color: #fff;
+  }
 
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Style riêng cho trạng thái "Đã gửi..." */
+  &.disabled {
+    background-color: #2a2927;
+    color: #666;
+    border: 1px dashed #444;
   }
 }
 
-/* --- 2. Style cho Footer Kết Thúc Game (End Game) --- */
+/* --- 2. Style cho Dropdown Xác Nhận (Thay thế nút bấm) --- */
+.confirmDropdown,
+.drawConfirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Căn đều nội dung */
+  gap: 5px;
+  width: 100%;
+  height: 100%;
+  
+  /* FIX: Đổi màu nền sang tối để hợp theme */
+  background-color: #262522; 
+  border: 1px solid #404040;
+  border-radius: 4px;
+  padding: 0 5px;
+
+  /* Text câu hỏi (Thua? Hòa?) */
+  span {
+    font-weight: 600;
+    font-size: 1.2rem; /* Bé hơn icon 1 chút cho gọn */
+    color: #cacaca;
+    padding-left: 5px;
+  }
+
+  /* Container cho 2 nút Yes/No */
+  .confirmActions {
+      display: flex;
+      gap: 5px;
+      height: 100%;
+      align-items: center;
+  }
+
+  button {
+    height: 32px; /* Nút nhỏ gọn hơn trong popup */
+    min-width: 40px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    color: #fff;
+  }
+
+  .btnYes {
+    background-color: #629924; /* Màu xanh Lichess */
+    &:hover { background-color: #90cc4c; }
+  }
+
+  .btnNo {
+    background-color: #cc3333; /* Màu đỏ */
+    &:hover { background-color: #ff5252; }
+  }
+}
+
+
+/* --- 3. Style cho Footer Kết Thúc Game (End Game) --- */
 .endGameFooter {
   display: flex;
   flex-direction: column;
@@ -85,29 +171,21 @@
   margin-bottom: 5px;
 
   .resultTitle {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 800;
     margin-bottom: 4px;
 
-    /* Các biến thể màu sắc */
-    &.win {
-      color: #81b64c; /* Xanh lá (Thắng) */
-    }
-    &.loss {
-      color: #ca3431; /* Đỏ (Thua) */
-    }
-    &.draw {
-      color: #a7a6a2; /* Xám (Hòa) */
-    }
+    &.win { color: #81b64c; }
+    &.loss { color: #ca3431; }
+    &.draw { color: #a7a6a2; }
   }
 
   .resultReason {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: #bababa;
   }
 }
 
-/* Hàng chứa nút Tái đấu và Game mới */
 .actionButtons {
   display: flex;
   gap: 10px;
@@ -123,33 +201,29 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-size: 0.95rem;
+    font-size: 1.4rem; /* Yêu cầu 1.4rem */
     transition: all 0.2s;
   }
 
   .btnRematch {
     background-color: #3c3b39;
     color: #7d7d7d;
-    cursor: not-allowed; /* Disabled style */
+    cursor: not-allowed;
   }
 
   .btnNewGame {
     background-color: #81b64c;
     color: white;
-    box-shadow: 0 4px 0 #5e8d3e; /* Hiệu ứng nút nổi */
-
-    &:hover {
-      background-color: #95c660;
-    }
-
+    box-shadow: 0 3px 0 #5e8d3e;
+    
+    &:hover { background-color: #95c660; }
     &:active {
       transform: translateY(2px);
-      box-shadow: 0 2px 0 #5e8d3e;
+      box-shadow: 0 1px 0 #5e8d3e;
     }
   }
 }
 
-/* Nút Phân tích (Full width) */
 .btnAnalysis {
   width: 100%;
   padding: 12px;
@@ -163,6 +237,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  font-size: 1.4rem; /* Yêu cầu 1.4rem */
   transition: 0.2s;
 
   &:hover:not(:disabled) {
@@ -174,13 +249,9 @@
     opacity: 0.5;
     cursor: wait;
   }
-
-  i {
-    font-size: 1.1rem;
-  }
 }
 
-/* --- 3. Style cho Spectator --- */
+/* --- 4. Style cho Spectator --- */
 .spectatorMessage {
   display: flex;
   align-items: center;
@@ -190,27 +261,26 @@
   background-color: #302e2c;
   border-radius: 4px;
   color: #a7a6a2;
-  font-size: 1rem;
+  font-size: 1.4rem; /* Yêu cầu 1.4rem */
   font-weight: 600;
+  width: 100%;
 
-  i {
-    color: #81b64c; /* Icon mắt màu xanh */
-  }
+  i { color: #81b64c; }
 }
 
-/* Container kết quả cho Spectator (chỉ hiện text, không nút) */
 .resultContainer {
   text-align: center;
   padding: 10px;
-  
+  width: 100%;
+
   h3 {
     color: #fff;
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     margin-bottom: 5px;
   }
-  
+
   p {
     color: #a7a6a2;
-    font-size: 0.9rem;
+    font-size: 1.2rem;
   }
 }

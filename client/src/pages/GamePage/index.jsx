@@ -1,23 +1,23 @@
 import { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { useSocket } from "@/context/SocketContext";
-import { Chessboard } from "react-chessboard";
 import clsx from "clsx";
-import styles from "./GamePage.module.scss";
 
 import { useGameNavigation, useOnlineGame } from "@/hooks/index";
 import { getPlayerLayout } from "@/utils/chessUtils";
 
+import { Chessboard } from "react-chessboard";
 import PlayerInfoBox from "@/components/PlayerInfoBox";
 import GameInfoPanel from "@/components/GameInfoPanel";
 import FlipBoardButton from "@/components/FlipBoardButton";
+import styles from "./GamePage.module.scss";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 function GamePage() {
   const { gameId } = useParams();
-  const socket = useSocket();
   const [fen, setFen] = useState(START_FEN);
+  const socket = useSocket();
 
   // --- State của Game ---
   const {
@@ -82,11 +82,6 @@ function GamePage() {
     },
     [makeMove, gameStatus, currentNode.children, isSpectator]
   );
-
-  // === 5. CÁC HANDLERS KHÁC ===
-  const handleResign = () => {
-    if (socket && !isSpectator) socket.emit("resign", { gameId });
-  };
 
   const handleFlipBoard = () => {
     setUserOrientation((prev) => {
@@ -178,11 +173,11 @@ function GamePage() {
           className={styles.gamePageFlipBtn}
         />
         <GameInfoPanel
+          gameId={gameId}
           rootNode={rootNode}
           currentNode={currentNode}
           onNavigate={handleNavigation}
           showVariations={false}
-          onResign={handleResign}
           gameStatus={gameStatus}
           isSpectator={isSpectator}
           gameResult={gameResult}

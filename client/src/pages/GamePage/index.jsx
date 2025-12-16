@@ -29,14 +29,44 @@ function GamePage() {
     loadHistory,
   } = useGameNavigation(setFen);
 
-  const { myColor, gameStatus, clocks, gameData, makeMove, isSpectator } =
-    useOnlineGame(fen, setFen, gameId, addMove, resetNavigation, loadHistory);
+  const {
+    myColor,
+    gameStatus,
+    clocks,
+    gameData,
+    makeMove,
+    isSpectator,
+    gameResult,
+  } = useOnlineGame(fen, setFen, gameId, addMove, resetNavigation, loadHistory);
+
   const [userOrientation, setUserOrientation] = useState(null);
+
   const boardOrientation = useMemo(() => {
     if (userOrientation) return userOrientation;
     if (myColor === "b") return "black";
     return "white";
   }, [userOrientation, myColor]);
+
+  const handleNewGame = () => {
+    if (!socket || !gameData?.config) return;
+
+    // config: { time: { base: 10, inc: 0 }, isRated: true, category: 'rapid' }
+    // Cần convert lại format "10+0" để gửi lên findMatch
+    const base = gameData.config.time.base;
+    const inc = gameData.config.time.inc;
+    const timeControl = `${base}+${inc}`;
+
+    // Emit tìm trận mới
+    socket.emit("findMatch", {
+      timeControl,
+      isRated: gameData.config.isRated,
+    });
+
+    // Navigate về Lobby và mở sẵn trạng thái tìm kiếm (nếu Lobby hỗ trợ)
+    // Hoặc đơn giản là navigate về Lobby, socket event sẽ tự handle việc matchFound
+    // Ở đây ta dùng cách đơn giản nhất:
+    window.location.href = "/"; // Hoặc navigate("/")
+  };
 
   // === 4. XỬ LÝ KHI NGƯỜI CHƠI ĐI CỜ ===
   const onPieceDrop = useCallback(
@@ -154,6 +184,10 @@ function GamePage() {
           showVariations={false}
           onResign={handleResign}
           gameStatus={gameStatus}
+          isSpectator={isSpectator}
+          gameResult={gameResult}
+          myColor={myColor}
+          onNewGame={handleNewGame}
         />
       </div>
     </div>

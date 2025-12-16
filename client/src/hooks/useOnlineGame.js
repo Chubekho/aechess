@@ -20,6 +20,7 @@ export const useOnlineGame = (
   const [gameStatus, setGameStatus] = useState("waiting");
   const [clocks, setClocks] = useState({ w: 0, b: 0 });
   const [gameData, setGameData] = useState(null);
+  const [gameResult, setGameResult] = useState(null);
 
   useEffect(() => {
     if (gameStatus !== "playing") return;
@@ -135,7 +136,7 @@ export const useOnlineGame = (
     socket.on("gameOver", (data) => {
       setGameStatus("gameOver");
       if (isSpectator) console.log("Trận đấu kết thúc", data.result);
-      else alert(`Game tàn! ${data.result}`);
+      setGameResult(data);
     });
 
     return () => {
@@ -201,7 +202,8 @@ export const useOnlineGame = (
     clocks,
     gameData,
     gameRef,
-    makeMove, 
+    gameResult,
+    makeMove,
     isSpectator,
   };
 };

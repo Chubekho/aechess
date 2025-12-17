@@ -158,3 +158,15 @@ GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 CLIENT_URL=http://localhost:5173
 ```
+
+***
+
+### Những thay đổi chính trong bản mới này:
+
+1.  **Directory Structure**: Liệt kê rõ các file quan trọng, giúp tôi hình dung được ngay kiến trúc dự án (Vite + Express).
+2.  **Logic "Handshake"**: Mô tả chi tiết bảng trạng thái (State Machine) của tính năng Cầu hòa (Draw Offer). Đây là logic phức tạp dễ bị quên.
+3.  **Socket Event Reference**: Liệt kê các event name chính xác (`join_room`, `make_move`,...). Rất quan trọng để debug khi client/server không hiểu nhau.
+4.  **Database Schema**: Bổ sung chi tiết các trường trong Model, đặc biệt là `Game` và `User`.
+5.  **Lessons Learned**: Ghi lại các bug đã sửa (như vụ Timer re-render) để tránh lặp lại sai lầm cũ.
+
+Bây giờ bạn lưu file này lại nhé. Lần sau nếu cần code tiếp, tôi sẽ dựa vào đây để viết code chính xác ngay lập tức.

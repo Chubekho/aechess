@@ -37,6 +37,9 @@ function GamePage() {
     makeMove,
     isSpectator,
     gameResult,
+    drawStatus,
+    rematchStatus,
+    handlers,
   } = useOnlineGame(fen, setFen, gameId, addMove, resetNavigation, loadHistory);
 
   const [userOrientation, setUserOrientation] = useState(null);
@@ -183,6 +186,9 @@ function GamePage() {
           gameResult={gameResult}
           myColor={myColor}
           onNewGame={handleNewGame}
+          drawStatus={drawStatus}
+          rematchStatus={rematchStatus}
+          {...handlers}
         />
       </div>
     </div>

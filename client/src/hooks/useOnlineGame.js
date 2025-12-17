@@ -1,3 +1,4 @@
+//client/src/hooks/useOnlineGame.js
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Chess } from "chess.js";
 import { useSocket } from "@/context/SocketContext";
@@ -21,7 +22,10 @@ export const useOnlineGame = (
   const [clocks, setClocks] = useState({ w: 0, b: 0 });
   const [gameData, setGameData] = useState(null);
   const [gameResult, setGameResult] = useState(null);
+  const [drawStatus, setDrawStatus] = useState("idle"); // 'idle' | 'offered_by_me' | 'offered_to_me'
+  const [rematchStatus, setRematchStatus] = useState("idle"); // 'idle' | 'offered_by_me' | 'offered_to_me'
 
+  // --- 1. LOGIC ĐỒNG HỒ ---
   useEffect(() => {
     if (gameStatus !== "playing") return;
 
@@ -43,7 +47,7 @@ export const useOnlineGame = (
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [gameStatus]); // Chạy lại khi trạng thái game thay đổi
+  }, [gameStatus]);
 
   // Helper sync (Internal)
   const syncGameFromServer = useCallback(
@@ -56,7 +60,6 @@ export const useOnlineGame = (
       }
 
       // 2. Xây dựng lại Tree cho MoveBoard
-      // Reset về đầu
       resetNavigation();
       // Replay lại toàn bộ lịch sử vào Tree
       const historyVerbose = gameRef.current.history({ verbose: true });
@@ -105,16 +108,27 @@ export const useOnlineGame = (
           response.status === "waiting_as_host"
         ) {
           syncGameFromServer({ ...response });
+          setGameStatus(response.status);
         }
       }
     });
 
-    // B. Game Start (Bắt đầu trận mới)
-    socket.on("gameStart", (data) => {
-      console.log("Game Bắt đầu!", data);
-      gameRef.current = new Chess();
-      syncGameFromServer({ ...data, status: "playing" });
-    });
+    // B. Game Start & Restart
+    const handleGameStart = (data) => {
+      console.log("Game Start/Restart!", data);
+      gameRef.current = new Chess(); // Reset logic cờ
+
+      // Reset các trạng thái UI
+      setGameStatus("playing");
+      setGameResult(null);
+      setDrawStatus("idle");
+      setRematchStatus("idle");
+
+      syncGameFromServer(data);
+    };
+
+    socket.on("gameStart", handleGameStart);
+    socket.on("gameRestarted", handleGameStart);
 
     // C. Move Played (Nước đi đối thủ)
     socket.on(
@@ -132,18 +146,39 @@ export const useOnlineGame = (
       }
     );
 
-    socket.on("error", (message) => alert(message));
+    // D. Game Over
     socket.on("gameOver", (data) => {
       setGameStatus("gameOver");
-      if (isSpectator) console.log("Trận đấu kết thúc", data.result);
       setGameResult(data);
     });
 
+    // E. Interaction Events (Draw)
+    socket.on("drawOffered", () => setDrawStatus("offered_to_me"));
+    socket.on("drawDeclined", () => {
+      setDrawStatus("idle");
+      alert("Đối thủ từ chối hòa.");
+    });
+
+    // F. Rematch
+    socket.on("rematchOffered", () => setRematchStatus("offered_to_me"));
+    socket.on("rematchDeclined", () => {
+      setRematchStatus("idle");
+      alert("Đối thủ từ chối tái đấu.");
+    });
+
+    // G. Error
+    socket.on("error", (message) => alert(message));
+
     return () => {
       socket.off("gameStart");
+      socket.off("gameRestarted");
       socket.off("movePlayed");
-      socket.off("error");
       socket.off("gameOver");
+      socket.off("drawOffered");
+      socket.off("drawDeclined");
+      socket.off("rematchOffered");
+      socket.off("rematchDeclined");
+      socket.off("error");
     };
   }, [
     socket,
@@ -155,6 +190,50 @@ export const useOnlineGame = (
     isSpectator,
   ]);
 
+  // --- 4. ACTION HANDLERS (Export ra để UI dùng) ---
+  const handleResign = () => {
+    if (socket) socket.emit("resign", { gameId });
+  };
+
+  // Draw Handlers
+  const handleOfferDraw = () => {
+    if (socket) {
+      socket.emit("offerDraw", { gameId });
+      setDrawStatus("offered_by_me");
+    }
+  };
+  const handleAcceptDraw = () => {
+    if (socket) {
+      socket.emit("acceptDraw", { gameId });
+      setDrawStatus("idle");
+    }
+  };
+  const handleDeclineDraw = () => {
+    if (socket) {
+      socket.emit("declineDraw", { gameId });
+      setDrawStatus("idle");
+    }
+  };
+
+  // Rematch Handlers
+  const handleOfferRematch = () => {
+    if (socket) {
+      socket.emit("offerRematch", { gameId });
+      setRematchStatus("offered_by_me");
+    }
+  };
+  const handleAcceptRematch = () => {
+    if (socket) {
+      socket.emit("acceptRematch", { gameId });
+    }
+  };
+  const handleDeclineRematch = () => {
+    if (socket) {
+      socket.emit("declineRematch", { gameId });
+      setRematchStatus("idle");
+    }
+  };
+
   // Logic Make Move (Wrapper)
   const makeMove = useCallback(
     ({ sourceSquare, targetSquare }) => {
@@ -162,9 +241,9 @@ export const useOnlineGame = (
       if (isSpectator) return false;
       // Validate move
       if (gameRef.current.turn() !== myColor) {
-        console.log("not your turrn");
         return false;
       }
+
       const gameCopy = new Chess(gameRef.current.fen());
       try {
         const move = gameCopy.move({
@@ -173,9 +252,7 @@ export const useOnlineGame = (
           promotion: "q",
         });
 
-        if (move === null) {
-          console.log("move === null");
-
+        if (!move) {
           return false;
         }
         socket.emit("makeMove", {
@@ -205,5 +282,16 @@ export const useOnlineGame = (
     gameResult,
     makeMove,
     isSpectator,
+    drawStatus,
+    rematchStatus,
+    handlers: {
+      handleResign,
+      handleOfferDraw,
+      handleAcceptDraw,
+      handleDeclineDraw,
+      handleOfferRematch,
+      handleAcceptRematch,
+      handleDeclineRematch,
+    },
   };
 };

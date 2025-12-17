@@ -7,6 +7,8 @@ export async function endGame(io, activeGames, gameId, result, reason) {
   const gameData = activeGames.get(gameId);
   if (!gameData) return;
 
+  gameData.isFinished = true;
+
   console.log(`Game ${gameId} kết thúc: ${result} (${reason})`);
 
   io.to(gameId).emit("gameOver", { result: result, reason: reason });
@@ -15,9 +17,11 @@ export async function endGame(io, activeGames, gameId, result, reason) {
   const whitePlayerInfo = gameData.players.find((p) => p.color === "w");
   const blackPlayerInfo = gameData.players.find((p) => p.color === "b");
 
+  let dbGameId = null;
+
   // 1. Nếu game KHÔNG xếp hạng -> Emit ngay và xóa
   if (!gameData.config.isRated) {
-    activeGames.delete(gameId);
+    io.to(gameId).emit("gameOver", { result, reason });
     return;
   }
 
@@ -58,8 +62,8 @@ export async function endGame(io, activeGames, gameId, result, reason) {
       });
 
       // Lưu vào DB cho Game model (cần update rating snapshot)
-      whitePlayerInfo.rating = oldRatings.white;
-      blackPlayerInfo.rating = oldRatings.black;
+      whitePlayerInfo.rating = newRatings.whiteNew;
+      blackPlayerInfo.rating = newRatings.blackNew;
     }
 
     // B. Lưu Game vào DB
@@ -75,18 +79,27 @@ export async function endGame(io, activeGames, gameId, result, reason) {
     });
 
     await newGame.save();
-
-    // C. Gửi thông báo Game Over KÈM ID DB (Quan trọng cho nút Analysis)
-    io.to(gameId).emit("gameOver", {
-      result: result,
-      reason: reason,
-      dbGameId: newGame._id, // <--- ID thật để navigate
-    });
+    dbGameId = newGame._id;
   } catch (err) {
     console.error("Lỗi khi kết thúc game:", err);
-    // Fallback: vẫn báo game over dù lỗi DB
-    io.to(gameId).emit("gameOver", { result, reason, dbGameId: null });
-  } finally {
-    activeGames.delete(gameId);
   }
+  io.to(gameId).emit("gameOver", {
+    result: result,
+    reason: reason,
+    dbGameId: dbGameId,
+  });
+
+  // --- QUẢN LÝ BỘ NHỚ (Cleanup Logic) ---
+  // Thay vì delete ngay, ta set timeout 15 phút.
+  // Nếu người chơi tái đấu, timeout này sẽ bị clear trong gameHandlers.
+  if (gameData.cleanupTimer) {
+    clearTimeout(gameData.cleanupTimer);
+  }
+
+  gameData.cleanupTimer = setTimeout(() => {
+    if (activeGames.has(gameId)) {
+      console.log(`Dọn dẹp phòng game ${gameId} do không hoạt động.`);
+      activeGames.delete(gameId);
+    }
+  }, 5 * 60 * 1000); // 5 phút
 }

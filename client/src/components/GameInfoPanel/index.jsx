@@ -1,6 +1,5 @@
 // components/GameInfoPanel/index.jsx
 import { useNavigate } from "react-router";
-import { useSocket } from "@/context/SocketContext";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 
@@ -8,7 +7,6 @@ import MoveBoard from "../MoveBoard";
 import styles from "./GameInfoPanel.module.scss";
 
 function GameInfoPanel({
-  gameId,
   rootNode,
   currentNode,
   onNavigate,
@@ -18,74 +16,31 @@ function GameInfoPanel({
   gameResult,
   myColor,
   onNewGame,
+  handleResign,
+  handleOfferDraw,
+  handleAcceptDraw,
+  handleDeclineDraw,
+  handleOfferRematch,
+  handleAcceptRematch,
+  handleDeclineRematch,
+  drawStatus,    // 'idle', 'offered_by_me', 'offered_to_me'
+  rematchStatus  // 'idle', 'offered_by_me', 'offered_to_me'
 }) {
-  const socket = useSocket();
   const navigate = useNavigate();
 
   const [showResignConfirm, setShowResignConfirm] = useState(false);
-  const [drawStatus, setDrawStatus] = useState("idle");
 
-  // --- SOCKET LISTENERS ---
   useEffect(() => {
-    if (!socket) return;
+     if(gameStatus === 'playing') setShowResignConfirm(false);
+  }, [gameStatus]);
 
-    // 1. Nhận lời mời hòa từ đối thủ
-    const onDrawOffered = () => {
-      setDrawStatus("offered_to_me");
-    };
-
-    // 2. Đối thủ từ chối lời mời của mình
-    const onDrawDeclined = () => {
-      setDrawStatus("idle");
-      alert("Đối thủ đã từ chối lời cầu hòa."); // Có thể thay bằng Toast
-    };
-
-    socket.on("drawOffered", onDrawOffered);
-    socket.on("drawDeclined", onDrawDeclined);
-
-    return () => {
-      socket.off("drawOffered", onDrawOffered);
-      socket.off("drawDeclined", onDrawDeclined);
-    };
-  }, [socket]);
-
-  // --- HANDLERS: ĐẦU HÀNG ---
-  const handleResignClick = () => {
-    setShowResignConfirm(true);
-  };
-
-  const handleConfirmResign = () => {
-    if (socket && gameId) {
-      socket.emit("resign", { gameId });
-      setShowResignConfirm(false);
-    }
-  };
-
-  const handleCancelResign = () => {
+  // --- UI LOGIC LOCAL ---
+  const onResignClick = () => setShowResignConfirm(true);
+  const onConfirmResign = () => {
+    handleResign(); // Gọi hàm từ props
     setShowResignConfirm(false);
   };
-
-  // --- HANDLERS: CẦU HÒA ---
-  const handleOfferDraw = () => {
-    if (socket && gameId) {
-      socket.emit("offerDraw", { gameId });
-      setDrawStatus("offered_by_me");
-    }
-  };
-
-  const handleAcceptDraw = () => {
-    if (socket && gameId) {
-      socket.emit("acceptDraw", { gameId });
-      setDrawStatus("idle");
-    }
-  };
-
-  const handleDeclineDraw = () => {
-    if (socket && gameId) {
-      socket.emit("declineDraw", { gameId });
-      setDrawStatus("idle");
-    }
-  };
+  const onCancelResign = () => setShowResignConfirm(false);
 
   const getResultText = () => {
     if (!gameResult) return { title: "", sub: "" };
@@ -175,14 +130,46 @@ function GameInfoPanel({
           </div>
 
           <div className={styles.actionButtons}>
-            {/* Nút Tái đấu (Disabled) */}
-            <button
-              className={styles.btnRematch}
-              disabled
-              title="Tính năng đang phát triển"
-            >
-              <i className="fa-solid fa-rotate-left"></i> Tái đấu
-            </button>
+            {/* REMATCH BUTTONS */}
+            <div className={styles.rematchWrapper}>
+              {rematchStatus === "idle" && (
+                <button
+                  className={styles.btnRematch}
+                  onClick={handleOfferRematch}
+                >
+                  <i className="fa-solid fa-rotate-left"></i> Tái đấu
+                </button>
+              )}
+
+              {rematchStatus === "offered_by_me" && (
+                <button
+                  className={clsx(styles.btnRematch, styles.disabled)}
+                  disabled
+                >
+                  <i className="fa-solid fa-spinner fa-spin"></i> Đã gửi...
+                </button>
+              )}
+
+              {rematchStatus === "offered_to_me" && (
+                <div className={styles.rematchConfirm}>
+                  <span>Tái đấu?</span>
+                  <button
+                    className={styles.btnYes}
+                    onClick={handleAcceptRematch}
+                    title="Đồng ý"
+                  >
+                    <i className="fa-solid fa-check"></i>
+                  </button>
+                  <button
+                    className={styles.btnNo}
+                    onClick={handleDeclineRematch}
+                    title="Từ chối"
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Nút Game Mới */}
             <button className={styles.btnNewGame} onClick={onNewGame}>
@@ -215,7 +202,7 @@ function GameInfoPanel({
           {!showResignConfirm ? (
             <button
               className={styles.btnResign}
-              onClick={handleResignClick}
+              onClick={onResignClick}
               disabled={gameStatus !== "playing"}
             >
               <i className="fa-solid fa-flag"></i> Đầu hàng
@@ -223,10 +210,10 @@ function GameInfoPanel({
           ) : (
             <div className={styles.confirmDropdown}>
               <span>Thua?</span>
-              <button className={styles.btnYes} onClick={handleConfirmResign}>
+              <button className={styles.btnYes} onClick={onConfirmResign}>
                 Có
               </button>
-              <button className={styles.btnNo} onClick={handleCancelResign}>
+              <button className={styles.btnNo} onClick={onCancelResign}>
                 Không
               </button>
             </div>

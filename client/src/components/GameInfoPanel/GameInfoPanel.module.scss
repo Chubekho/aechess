@@ -1,7 +1,7 @@
 // GameInfoPanel.module.scss
 
 // Import biến màu nếu file variable nằm ở src/styles/variables.scss (tuỳ cấu trúc dự án của bạn)
-// @import "@/styles/variables.scss"; 
+// @import "@/styles/variables.scss";
 
 .wrapper {
   display: flex;
@@ -33,7 +33,7 @@
   background-color: #21201d;
   padding: 15px;
   border-top: 1px solid #3a3836;
-  
+
   /* Đảm bảo nội dung bên trong footer luôn căn giữa nếu footer rộng */
   display: flex;
   justify-content: center;
@@ -66,10 +66,10 @@
   border-radius: 4px;
   font-weight: 500;
   cursor: pointer;
-  
+
   /* YÊU CẦU: Cỡ chữ mặc định 1.4rem */
-  font-size: 1.4rem; 
-  
+  font-size: 1.4rem;
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -109,9 +109,9 @@
   gap: 5px;
   width: 100%;
   height: 100%;
-  
+
   /* FIX: Đổi màu nền sang tối để hợp theme */
-  background-color: #262522; 
+  background-color: #262522;
   border: 1px solid #404040;
   border-radius: 4px;
   padding: 0 5px;
@@ -126,10 +126,10 @@
 
   /* Container cho 2 nút Yes/No */
   .confirmActions {
-      display: flex;
-      gap: 5px;
-      height: 100%;
-      align-items: center;
+    display: flex;
+    gap: 5px;
+    height: 100%;
+    align-items: center;
   }
 
   button {
@@ -148,15 +148,18 @@
 
   .btnYes {
     background-color: #629924; /* Màu xanh Lichess */
-    &:hover { background-color: #90cc4c; }
+    &:hover {
+      background-color: #90cc4c;
+    }
   }
 
   .btnNo {
     background-color: #cc3333; /* Màu đỏ */
-    &:hover { background-color: #ff5252; }
+    &:hover {
+      background-color: #ff5252;
+    }
   }
 }
-
 
 /* --- 3. Style cho Footer Kết Thúc Game (End Game) --- */
 .endGameFooter {
@@ -175,9 +178,15 @@
     font-weight: 800;
     margin-bottom: 4px;
 
-    &.win { color: #81b64c; }
-    &.loss { color: #ca3431; }
-    &.draw { color: #a7a6a2; }
+    &.win {
+      color: #81b64c;
+    }
+    &.loss {
+      color: #ca3431;
+    }
+    &.draw {
+      color: #a7a6a2;
+    }
   }
 
   .resultReason {
@@ -189,6 +198,7 @@
 .actionButtons {
   display: flex;
   gap: 10px;
+  width: 100%;
 
   button {
     flex: 1;
@@ -205,18 +215,43 @@
     transition: all 0.2s;
   }
 
+  .rematchWrapper {
+    flex: 1;
+    height: 45px;
+    position: relative;
+  }
+
   .btnRematch {
+    width: 100%;
+    height: 100%;
     background-color: #3c3b39;
     color: #7d7d7d;
     cursor: not-allowed;
+    flex: unset;
+
+    &:hover:not(:disabled) {
+      background-color: #4f4d4b;
+      color: #fff;
+    }
+
+    &.disabled {
+      background-color: #2a2927;
+      color: #666;
+      border: 1px dashed #444;
+      cursor: wait;
+    }
   }
 
   .btnNewGame {
+    flex: 1;
+    height: 45px;
     background-color: #81b64c;
     color: white;
     box-shadow: 0 3px 0 #5e8d3e;
-    
-    &:hover { background-color: #95c660; }
+
+    &:hover {
+      background-color: #95c660;
+    }
     &:active {
       transform: translateY(2px);
       box-shadow: 0 1px 0 #5e8d3e;
@@ -265,7 +300,9 @@
   font-weight: 600;
   width: 100%;
 
-  i { color: #81b64c; }
+  i {
+    color: #81b64c;
+  }
 }
 
 .resultContainer {
@@ -282,5 +319,68 @@
   p {
     color: #a7a6a2;
     font-size: 1.2rem;
+  }
+}
+
+/* --- UI Xác nhận Tái đấu --- */
+.rematchConfirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  width: 100%;
+  height: 100%;
+
+  background-color: #262522; /* Màu nền tối */
+  border: 1px solid #81b64c; /* Viền xanh lá để nổi bật lời mời */
+  border-radius: 4px;
+  padding: 0 5px;
+
+  span {
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: #fff; /* Text sáng màu hơn để chú ý */
+    padding-left: 5px;
+    animation: pulse 1.5s infinite; /* Hiệu ứng nhấp nháy nhẹ */
+  }
+
+  button {
+    height: 32px;
+    min-width: 40px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    color: #fff;
+  }
+
+  .btnYes {
+    background-color: #629924;
+    &:hover {
+      background-color: #90cc4c;
+    }
+  }
+
+  .btnNo {
+    background-color: #cc3333;
+    &:hover {
+      background-color: #ff5252;
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
   }
 }

@@ -1,125 +1,160 @@
-# AECheSS — Project Context (AI prompt summary)
+# AECheSS — Project Documentation & Context (Master Record)
 
-## Purpose
+> **Role of this file**: This is the **Long-term Memory** of the project. It contains architecture details, business logic, schema definitions, and technical decisions. Use this to restore context after a chat memory reset.
 
-- Provide a concise, self-contained description of the repository so an AI can reason about architecture, run/develop steps, key files, and event shapes.
-- **Current Status**: Implemented **Spectator Mode** and polished Game UI components.
+## 1. Project Identity & Stack
 
-## Repository Overview
-
-- Full-stack realtime chess app with a React + Vite client and an Express + Socket.IO server.
+- **Name**: AECheSS (Realtime Chess Application).
+- **Core Philosophy**: A robust, full-stack chess platform focusing on realtime performance, stability, and dark-mode aesthetics (inspired by Lichess/Chess.com).
 - **Tech Stack**:
-  - **Client**: React (Vite), SCSS (Modules), Chart.js (Statistics), Axios, React Modal.
-  - **Server**: Node.js/Express, Socket.IO, MongoDB (Mongoose).
+  - **Frontend**: React (Vite), SCSS Modules, Axios, Socket.IO-Client, Chart.js, React-Modal.
+  - **Backend**: Node.js, Express, Socket.IO (Server), MongoDB (Mongoose), Passport.js (Google Auth).
+  - **DevOps/Tools**: Git, Nodemon, Concurrently.
 
-## Client (`client/`)
+## 2. Directory Structure & Key Files
 
-- **Entry**: `client/src/main.jsx`, `client/src/App.jsx`
-- **Key Contexts**:
-  - `AuthProvider.jsx`: REST auth & token handling.
-  - `SocketProvider.jsx`: Socket connection with JWT token query.
-- **Key Pages & Components**:
-  - `Lobby/index.jsx`: Matchmaking hub with `useRef` based timer logic.
-  - `GamePage`: Chessboard logic. Handles both Players and Spectators.
-    - **Spectator Logic**: Disables board interaction (`arePiecesDraggable=false`), shows "Watching" badge, uses `FlipBoardButton` for manual orientation.
-  - `AnalysisPage`: Game analysis tool. Now uses shared `FlipBoardButton`.
-  - `Profile/index.jsx`: Main profile wrapper.
-    - `StatsChart.jsx`: Renders Radar Chart (Skills) & Doughnut Chart (Win/Loss).
-    - `GameHistory/index.jsx`: Uses `PlayerInfo` sub-component for safe navigation.
-- **Shared Components**:
-  - `FlipBoardButton`: **(New)** Reusable component for flipping board orientation (Used in GamePage, Analysis).
-  - `GameInfoPanel`: Displays move list and game controls.
-    - **Logic**: Accepts `isSpectator` prop to hide "Resign" and "Draw" buttons.
-  - `PlayerInfoBox`: Displays avatar, name, rating, and timer.
-- **Hooks**:
-  - `useOnlineGame.js`: **(Updated)** Handles socket events for gameplay.
-    - **Logic**: Identifies `role` ('player' vs 'spectator') from `joinRoom` response. If spectator, disables `makeMove` emission but listens to `movePlayed`.
+### Client (`/client`)
 
-## Server (`server/`)
+- `src/main.jsx`: Bootstrapper, imports global styles.
+- `src/context/`:
+  - `AuthProvider.jsx`: Manages User State (`user`, `loading`), Login/Logout, Google Auth callback.
+  - `SocketProvider.jsx`: Initializes Socket connection **only if** `user` exists. Passes `token` in `auth` query.
+- `src/pages/`:
+  - `GamePage/`: **CRITICAL**. Handles the chessboard logic.
+    - `index.jsx`: Orchestrates `Chessboard`, `GameInfoPanel`, `PlayerInfoBox`.
+    - `logic/`: (Implicit) Logic for legal moves, highlighting, and sound effects.
+  - `Lobby/index.jsx`: Matchmaking UI. Uses `useRef` for visual timer to prevent re-renders.
+  - `AnalysisPage/index.jsx`: Read-only board for reviewing games.
+  - `Profile/`: `GameHistory`, `StatsChart` (Radar/Doughnut).
+- `src/components/`:
+  - `ChessBoard/`: The visual board component (likely wrapping `chessground` or custom).
+  - `GameInfoPanel/`: **(Complex Logic)**. Contains Move List + Action Buttons (Resign, Draw).
+  - `FlipBoardButton.jsx`: Shared component to toggle board orientation.
 
-- **Entry**: `server/index.js`
-- **Auth**: JWT for REST/Socket; Google OAuth (`passport.js`).
-- **Middleware**: `authMiddleware.js` (REST), `socketAuth.js` (Socket).
-- **Controllers**:
-  - `friendController.js`: Friend list logic.
-  - `gameController.js`: History API returns populated usernames.
-- **Socket Handlers**:
-  - `roomHandlers.js`: **(Updated)** Handles `joinRoom` logic.
-    - **Logic**: Checks if room is full (2 players). If full and user is not a reconnecting player -> returns `{ success: true, role: 'spectator' }`.
-  - `gameHandlers.js`: Handles moves and game state.
+### Server (`/server`)
 
-## DB Schema Fields
+- `index.js`: Entry point. Connects DB, configures CORS, mounts Routes, attaches Socket.IO to HTTP server.
+- `routes/`: REST API definitions (`auth.js`, `users.js`, `games.js`).
+- `controllers/`: Logic for REST endpoints.
+  - `gameController.js`: Fetches history, formatting PGN/FEN for API responses.
+- `socket/`: **Realtime Core**.
+  - `socketManager.js`: Main entry. Uses `socketAuth` middleware.
+  - `handlers/`:
+    - `roomHandlers.js`: Logic for `joinRoom` (Determines Player vs Spectator).
+    - `gameHandlers.js`: Logic for `move`, `resign`, `draw` flows.
+- `models/`: Mongoose Schemas (`User`, `Game`, `Friendship`).
 
-### `User` (`server/models/User.js`)
+## 3. Database Schema (Detailed)
 
-- `_id`: ObjectId
-- `username`: String (unique, lowercase)
-- `email`: String (unique)
-- `displayName`: String
-- `avatarUrl`: String
-- **`ratings`**: Object (`bullet`, `blitz`, `rapid`, `classical`) - Default 1200.
-- **`puzzleStats`**: Object (`rating`, `rd`, `vol`).
-- `googleId`: String.
+### User Model (`User.js`)
 
-### `Game` (`server/models/Game.js`)
+- `username`: String (Unique, Lowercase, Trimmed). used for profile URLs.
+- `email`: String (Unique).
+- `ratings`: Nested Object. Keys: `bullet`, `blitz`, `rapid`, `classical`. Default value: `1200`.
+- `puzzleStats`: `{ rating: Number, rd: Number }`.
+- `authProvider`: 'google' | 'local'.
 
-- **Confirmed Structure**:
-  - `_id`: ObjectId
-  - `whitePlayer`: ObjectId (Ref `User`)
-  - `blackPlayer`: ObjectId (Ref `User`)
-  - `result`: String (`"1-0"`, `"0-1"`, `"1/2-1/2"`)
-  - `isRated`: Boolean
-  - `whiteRating`: Number (Rating snapshot)
-  - `blackRating`: Number (Rating snapshot)
-  - `pgn`: String
-  - `timeControl`: String (e.g., "10+5")
-  - `createdAt`, `updatedAt`: Date
+### Game Model (`Game.js`)
 
-### `Friendship` (`server/models/Friendship.js`)
+- `whitePlayer`: ObjectId (Ref User).
+- `blackPlayer`: ObjectId (Ref User).
+- `fen`: String (Current board state).
+- `pgn`: String (Full move history).
+- `timeControl`: Object or String (e.g., `{ limit: 600, increment: 5 }`).
+- `status`: String (`"active"`, `"completed"`, `"aborted"`).
+- `result`: String (`"1-0"`, `"0-1"`, `"1/2-1/2"`, `"*"`).
+- `winner`: ObjectId (Ref User) or `null`.
+- `endReason`: String (`"checkmate"`, `"resignation"`, `"timeout"`, `"draw_agreement"`, `"stalemate"`).
+- `spectators`: Array of ObjectIds (Optional logging).
 
-- `requester`: ObjectId (Ref `User`)
-- `recipient`: ObjectId (Ref `User`)
-- `status`: String (`"pending"`, `"accepted"`).
+## 4. Complex Business Logic & Flows
 
-## Key API Flows & Implementations
+### A. Authentication & Socket Handshake
 
-### 1. Spectator Mode Flow
+1.  **Login**: User logs in via REST (returns JWT).
+2.  **Socket Conn**: Client `SocketProvider` reads JWT from storage -> connects to `ws://...` with `query: { token }`.
+3.  **Middleware**: Server `socketAuth.js` verifies JWT.
+    - If valid: Attaches `socket.user = decodedUser`.
+    - If invalid: Rejects connection (Client handles `connect_error`).
 
-- **Client**: Emits `joinRoom`.
-- **Server**: Checks `activeGames`.
-  - If `players.length < 2`: Adds as Player (role: 'player').
-  - If `players.length >= 2` & not reconnecting: Adds to room but returns `role: 'spectator'`.
-- **Client**:
-  - Sets `isSpectator = true`.
-  - Disables board inputs.
-  - Hides Action Buttons (Resign/Draw).
-  - Listens to `movePlayed` to update board state in real-time.
+### B. Spectator Mode Implementation
 
-### 2. Lobby & Matchmaking
+- **Trigger**: User navigates to `/game/:id`.
+- **Server Logic (`roomHandlers.js`)**:
+  - Check active game memory/DB.
+  - If `whitePlayer.id` == `socket.user.id` OR `blackPlayer.id` == `socket.user.id` -> **Role: Player**.
+  - Else -> **Role: Spectator**.
+- **Client Behavior**:
+  - If `role === 'spectator'`:
+    - `Chessboard` prop `arePiecesDraggable = false`.
+    - `GameInfoPanel`: Hides "Resign/Draw" buttons.
+    - UI shows "Watching" indicator.
+    - Board orientation defaults to White (can be flipped).
 
-- **States**: `idle` -> `searching` (Modal/Panel) -> `found` -> `gameStart`.
-- **Timer**: Uses `useRef` to track `startTime` for consistent countdowns.
+### C. The Draw "Handshake" State Machine
 
-### 3. Game History & Navigation
+Located in `GameInfoPanel` (Client) and `gameHandlers.js` (Server).
 
-- **Endpoint**: `GET /games/history`.
-- **Logic**: Returns populated players. Frontend links to `/profile/${username}`.
+| State        | Action                       | UI (Sender)                  | UI (Receiver)                    | Server Memory                   |
+| :----------- | :--------------------------- | :--------------------------- | :------------------------------- | :------------------------------ |
+| **Idle**     | Player A clicks "Offer Draw" | Button: "Sent" (Disabled)    | -                                | -                               |
+| **Offered**  | Socket: `offerDraw`          | Button: "Sent"               | Button: "Draw?" (Accept/Decline) | `game.drawOffer = 'w'` (or 'b') |
+| **Accepted** | Player B clicks "Accept"     | -                            | -                                | Game End (1/2-1/2)              |
+| **Declined** | Player B clicks "Decline"    | Button: "Offer Draw" (Reset) | Button: "Offer Draw" (Reset)     | `game.drawOffer = null`         |
 
-## Conventions & Notes
+### D. Timer Synchronization
 
-- **User Identification**: Always prefer `_id` for logic, `username` for URLs.
-- **Frontend ID Check**: Convert to string (`id.toString()`) before comparing.
-- **Styling**: SCSS Modules.
+- **Server**: Authoritative source. Calculates time delta between moves.
+- **Client**: Uses `useEffect` and `setInterval` (or `requestAnimationFrame`) to decrease UI timer.
+- **Sync**: On every `movePlayed` event, Server sends updated `{ whiteTime, blackTime }`. Client overrides local timer with server time to correct drift.
 
----
+## 5. Socket Event Reference
 
-## Recent Work Log
+### Client -> Server
 
-1.  **Implemented Spectator Mode**:
-    - Updated `roomHandlers.js` to support non-player connections.
-    - Updated `useOnlineGame` hook to handle spectator state.
-    - UI updates in `GamePage` (Badge, Board lock).
-2.  **UI Refactoring**:
-    - Created `FlipBoardButton` component and applied to `GamePage` & `AnalysisPage`.
-    - Updated `GameInfoPanel` to handle spectator view (hidden controls).
-3.  **Refactored GameHistory**: Optimized component with `PlayerInfo` sub-component and safer navigation.
+- `join_room`: `{ gameId }`
+- `make_move`: `{ gameId, from, to, promotion }`
+- `resign`: `{ gameId }`
+- `offer_draw`: `{ gameId }`
+- `accept_draw`: `{ gameId }`
+- `decline_draw`: `{ gameId }`
+
+### Server -> Client
+
+- `room_joined`: `{ gameId, role, fen, pgn, whiteID, blackID, timeControl }`
+- `move_made`: `{ from, to, fen, timeWhite, timeBlack }`
+- `game_over`: `{ result, winner, reason, newRating }`
+- `draw_offered`: `{ byPlayerColor }`
+- `draw_declined`: `null` (Signal to reset UI)
+- `error`: `{ message }` (e.g., "Illegal move", "Not your turn")
+
+## 6. Recent "Lessons Learned" & Fixes
+
+1.  **Timer Re-renders**: Initially, the Lobby timer caused the whole component to re-render every second. **Fix**: Used `useRef` for the interval ID and raw DOM manipulation (or optimized state isolation) for the countdown.
+2.  **Spectator Board Flip**: Spectators were confused by board orientation. **Fix**: Added `FlipBoardButton` that acts locally (does not affect game state) and remembers preference per session.
+3.  **Code Organization**: Moved socket emitters (`resign`, `offer`) from `GamePage` (container) to `GameInfoPanel` (presentational). **Reason**: Clean code, the Panel owns the buttons, so it should own the handlers.
+
+## 7. Current Work Status (The "Now")
+
+- **Completed**:
+  - Basic Gameplay (Move, History, Capture).
+  - Win/Loss/Draw Logic (Checkmate, Resign, Draw Agreement).
+  - Spectator Mode (View only).
+  - Authentication (JWT + Google).
+  - Profile Stats (Charts).
+- **In Progress / Next Steps**:
+  - **Chat System**: Realtime chat in the `GameInfoPanel`.
+  - **Move Sounds**: "Click", "Capture", "Check" sounds.
+  - **Deployment**: Configuring Docker/Nginx for production.
+  - **Mobile Responsiveness**: Fixing `GameInfoPanel` layout on screens < 768px.
+
+## 8. Environment Variables (.env)
+
+```env
+PORT=5000
+MONGO_URI=mongodb+srv://...
+JWT_SECRET=your_super_secret_key
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+CLIENT_URL=http://localhost:5173
+```

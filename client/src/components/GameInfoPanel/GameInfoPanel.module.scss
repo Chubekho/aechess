@@ -286,6 +286,20 @@
   }
 }
 
+.btnShare {
+  display: flex;
+  padding: 12px;
+  align-items: center;
+  justify-content: center;
+  background-color: #454441;
+  color: #c7c7c7;
+
+  &:hover {
+    background-color: #555451;
+    color: #fff;
+  }
+}
+
 /* --- 4. Style cho Spectator --- */
 .spectatorMessage {
   display: flex;
@@ -382,5 +396,84 @@
   }
   100% {
     opacity: 1;
+  }
+}
+
+.shareModalBox {
+  background-color: #262421; /* Màu nền giống Lichess/Chess.com dark */
+  padding: 20px;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  text-align: center;
+  color: #fff;
+  min-width: 350px;
+  border: 1px solid #403d39;
+
+  h3 {
+    margin-bottom: 2rem;
+    font-size: 1.6rem;
+    color: #ccc;
+  }
+}
+
+.linkContainer {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.linkInput {
+  flex: 1;
+  background-color: #161512;
+  border: 1px solid #403d39;
+  color: #999;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 1.2rem;
+  outline: none;
+
+  &:focus {
+    border-color: #61dafb; /* React blue hoặc màu chủ đạo của app */
+  }
+}
+
+.copyButton {
+  display: flex;
+  justify-content: center;
+  background-color: #3692e7;
+  color: white;
+  padding: 0rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+  min-width: 80px;
+
+  &:hover {
+    background-color: #2b7bc0;
+  }
+
+  &.copied {
+    background-color: #629924; /* Màu xanh lá báo thành công */
+    cursor: default;
+  }
+}
+
+.modalActions {
+  display: flex;
+}
+
+.closeButton {
+  background: transparent;
+  border: 1px solid #403d39;
+  color: #999;
+  padding: 1.4rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #302e2c;
+    color: #fff;
   }
 }

@@ -2,9 +2,28 @@
 import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import clsx from "clsx";
+import Modal from "react-modal";
 
 import MoveBoard from "../MoveBoard";
 import styles from "./GameInfoPanel.module.scss";
+
+const customModalStyles = {
+  overlay: {
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    zIndex: 1000,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  content: {
+    position: "relative",
+    inset: "auto",
+    border: "none",
+    background: "transparent",
+    padding: 0,
+    overflow: "visible",
+  },
+};
 
 function GameInfoPanel({
   rootNode,
@@ -23,15 +42,38 @@ function GameInfoPanel({
   handleOfferRematch,
   handleAcceptRematch,
   handleDeclineRematch,
-  drawStatus,    // 'idle', 'offered_by_me', 'offered_to_me'
-  rematchStatus  // 'idle', 'offered_by_me', 'offered_to_me'
+  drawStatus, // 'idle', 'offered_by_me', 'offered_to_me'
+  rematchStatus, // 'idle', 'offered_by_me', 'offered_to_me'
 }) {
   const navigate = useNavigate();
-
   const [showResignConfirm, setShowResignConfirm] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const shareUrl = `${window.location.origin}/analysis/${gameResult?.dbGameId}`;
+
+  const handleOpenShare = () => {
+    setIsShareModalOpen(true);
+    setIsCopied(false); // Reset trạng thái copy
+  };
+
+  const handleCloseShare = () => {
+    setIsShareModalOpen(false);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 10000);
+    });
+  };
+
+  const handleNavigateAnalysis = () => {
+    navigate(`/analysis/${gameResult.dbGameId}`);
+  };
 
   useEffect(() => {
-     if(gameStatus === 'playing') setShowResignConfirm(false);
+    if (gameStatus === "playing") setShowResignConfirm(false);
   }, [gameStatus]);
 
   // --- UI LOGIC LOCAL ---
@@ -180,15 +222,22 @@ function GameInfoPanel({
           {/* Nút Phân tích (Full width dưới cùng) */}
           <button
             className={styles.btnAnalysis}
-            onClick={() => {
-              if (gameResult?.dbGameId) {
-                navigate(`/analysis/${gameResult.dbGameId}`);
-              }
-            }}
+            onClick={handleNavigateAnalysis}
             disabled={!gameResult?.dbGameId}
+            title="Analyze Game"
           >
             <i className="fa-solid fa-magnifying-glass-chart"></i> Phân tích ván
             cờ
+          </button>
+
+          {/* --- NÚT SHARE MỚI --- */}
+          <button
+            className={styles.btnShare}
+            onClick={handleOpenShare}
+            title="Share Game"
+          >
+            <i className="fa-solid fa-share-nodes"></i>
+            Chia sẻ
           </button>
         </div>
       );
@@ -273,6 +322,62 @@ function GameInfoPanel({
         />
       </div>
       <div className={styles.footer}>{renderFooter()}</div>
+
+      {/* --- MODAL SHARE --- */}
+      <Modal
+        isOpen={isShareModalOpen}
+        onRequestClose={handleCloseShare}
+        style={customModalStyles}
+        contentLabel="Share Game"
+      >
+        <div className={styles.shareModalBox}>
+          <h3>Share this game</h3>
+
+          <div className={styles.linkContainer}>
+            <input
+              type="text"
+              readOnly
+              value={shareUrl}
+              className={styles.linkInput}
+              onClick={(e) => e.target.select()} // Click vào tự bôi đen
+            />
+            <button
+              className={clsx(styles.copyButton, { [styles.copied]: isCopied })}
+              onClick={handleCopyLink}
+            >
+              {isCopied ? (
+                <span>
+                  <i className="fa-solid fa-check"></i>
+                </span>
+              ) : (
+                <span>Copy</span>
+              )}
+            </button>
+          </div>
+
+          <div className={styles.modalActions}>
+            {/* Nút chuyển sang trang Analysis từ Modal luôn cho tiện */}
+            <button
+              className={styles.closeButton}
+              onClick={() => {
+                handleCloseShare();
+                handleNavigateAnalysis();
+              }}
+              style={{
+                marginRight: "10px",
+                borderColor: "#3692e7",
+                color: "#3692e7",
+              }}
+            >
+              Go to Analysis Board
+            </button>
+
+            <button className={styles.closeButton} onClick={handleCloseShare}>
+              Close
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

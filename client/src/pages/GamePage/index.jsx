@@ -36,7 +36,7 @@ function GamePage() {
     gameData,
     makeMove,
     isSpectator,
-    gameResult,
+    gameResult, // { result, winner, reason, newRating: { white: 1210, black: 1190 } }
     drawStatus,
     rematchStatus,
     handlers,
@@ -47,8 +47,9 @@ function GamePage() {
   const materialData = useMemo(() => {
     return calculateMaterial(fen);
   }, [fen]);
-  const currentTurnColor = gameData?.turn === 'w' ? 'white' : 'black';
-  const isGameActive = gameStatus === 'playing';
+
+  const currentTurnColor = gameData?.turn === "w" ? "white" : "black";
+  const isGameActive = gameStatus === "playing";
 
   const boardOrientation = useMemo(() => {
     if (userOrientation) return userOrientation;
@@ -59,7 +60,6 @@ function GamePage() {
   const handleNewGame = () => {
     if (!socket || !gameData?.config) return;
 
-    // config: { time: { base: 10, inc: 0 }, isRated: true, category: 'rapid' }
     const base = gameData.config.time.base;
     const inc = gameData.config.time.inc;
     const timeControl = `${base}+${inc}`;
@@ -82,8 +82,6 @@ function GamePage() {
       if (isSpectator) return false;
       // Logic Tree: Nếu currentNode có children, nghĩa là ta đang ở quá khứ
       if (gameStatus !== "playing" || currentNode.children.length > 0) {
-        console.log(currentNode.children);
-
         return false;
       }
       return makeMove({ sourceSquare, targetSquare });
@@ -93,25 +91,51 @@ function GamePage() {
 
   const handleFlipBoard = () => {
     setUserOrientation((prev) => {
-      // Nếu chưa set (null), lấy hướng hiện tại làm mốc để đảo
       const current = prev || (myColor === "b" ? "black" : "white");
       return current === "white" ? "black" : "white";
     });
   };
 
+  // === 5. LOGIC TÍNH TOÁN RATING MỚI ===
+  const getDisplayPlayer = (originalPlayer, side) => {
+    if (!originalPlayer) return null;
+
+    // 1. Lấy rating gốc
+    let currentRating = originalPlayer.rating;
+    let diff = null;
+
+    // 2. Nếu game đã kết thúc và có newRating
+    if (gameResult?.newRating && gameResult.newRating[side] !== undefined) {
+      const newRating = gameResult.newRating[side];
+      diff = newRating - currentRating; // Tính chênh lệch
+      currentRating = newRating; // Cập nhật rating hiển thị thành rating mới
+    }
+
+    // Trả về object player mới (đã update rating và thêm diff)
+    return {
+      ...originalPlayer,
+      rating: currentRating,
+      ratingDiff: diff,
+    };
+  };
+
   // === 6. RENDER ===
-  const whitePlayer = gameData?.whitePlayer;
-  const blackPlayer = gameData?.blackPlayer;
+  const whitePlayerDisplay = getDisplayPlayer(gameData?.whitePlayer, "white");
+  const blackPlayerDisplay = getDisplayPlayer(gameData?.blackPlayer, "black");
 
   let top, bottom;
 
   if (isSpectator) {
     // Layout cố định cho Spectator (Trắng dưới, Đen trên)
-    top = { player: blackPlayer, side: "black" };
-    bottom = { player: whitePlayer, side: "white" };
+    top = { player: blackPlayerDisplay, side: "black" };
+    bottom = { player: whitePlayerDisplay, side: "white" };
   } else {
     // Layout động cho Player
-    const layout = getPlayerLayout(boardOrientation, whitePlayer, blackPlayer);
+    const layout = getPlayerLayout(
+      boardOrientation,
+      whitePlayerDisplay,
+      blackPlayerDisplay
+    );
     top = layout.top;
     bottom = layout.bottom;
   }
@@ -143,6 +167,7 @@ function GamePage() {
             side={top.side}
             material={materialData[top.side]}
             isTurn={isGameActive && currentTurnColor === top.side}
+            ratingDiff={top.player?.ratingDiff}
           />
         </div>
 
@@ -165,6 +190,7 @@ function GamePage() {
             side={bottom.side}
             material={materialData[bottom.side]}
             isTurn={isGameActive && currentTurnColor === bottom.side}
+            ratingDiff={bottom.player?.ratingDiff}
           />
         </div>
       </div>

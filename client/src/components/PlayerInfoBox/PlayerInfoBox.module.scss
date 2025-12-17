@@ -99,3 +99,47 @@
   color: #cc3333 !important; /* Vẫn giữ chữ đỏ nếu hết giờ dù đang active */
   background-color: #ffe6e6 !important;
 }
+
+.nameRow {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  flex-wrap: wrap; /* Để rating diff không bị che nếu tên quá dài */
+}
+
+/* [MỚI] Rating Change Styles */
+.ratingWrapper {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ratingChange {
+  font-size: 0.95rem;
+  font-weight: 700;
+  opacity: 0;
+  animation: slideFadeIn 0.5s ease forwards 0.2s; /* Delay nhẹ cho đẹp */
+}
+
+.diffPositive {
+  color: #629924; /* Xanh lá Lichess */
+}
+
+.diffNegative {
+  color: #cc3333; /* Đỏ Lichess */
+}
+
+.diffZero {
+  color: #6b6b6b;
+}
+
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

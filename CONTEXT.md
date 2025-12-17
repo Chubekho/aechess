@@ -222,6 +222,26 @@ Moves are classified based on **Win Chance Difference** (Sigmoid conversion of C
   - `.pieceBlack`: Dark gray text.
 - **Responsive Layout**: The container uses `flex-wrap: wrap` so if many pieces are captured, low-value pieces (Pawns) naturally flow to the second row.
 
+### D. Rating Change & End-Game Visualization
+
+> **Goal**: Provide immediate visual feedback on Rating gain/loss when a match concludes.
+
+**1. Logic & Data Flow**
+
+- **Trigger**: Socket event `game_over` returns `gameResult` containing `newRating: { white: number, black: number }`.
+- **Calculation (`GamePage.jsx`)**:
+  - `currentRating` = `gameResult.newRating[side]` (if exists) OR `player.rating`.
+  - `diff` = `newRating` - `initialRating`.
+- **Prop Drilling**: `ratingDiff` passed from `GamePage` -> `PlayerInfoBox`.
+
+**2. Visual Implementation (`PlayerInfoBox`)**
+
+- **Condition**: Only renders if `ratingDiff !== null`.
+- **Styles**:
+  - **Positive**: Green (`#629924`) with `+` prefix.
+  - **Negative**: Red (`#cc3333`).
+  - **Animation**: Uses `@keyframes slideFadeIn` to delay appearance (0.2s) and slide up, drawing attention after the game ends.
+
 ## 6. Recent "Lessons Learned" & Fixes
 
 1.  **Timer Re-renders**: Initially, the Lobby timer caused the whole component to re-render every second. **Fix**: Used `useRef` for the interval ID and raw DOM manipulation (or optimized state isolation) for the countdown.
@@ -253,6 +273,15 @@ GOOGLE_CLIENT_SECRET=...
 CLIENT_URL=http://localhost:5173
 ```
 
+## 9. AI Instructions & Workflow Protocols
+
+**CRITICAL INSTRUCTION FOR AI:**
+Whenever you complete a significant coding task (New Feature, Refactor, or Logic Change), you must **AUTOMATICALLY** generate a "Context Update Block" at the end of your response without being asked.
+
+1.  **Format**: Markdown block matching the style of Section 5.1.
+2.  **Content**: Architecture details, Data Flow, Key Files, and Logic Decisions.
+3.  **Goal**: The user will copy-paste this block into this file to maintain long-term memory.
+
 ### Hướng dẫn tiếp theo:
 
-2.  **Quy trình làm việc (Workflow):** Lần tới, khi bạn yêu cầu tôi code xong một tính năng (ví dụ: Chat System), hãy nhắc tôi: _"Gen code update context cho tính năng Chat"_. Tôi sẽ xuất ra block Markdown tương tự để bạn lưu trữ.
+**Quy trình làm việc (Workflow):** Lần tới, khi yêu cầu AI code xong một tính năng (ví dụ: Chat System), hãy nhắc AI: _"Gen code update context cho tính năng Chat"_. AI sẽ xuất ra block Markdown tương tự để bạn lưu trữ.

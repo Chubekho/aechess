@@ -11,6 +11,7 @@ function PlayerInfoBox({
   side = "white",
   material = null,
   isTurn = false,
+  ratingDiff = null,
 }) {
   // variant = 'top' (Cho Đen: Tên ở trên, Giờ ở dưới)
   // variant = 'bottom' (Cho Trắng: Giờ ở trên, Tên ở dưới)
@@ -35,6 +36,18 @@ function PlayerInfoBox({
         <div className={styles.nameRow}>
           <span className={styles.name}>{name}</span>
           <span className={styles.rating}>{rating}</span>
+          {ratingDiff !== null && (
+            <span
+              className={clsx(styles.ratingChange, {
+                [styles.diffPositive]: ratingDiff > 0,
+                [styles.diffNegative]: ratingDiff < 0,
+                [styles.diffZero]: ratingDiff === 0,
+              })}
+            >
+              {ratingDiff > 0 ? "+" : ""}
+              {ratingDiff}
+            </span>
+          )}
         </div>
       </div>
     </div>

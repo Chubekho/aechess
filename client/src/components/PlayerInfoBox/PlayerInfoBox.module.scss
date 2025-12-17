@@ -1,14 +1,17 @@
+/* client/src/components/PlayerInfoBox/PlayerInfoBox.module.scss */
+
 .wrapper {
   display: flex;
-  flex-direction: column; /* Xếp dọc */
+  flex-direction: column;
   width: 100%;
-  max-width: 200px; /* Giới hạn chiều rộng bên sidebar */
+  max-width: 200px;
   background-color: var(--color-board-control, #302e2c);
   border-radius: 8px;
   padding: 15px;
   color: var(--color-text-primary, #e3e3e3);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-  gap: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  gap: 8px; /* Giảm gap một chút để layout chặt chẽ hơn */
+  transition: box-shadow 0.3s ease;
 }
 
 /* Info Block */
@@ -27,35 +30,45 @@
   align-items: center;
   justify-content: center;
   color: #000000;
+
+  i {
+    font-size: 2.4rem;
+  }
 }
 
 .avatarBlack {
-  background-color: #a8a7a7; 
-  color: #000000;            
+  background-color: #a8a7a7;
+  color: #000000;
 }
-
-/* Class cho quân Trắng (side="white") */
 .avatarWhite {
-  background-color: #a8a7a7; 
-  color: #ffffff;            
+  background-color: #a8a7a7;
+  color: #ffffff;
 }
 
 .textDetails {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  justify-content: center;
+}
+
+.nameRow {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
 }
 
 .name {
-  font-size: 1.4rem;
+  font-size: 1.2rem; /* Giảm nhẹ size để đỡ tràn */
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 120px;
 }
 
 .rating {
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: #909090;
 }
 
@@ -70,4 +83,19 @@
   text-align: center;
   border-radius: 4px;
   width: 100%;
+  transition: all 0.2s ease;
+}
+
+.clockActive {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+.lowTime {
+  color: #cc3333;
+}
+.lowTime.clockActive {
+  color: #cc3333 !important; /* Vẫn giữ chữ đỏ nếu hết giờ dù đang active */
+  background-color: #ffe6e6 !important;
 }

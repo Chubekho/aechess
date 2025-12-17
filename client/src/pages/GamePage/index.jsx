@@ -4,7 +4,7 @@ import { useSocket } from "@/context/SocketContext";
 import clsx from "clsx";
 
 import { useGameNavigation, useOnlineGame } from "@/hooks/index";
-import { getPlayerLayout } from "@/utils/chessUtils";
+import { getPlayerLayout, calculateMaterial } from "@/utils/chessUtils";
 
 import { Chessboard } from "react-chessboard";
 import PlayerInfoBox from "@/components/PlayerInfoBox";
@@ -44,6 +44,12 @@ function GamePage() {
 
   const [userOrientation, setUserOrientation] = useState(null);
 
+  const materialData = useMemo(() => {
+    return calculateMaterial(fen);
+  }, [fen]);
+  const currentTurnColor = gameData?.turn === 'w' ? 'white' : 'black';
+  const isGameActive = gameStatus === 'playing';
+
   const boardOrientation = useMemo(() => {
     if (userOrientation) return userOrientation;
     if (myColor === "b") return "black";
@@ -54,7 +60,6 @@ function GamePage() {
     if (!socket || !gameData?.config) return;
 
     // config: { time: { base: 10, inc: 0 }, isRated: true, category: 'rapid' }
-    // Cần convert lại format "10+0" để gửi lên findMatch
     const base = gameData.config.time.base;
     const inc = gameData.config.time.inc;
     const timeControl = `${base}+${inc}`;
@@ -136,6 +141,8 @@ function GamePage() {
             timeControl={topClock} // Truyền giây còn lại vào
             variant="top"
             side={top.side}
+            material={materialData[top.side]}
+            isTurn={isGameActive && currentTurnColor === top.side}
           />
         </div>
 
@@ -156,6 +163,8 @@ function GamePage() {
             timeControl={bottomClock} // Truyền giây còn lại vào
             variant="bottom"
             side={bottom.side}
+            material={materialData[bottom.side]}
+            isTurn={isGameActive && currentTurnColor === bottom.side}
           />
         </div>
       </div>

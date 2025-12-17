@@ -197,6 +197,31 @@ Moves are classified based on **Win Chance Difference** (Sigmoid conversion of C
 - **Filtering**: Logic strictly checks against a whitelist `VISIBLE_TYPES` (Best, Mistake, Blunder) to prevent rendering unwanted icons.
 - **Styling**: Uses CSS Modules (`.type-blunder`, `.type-mistake`) in `MoveBoard.module.scss` to override text colors and inject evaluation symbols.
 
+### C. Captured Pieces & Material System
+
+> **Goal**: Display captured pieces and material advantage (+1, +3) dynamically based on the board state.
+
+**1. Architecture & Data Flow**
+
+- **Logic Source**: `utils/chessUtils.js` -> `calculateMaterial(fen)`.
+  - Parses FEN string to count current pieces.
+  - Compares with Initial Set (1Q, 2R, 2B, 2N, 8P).
+  - Returns `{ white: { score, captured: [] }, black: { ... } }`.
+- **Component**: `components/CapturedPieces/index.jsx`.
+  - Standalone component designed for reusability (GamePage, PlayAI, Analysis).
+  - **Visuals**: Uses FontAwesome icons. Flex-wrap handles overflow (pawns wrap to next line).
+- **Integration**: `PlayerInfoBox.jsx` wraps this component.
+  - **Layout Logic**:
+    - Opponent (Top): Captured pieces displayed _above_ Player Name.
+    - Self (Bottom): Captured pieces displayed _below_ Player Name.
+
+**2. Styling Strategy**
+
+- **Dynamic Coloring**: Pieces are styled based on the _viewer's perspective_ vs. _piece color_.
+  - `.pieceWhite`: Light gray text with shadow.
+  - `.pieceBlack`: Dark gray text.
+- **Responsive Layout**: The container uses `flex-wrap: wrap` so if many pieces are captured, low-value pieces (Pawns) naturally flow to the second row.
+
 ## 6. Recent "Lessons Learned" & Fixes
 
 1.  **Timer Re-renders**: Initially, the Lobby timer caused the whole component to re-render every second. **Fix**: Used `useRef` for the interval ID and raw DOM manipulation (or optimized state isolation) for the countdown.

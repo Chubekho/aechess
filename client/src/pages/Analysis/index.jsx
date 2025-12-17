@@ -120,6 +120,20 @@ function AnalysisPage() {
     }
   }, [pgn, isReportAnalyzing, report, runAnalysis]);
 
+  const analysisMap = useMemo(() => {
+    if (!report || !report.moves) return {};
+
+    const map = {};
+    report.moves.forEach((move) => {
+      // Dùng move.fen làm key duy nhất
+      map[move.fen] = {
+        type: move.type,
+        // score: move.score // Có thể lưu thêm score nếu muốn hiển thị
+      };
+    });
+    return map;
+  }, [report]);
+
   // --- 6. Helper & Handlers ---
   // Hàm đảo ngược bàn cờ thủ công
   const handleFlipBoard = () => {
@@ -312,6 +326,7 @@ function AnalysisPage() {
               currentNode={currentNode}
               onNavigate={handleNavigation}
               showVariations={true}
+              analysisData={analysisMap}
             />
           </div>
 

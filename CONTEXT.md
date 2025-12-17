@@ -167,6 +167,36 @@ Crucial for Error Handling. The UI Feedback provider must wrap others to catch t
   </ToastProvider>
 </Router>
 ```
+
+### B. Game Analysis & Move Evaluation System
+
+> **Goal**: Visualize move quality (Best, Mistake, Blunder) directly on the `MoveBoard` without impacting render performance.
+
+**1. Architecture & Data Flow**
+
+- **Source**: `useFullGameAnalysis.js` (Stockfish Worker) returns `report.moves` (Array).
+- **Transformation (Critical Optimization)**:
+  - In `AnalysisPage.jsx`, the Array is converted to a **Map Object** keyed by **FEN string**.
+  - _Why?_: `MoveBoard` renders recursively. Using `Array.find()` inside every node creates O(N²) complexity. `Map.get(fen)` ensures **O(1)** lookup performance.
+- **Display**: `MoveBoard` receives `analysisData` (Map) as a prop.
+
+**2. Classification Logic (`utils/chessAnalysis.js`)**
+Moves are classified based on **Win Chance Difference** (Sigmoid conversion of Centipawns).
+
+| Classification      | Threshold (Diff) | UI Representation            | Color              |
+| :------------------ | :--------------- | :--------------------------- | :----------------- |
+| **Best**            | $\le$ 0.5%       | Icon: `fa-star`              | Green (`#96bc4b`)  |
+| **Excellent**       | $\le$ 3%         | Icon: `thumbs-up`            | Green (`#96bc4b`)  |
+| **Good/Inaccuracy** | < 15%            | **Hidden** (Reduced Clutter) | Default            |
+| **Mistake**         | < 25%            | Text: **?** (Bold)           | Orange (`#ff9800`) |
+| **Blunder**         | $\ge$ 25%        | Text: **??** (Bold)          | Red (`#cc3333`)    |
+
+**3. Component Implementation (`MoveBoard/index.jsx`)**
+
+- **Logic**: Checks `analysisData[node.fen]` during render.
+- **Filtering**: Logic strictly checks against a whitelist `VISIBLE_TYPES` (Best, Mistake, Blunder) to prevent rendering unwanted icons.
+- **Styling**: Uses CSS Modules (`.type-blunder`, `.type-mistake`) in `MoveBoard.module.scss` to override text colors and inject evaluation symbols.
+
 ## 6. Recent "Lessons Learned" & Fixes
 
 1.  **Timer Re-renders**: Initially, the Lobby timer caused the whole component to re-render every second. **Fix**: Used `useRef` for the interval ID and raw DOM manipulation (or optimized state isolation) for the countdown.
@@ -196,11 +226,8 @@ JWT_SECRET=your_super_secret_key
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 CLIENT_URL=http://localhost:5173
-````
+```
 
 ### Hướng dẫn tiếp theo:
 
-1.  **Hành động ngay:** Copy đoạn code Markdown phía trên và paste vào file `CONTEXT.md` của bạn (thay thế hoặc bổ sung cho phù hợp).
 2.  **Quy trình làm việc (Workflow):** Lần tới, khi bạn yêu cầu tôi code xong một tính năng (ví dụ: Chat System), hãy nhắc tôi: _"Gen code update context cho tính năng Chat"_. Tôi sẽ xuất ra block Markdown tương tự để bạn lưu trữ.
-
-Như vậy, file `CONTEXT.md` của bạn sẽ luôn **đầy đủ logic** như một tài liệu kỹ thuật (Technical Documentation) thực thụ.

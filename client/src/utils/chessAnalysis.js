@@ -17,14 +17,29 @@ export const getWinChance = (cp) => {
  * @param {number} currentWinChance - Tỷ lệ thắng sau khi đi
  */
 export const classifyMove = (prevWinChance, currentWinChance) => {
-  const diff = prevWinChance - currentWinChance;
+  // Tính độ chênh lệch (Delta)
+  // Nếu diff < 0 tức là tỷ lệ thắng tăng (do đối thủ đi lỗi trước đó hoặc engine đánh giá lại) -> Coi là 0
+  const diff = Math.max(0, prevWinChance - currentWinChance);
 
-  // Logic phân loại cơ bản (có thể tinh chỉnh sau)
-  if (diff <= 0) return "best";       // Tăng hoặc giữ nguyên tỷ lệ thắng -> Nước đi tốt nhất/Excellent
-  if (diff < 5) return "good";        // Mất ít lợi thế -> Tốt
-  if (diff < 10) return "inaccuracy"; // Thiếu chính xác
-  if (diff < 20) return "mistake";    // Sai lầm
-  return "blunder";                   // Sai lầm nghiêm trọng
+  // 1. BEST (Tốt nhất) - Icon: ⭐
+  // Không mất % thắng nào hoặc tăng % thắng
+  if (diff <= 0.5) return "best"; 
+
+  // 2. EXCELLENT (Xuất sắc) - Icon: 👍
+  // Mất rất ít lợi thế (< 3% cơ hội thắng)
+  if (diff <= 3) return "excellent";
+
+  // 3. GOOD (Tốt / Bình thường) - Icon: (Ẩn)
+  // Mất lợi thế chấp nhận được (< 15%). 
+  if (diff < 15) return "good"; 
+
+  // 4. MISTAKE (Sai lầm) - Icon: ? (Màu cam)
+  // Mất lợi thế đáng kể (15% - 25%)
+  if (diff < 25) return "mistake"; 
+
+  // 5. BLUNDER (Ngớ ngẩn) - Icon: ?? (Màu đỏ)
+  // Mất lợi thế nghiêm trọng (> 25%)
+  return "blunder"; 
 };
 
 /**

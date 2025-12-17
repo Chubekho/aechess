@@ -25,7 +25,10 @@
     padding: 5px 10px;
     border-radius: 4px;
     cursor: pointer;
-    &:hover { background-color: #3c3934; color: #fff; }
+    &:hover {
+      background-color: #3c3934;
+      color: #fff;
+    }
   }
 }
 
@@ -82,7 +85,7 @@
 
 .variationItem {
   position: relative;
-  
+
   /* Đường kẻ chỉ dẫn (Visual Guide) */
   &:before {
     content: "";
@@ -97,6 +100,9 @@
 
 /* Ô Nước đi */
 .moveBox {
+  position: relative;
+  display: flex;
+  align-items: center;
   padding: 6px 10px;
   font-weight: 500;
   color: #e0e0e0;
@@ -109,11 +115,37 @@
     background-color: #3c3934;
     color: #fff;
   }
-
+  i {
+    margin-left: 5px;
+    font-size: 1.2rem;
+  }
+  
   &.active {
     background-color: #4a4a4a;
     color: #fff;
     font-weight: 700;
+  }
+  &.type-brilliant {
+    color: #26c2a3; /* Teal */
+    font-weight: bold;
+  }
+  &.type-best {
+    color: #96bc4b; /* Green */
+  }
+  &.type-excellent {
+    color: #96bc4b; /* Green - nhạt hơn chút hoặc giống best */
+  }
+  &.type-good {
+    color: #9aa0a6; /* Gray/Normal */
+  }
+  &.type-inaccuracy {
+    color: #f0c929; /* Yellow */
+  }
+  &.type-mistake {
+    color: #ff9800; /* Orange */
+  }
+  &.type-blunder {
+    color: #ca3431; /* Red */
   }
 }
 
@@ -129,4 +161,23 @@
   color: #666;
   margin-right: 5px;
   font-size: 1.2rem;
+}
+
+.evalIcon {
+  font-size: 0.8em;
+  opacity: 0.9;
+
+  /* Icon styles cụ thể */
+  &.icon-brilliant {
+    color: #26c2a3;
+  }
+  &.icon-blunder {
+    color: #ca3431;
+  }
+  &.icon-mistake {
+    color: #ff9800;
+  }
+  &.icon-best {
+    color: #96bc4b;
+  }
 }

@@ -2,6 +2,27 @@ import { useEffect, useRef } from "react";
 import clsx from "clsx";
 import styles from "./MoveBoard.module.scss";
 
+const VISIBLE_TYPES = ["best", "mistake", "blunder"];
+
+const getEvalIcon = (type) => {
+  switch (type) {
+    case "best":
+      return <i className="fa-solid fa-star" title="Best Move"></i>;
+    case "mistake":
+      return <i className="fa-solid fa-question" title="Mistake"></i>;
+    case "blunder":
+      return (
+        <span
+          style={{ fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-1px", marginLeft: "5px" }}
+        >
+          ??
+        </span>
+      );
+    default:
+      return null;
+  }
+};
+
 // --- Component Navigator ---
 const MoveNavigator = ({ onNavigate }) => {
   return (
@@ -28,6 +49,7 @@ function MoveBoard({
   currentNode,
   onNavigate,
   showVariations = false,
+  analysisData = {},
 }) {
   const scrollRef = useRef(null);
   const activeMoveRef = useRef(null);
@@ -74,25 +96,36 @@ function MoveBoard({
   const MoveBox = ({ node }) => {
     if (!node) return <div className={styles.moveBoxEmpty}>...</div>;
 
-    // const { isWhiteMove, moveNumber } = getMoveInfo(node);
     const isActive = currentNode && currentNode.id === node.id;
+    const analysisInfo = analysisData[node.fen];
+    let moveType = analysisInfo?.type || "";
 
-    // const numberText = isWhiteMove ? `${moveNumber}.` : `${moveNumber - 1}`;
+    if (!VISIBLE_TYPES.includes(moveType)) {
+      moveType = "";
+    }
 
     return (
-      <>
-        {/* {showNumber && <span className={styles.moveNumber}>{numberText}</span>} */}
-        <div
-          ref={isActive ? activeMoveRef : null}
-          className={clsx(styles.moveBox, { [styles.active]: isActive })}
-          onClick={(e) => {
-            e.stopPropagation();
-            onNavigate("select", node);
-          }}
-        >
-          {node.san}
-        </div>
-      </>
+      <div
+        ref={isActive ? activeMoveRef : null}
+        className={clsx(
+          styles.moveBox,
+          { [styles.active]: isActive },
+          moveType && styles[`type-${moveType}`] // Chỉ thêm class màu nếu đúng type
+        )}
+        onClick={(e) => {
+          e.stopPropagation();
+          onNavigate("select", node);
+        }}
+      >
+        <span>{node.san}</span>
+
+        {/* Chỉ hiển thị Icon nếu có moveType hợp lệ */}
+        {moveType && (
+          <span className={clsx(styles.evalIcon, styles[`icon-${moveType}`])}>
+            {getEvalIcon(moveType)}
+          </span>
+        )}
+      </div>
     );
   };
 

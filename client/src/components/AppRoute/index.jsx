@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import { AuthProvider } from "@/context/AuthProvider";
 import { SocketProvider } from "@/context/SocketProvider";
+import { ToastProvider } from "@/context/ToastProvider";
 
 // Import các trang thuộc Default Layout
 import DefaultLayout from "@/layouts/DefaultLayout";
@@ -23,34 +24,36 @@ import SetUsername from "@/pages/Auth/SetUsername";
 function AppRoute() {
   return (
     <Router>
-      <AuthProvider>
-        <SocketProvider>
-          <Routes>
-            {/* Default Layout */}
-            <Route element={<DefaultLayout />}>
-              <Route index element={<Lobby />} />
-              <Route path="/play/ai" element={<PlayAI />} />
-              <Route path="/play/friend" element={<PlayFriend />} />
-              <Route path="/game/:gameId" element={<GamePage />} />
-              <Route path="/profile/:username" element={<Profile />} />
-              <Route path="/import" element={<ImportPage />} />
-              <Route path="/puzzle" element={<Puzzle />} />
-              <Route path="/analysis" element={<AnalysisPage />} />
-              <Route path="/analysis/:id" element={<AnalysisPage />} />
-            </Route>
+      <ToastProvider>
+        <AuthProvider>
+          <SocketProvider>
+            <Routes>
+              {/* Default Layout */}
+              <Route element={<DefaultLayout />}>
+                <Route index element={<Lobby />} />
+                <Route path="/play/ai" element={<PlayAI />} />
+                <Route path="/play/friend" element={<PlayFriend />} />
+                <Route path="/game/:gameId" element={<GamePage />} />
+                <Route path="/profile/:username" element={<Profile />} />
+                <Route path="/import" element={<ImportPage />} />
+                <Route path="/puzzle" element={<Puzzle />} />
+                <Route path="/analysis" element={<AnalysisPage />} />
+                <Route path="/analysis/:id" element={<AnalysisPage />} />
+              </Route>
 
-            {/* MỚI: Route chơi game (layout riêng) */}
+              {/* MỚI: Route chơi game (layout riêng) */}
 
-            <Route element={<AuthLayout />}>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/auth-callback" element={<AuthCallback />} />
-              <Route path="/set-username" element={<SetUsername/>}/>
-            </Route>
-            {/* No Layout */}
-          </Routes>
-        </SocketProvider>
-      </AuthProvider>
+              <Route element={<AuthLayout />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/auth-callback" element={<AuthCallback />} />
+                <Route path="/set-username" element={<SetUsername />} />
+              </Route>
+              {/* No Layout */}
+            </Routes>
+          </SocketProvider>
+        </AuthProvider>
+      </ToastProvider>
     </Router>
   );
 }

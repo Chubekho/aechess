@@ -128,6 +128,45 @@ Located in `GameInfoPanel` (Client) and `gameHandlers.js` (Server).
 - `draw_declined`: `null` (Signal to reset UI)
 - `error`: `{ message }` (e.g., "Illegal move", "Not your turn")
 
+## 5.1 Detailed Sub-Systems & Implementations (New Modules)
+
+### A. System Architecture Standards (Strict Patterns)
+
+- **Core Philosophy**: Maintainability via Separation of Concerns and Barrel Exports.
+
+**1. Context Separation Pattern**
+We strictly separate the **Definition** from the **Implementation** to avoid circular dependencies and keep logic clean.
+
+- **Definition (`Context.jsx`)**: Only creates the `Context` object and exports the `useHook`. _No state, no logic._
+- **Provider (`Provider.jsx`)**: Imports the Context. Handles `useState`, `useEffect`, side-effects, and renders the `<Context.Provider>`.
+
+**2. The "Barrel" Export Pattern (`hooks/index.js`)**
+
+- **Rule**: Components must **NEVER** import directly from `../context/XProvider`.
+- **Standard**: Always import from the central hook registry.
+- **Structure**:
+  ```javascript
+  // client/src/hooks/index.js
+  export { useAuth } from "@/context/AuthContext";
+  export { useSocket } from "@/context/SocketContext";
+  export { useToast } from "@/context/ToastContext"; // Logic + UI Feedback
+  // ... other custom hooks
+  ```
+
+**3. Provider Hierarchy (`AppRoute.jsx`)**
+Crucial for Error Handling. The UI Feedback provider must wrap others to catch their errors.
+
+```jsx
+<Router>
+  <ToastProvider>
+    <AuthProvider>
+      <SocketProvider>
+        <Routes>...</Routes>
+      </SocketProvider>
+    </AuthProvider>
+  </ToastProvider>
+</Router>
+```
 ## 6. Recent "Lessons Learned" & Fixes
 
 1.  **Timer Re-renders**: Initially, the Lobby timer caused the whole component to re-render every second. **Fix**: Used `useRef` for the interval ID and raw DOM manipulation (or optimized state isolation) for the countdown.
@@ -157,16 +196,11 @@ JWT_SECRET=your_super_secret_key
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 CLIENT_URL=http://localhost:5173
-```
+````
 
-***
+### Hướng dẫn tiếp theo:
 
-### Những thay đổi chính trong bản mới này:
+1.  **Hành động ngay:** Copy đoạn code Markdown phía trên và paste vào file `CONTEXT.md` của bạn (thay thế hoặc bổ sung cho phù hợp).
+2.  **Quy trình làm việc (Workflow):** Lần tới, khi bạn yêu cầu tôi code xong một tính năng (ví dụ: Chat System), hãy nhắc tôi: _"Gen code update context cho tính năng Chat"_. Tôi sẽ xuất ra block Markdown tương tự để bạn lưu trữ.
 
-1.  **Directory Structure**: Liệt kê rõ các file quan trọng, giúp tôi hình dung được ngay kiến trúc dự án (Vite + Express).
-2.  **Logic "Handshake"**: Mô tả chi tiết bảng trạng thái (State Machine) của tính năng Cầu hòa (Draw Offer). Đây là logic phức tạp dễ bị quên.
-3.  **Socket Event Reference**: Liệt kê các event name chính xác (`join_room`, `make_move`,...). Rất quan trọng để debug khi client/server không hiểu nhau.
-4.  **Database Schema**: Bổ sung chi tiết các trường trong Model, đặc biệt là `Game` và `User`.
-5.  **Lessons Learned**: Ghi lại các bug đã sửa (như vụ Timer re-render) để tránh lặp lại sai lầm cũ.
-
-Bây giờ bạn lưu file này lại nhé. Lần sau nếu cần code tiếp, tôi sẽ dựa vào đây để viết code chính xác ngay lập tức.
+Như vậy, file `CONTEXT.md` của bạn sẽ luôn **đầy đủ logic** như một tài liệu kỹ thuật (Technical Documentation) thực thụ.

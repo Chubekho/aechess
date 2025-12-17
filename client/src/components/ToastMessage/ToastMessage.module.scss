@@ -1,0 +1,124 @@
+.toastContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none; /* Cho phép click xuyên qua vùng trống */
+}
+
+.toast {
+  pointer-events: auto;
+  min-width: 300px;
+  background-color: #262421; /* Màu nền Dark mode */
+  color: #fff;
+  border-radius: 6px;
+  padding: 24px 0px 24px 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  animation: slideIn 0.3s ease forwards;
+  border-left: 5px solid transparent;
+
+  /* Icon styling */
+  i {
+    margin-right: 12px;
+    font-size: 2rem;
+  }
+
+  .message {
+    flex: 1;
+    font-size: 1.4rem;
+    line-height: 1.4;
+  }
+
+  .closeBtn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #888;
+    cursor: pointer;
+    margin-left: 12px;
+    font-size: 1rem;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+
+  /* Progress bar */
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.3);
+    animation: progressBar linear forwards;
+  }
+}
+
+/* Các loại thông báo */
+.success {
+  border-left-color: #629924;
+  i {
+    color: #629924;
+  }
+}
+.error {
+  border-left-color: #cc3333;
+  i {
+    color: #cc3333;
+  }
+}
+.info {
+  border-left-color: #3692e7;
+  i {
+    color: #3692e7;
+  }
+}
+.warning {
+  border-left-color: #f0c929;
+  i {
+    color: #f0c929;
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes progressBar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.hiding {
+  animation: slideOut 0.3s ease forwards;
+}

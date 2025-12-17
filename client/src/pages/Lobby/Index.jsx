@@ -1,6 +1,5 @@
 // client/src/pages/Lobby/index.jsx
-import { useSocket } from "@/context/SocketContext";
-import { useAuth } from "@/hooks/index";
+import { useAuth, useSocket, useToast} from "@/hooks/index";
 import { useNavigate, Link } from "react-router";
 import { useEffect, useState, useRef } from "react";
 import Modal from "react-modal";
@@ -50,6 +49,7 @@ function Lobby() {
   const socket = useSocket();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const toast = useToast();
 
   // MỚI: State quản lý 3 trạng thái
   const [searchState, setSearchState] = useState("idle"); // idle, searching, found
@@ -86,7 +86,7 @@ function Lobby() {
       console.log("Match Aborted");
       setFoundMatchData(null);
       if (searchState !== "declined") {
-        alert("Trận đấu đã bị hủy (hết giờ / đối thủ từ chối).");
+        toast.error("Trận đấu đã bị hủy (hết giờ / đối thủ từ chối)", 3000);
       }
       setSearchState("idle");
     };
@@ -100,6 +100,7 @@ function Lobby() {
       socket.off("gameStart", onGameStart);
       socket.off("matchAborted", onMatchAborted);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket, navigate, searchState]);
 
   // === useEffect cho Timer "Đang tìm" ===
@@ -148,7 +149,8 @@ function Lobby() {
   // === Event Handlers ===
   const handleFindMatch = (timeControl) => {
     if (!socket) return alert("Chưa kết nối server!");
-    if (timeControl === "custom") return alert("Chưa hỗ trợ!");
+    if (timeControl === "custom") return toast.error("Chế độ chưa hỗ trợ !", 3000);
+
 
     // Reset timer thủ công trước khi bắt đầu tìm mới (để chắc chắn)
     startTimeRef.current = null;

@@ -1,32 +1,74 @@
 /* Lobby.module.scss */
 
+// Breakpoints variables
+$mobile-width: 768px;
+$tablet-width: 1024px;
+
 .wrapper {
-  padding: 20px 28px;
+  padding: 20px;
   min-height: calc(100vh - var(--header-height));
+  width: 100%;
 }
 
-.mainContent {
-  /* Căn giữa nội dung của cột chính */
+/* --- Layout Grid Chính --- */
+.lobbyContainer {
+  display: grid;
+  // Desktop: Cột chính chiếm phần còn lại, cột phụ fix 320px
+  grid-template-columns: 1fr 320px; 
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  // Tablet & Mobile: Chuyển thành 1 cột dọc
+  @media (max-width: $tablet-width) {
+    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* === Khu vực Chính (Bên trái) === */
+.mainSection {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  gap: 20px;
 }
 
-/* === State 1: Giao diện chọn trận === */
+.historySection {
+  margin-top: 20px;
+  // Đảm bảo lịch sử không bị tràn
+  width: 100%;
+}
+
+.mobileHeader {
+  display: none;
+  @media (max-width: $mobile-width) {
+    display: block;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+}
+
+/* === Grid chọn giờ chơi === */
 .poolGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr); // 3 cột trên Desktop
+  gap: 12px;
   width: 100%;
-  // max-width: 780px;
+
+  // Mobile: Xuống còn 2 cột
+  @media (max-width: $mobile-width) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
 }
 
 .poolButton {
   display: flex;
   flex-direction: column;
   background-color: hsl(37deg 7% 19% / 66%);
-  border: none;
+  border: 2px solid transparent; // Thêm border ẩn để tránh giật layout khi hover
   outline: none;
   border-radius: 8px;
   padding: 20px 0;
@@ -34,90 +76,118 @@
   cursor: pointer;
   transition: all 0.2s ease;
   color: var(--color-text-primary);
+  user-select: none; /* Tránh bôi đen text khi click liên tục */
 
   &:hover {
     background-color: hsla(22, 100%, 42%, 0.358);
     color: var(--color-text-hover);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 
   .poolTime {
     display: block;
-    font-size: 3.5rem;
+    font-size: 3rem;
     font-weight: 200;
+    line-height: 1;
+    margin-bottom: 4px;
+
+    // Mobile: Giảm size chữ
+    @media (max-width: $mobile-width) {
+      font-size: 2.2rem;
+    }
   }
   .poolCategory {
-    font-size: 2rem;
+    font-size: 1.2rem;
     font-weight: 300;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    
+    @media (max-width: $mobile-width) {
+      font-size: 1rem;
+    }
   }
 }
 
-/* === Cột phải: Thông tin User === */
+/* === Khu vực Phụ (Bên phải - Sidebar) === */
+.sideSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  // Trên mobile, đảo thứ tự nếu cần (hiện tại để dưới cùng là hợp lý)
+  @media (max-width: $tablet-width) {
+    width: 100%;
+  }
+}
+
 .infoPanel {
-  background-color: var(--color-board-control, #302e2c);
+  background-color: var(--color-board-control, #262421);
   border-radius: 8px;
   padding: 20px;
   color: #e0e0e0;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-/* MỚI: Link cho tên user */
 .playerInfoLink {
   text-decoration: none;
-  color: inherit; /* Kế thừa màu chữ */
+  color: inherit;
+  display: block;
+  text-align: center;
 
   h4 {
-    transition: color 0.2s ease;
+    margin: 0 0 16px 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+    transition: color 0.2s;
   }
-
   &:hover h4 {
     color: var(--color-btn-green, #7fa650);
   }
 }
 
-.playerInfo h4 {
-  margin-top: 0;
-  font-size: 1.8rem;
-  font-weight: 500;
-  margin-bottom: 12px; // Thêm khoảng cách
-}
-
-.playerInfo p {
-  font-size: 1.5rem;
-}
-
-/* MỚI: Hàng chứa các rating */
 .ratingsRow {
   display: flex;
-  justify-content: space-around; // Căn đều
+  justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-top: 1px solid #4a4a4a;
-  border-bottom: 1px solid #4a4a4a;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* MỚI: Từng mục (icon + rating) */
 .ratingItem {
   display: flex;
-  flex-direction: column; // Icon ở trên, số ở dưới (hoặc 'row' nếu muốn)
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #c0c0c0;
+  gap: 8px;
+  flex: 1; // Chia đều không gian
 
   .icon {
-    font-size: 1.6rem;
-    color: var(--color-btn-green, #7fa650); // Màu icon
+    font-size: 1.4rem;
+    color: var(--color-btn-green, #7fa650);
+    opacity: 0.8;
+  }
+  
+  span {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #ccc;
   }
 }
 
+/* === Styles cho Search Box & Modal === */
+
 .minimizedSearchContainer {
-  margin-bottom: 15px; // Khoảng cách với infoPanel bên dưới
-  background-color: var(--color-board-control, #302e2c);
+  background-color: var(--color-board-control, #262421);
   border-radius: 8px;
-  overflow: hidden; // Để bo góc .searchingBox
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
-/* === State 2: Đang tìm trận === */
+// 1. Box tìm kiếm chung
 .searchingBox {
   display: flex;
   flex-direction: column;
@@ -125,156 +195,171 @@
   text-align: center;
   color: #fff;
   padding: 30px;
-  background-color: var(--color-board-control, #302e2c);
+  background-color: var(--color-board-control, #262421);
   border-radius: 8px;
+  width: 100%;
 
-  /* Style khi thu nhỏ */
+  // Style khi thu nhỏ (bên sidebar)
   &.minimized {
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
+    padding: 12px 16px;
+    flex-direction: row; // Ngang
     justify-content: space-between;
-    border-radius: 0; // Bỏ bo góc (vì container đã bo)
-
+    
     .searchingAnimation {
-      width: 24px; // Nhỏ lại
-      height: 24px;
-      border-width: 3px;
+      width: 20px;
+      height: 20px;
+      border-width: 2px;
       margin: 0;
     }
 
     h3 {
-      font-size: 1.6rem;
-      font-weight: 500;
-      margin-top: 10px;
-      flex: 1; // Đẩy timer ra xa
+      font-size: 1rem;
+      margin: 0 0 0 12px;
       text-align: left;
-      padding-left: 15px;
+      flex: 1;
+      white-space: nowrap; 
+      overflow: hidden;
+      text-overflow: ellipsis; // Cắt chữ nếu dài
     }
 
     .searchingTimer {
-      font-size: 1.6rem; // Nhỏ lại
-      font-weight: 600;
-      margin: 5px 0;
+      font-size: 1.2rem;
+      margin: 0 10px;
     }
 
     .cancelButton {
-      padding: 5px 10px; // Nhỏ lại
-      font-size: 1.3rem;
+      padding: 4px 10px;
+      font-size: 0.9rem;
     }
   }
 
+  // Style mặc định (to)
   h3 {
-    font-size: 2rem;
+    font-size: 1.8rem;
+    margin: 10px 0;
     font-weight: 500;
   }
   .searchingTimer {
-    font-size: 3rem;
+    font-size: 2.5rem;
     font-weight: 700;
-    margin: 10px 0;
+    margin: 15px 0 25px 0;
+    font-variant-numeric: tabular-nums; // Số không bị nhảy
   }
   .cancelButton {
-    padding: 10px 20px;
-    font-size: 1.6rem;
-    background-color: #888;
-    color: #fff;
+    padding: 10px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: #444;
+    color: #ccc;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
+    transition: all 0.2s;
+    
     &:hover {
-      background-color: #999;
+      background-color: #555;
+      color: #fff;
     }
   }
 }
 
 .searchingAnimation {
-  width: 60px;
-  height: 60px;
-  border: 5px solid rgba(255, 255, 255, 0.2);
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.1);
   border-top-color: var(--color-btn-green, #7fa650);
   border-radius: 50%;
-  margin: 0 auto 20px auto;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
-/* === State 3: Tìm thấy trận === */
+/* === Box khi tìm thấy trận === */
 .matchFoundBox {
   width: 100%;
-  max-width: 400px;
-  padding: 25px;
-  background-color: #3c3934;
-  border-radius: 8px;
+  // Lưu ý: width đã được set ở Modal Style, class này chỉ style nội dung
+  padding: 24px;
+  background-color: #262421;
   text-align: center;
   color: #fff;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
 
   h3 {
-    margin-top: 0;
-    font-size: 2.2rem;
+    margin: 0 0 20px 0;
+    font-size: 1.6rem;
     color: var(--color-btn-green, #7fa650);
-  }
-  .opponentInfo {
-    font-size: 1.8rem;
-    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
   }
 }
 
 .durationBar {
-  height: 8px;
+  height: 6px;
   width: 100%;
-  background-color: #262522;
-  border-radius: 4px;
+  background-color: #403d39;
+  border-radius: 3px;
   overflow: hidden;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
+
 .durationProgress {
   height: 100%;
   width: 100%;
   background-color: var(--color-btn-green, #7fa650);
   animation: countdown 10s linear forwards;
+  
+  &.declinedBar {
+    background-color: #d9534f; // Màu đỏ khi hủy
+    animation-play-state: paused;
+  }
 }
 
 @keyframes countdown {
-  from {
-    width: 100%;
-  }
-  to {
-    width: 0%;
-  }
+  from { width: 100%; }
+  to { width: 0%; }
 }
 
 .matchActions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px;
+  gap: 12px;
 }
+
 .actionButton {
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 12px 20px;
-  font-size: 1.8rem;
-  font-weight: 600;
+  padding: 14px;
+  font-size: 1.1rem;
+  font-weight: 700;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
-}
-.decline {
-  background-color: #888;
-  color: #fff;
+  text-transform: uppercase;
+  transition: filter 0.2s;
+
   &:hover {
-    background-color: #999;
+    filter: brightness(1.1);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
+
+.decline {
+  background-color: #444;
+  color: #bbb;
+}
+
 .accept {
-  background-color: var(--color-btn-green, #7fa650);
+  background-color: var(--color-btn-green, #629924);
   color: #fff;
-  &:hover {
-    background-color: (#7fa650, 5%);
+  box-shadow: 0 4px 0 #4b7a15; // Hiệu ứng nút nổi
+  
+  &:active {
+    box-shadow: 0 2px 0 #4b7a15;
+    transform: translateY(2px);
   }
 }

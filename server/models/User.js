@@ -44,6 +44,15 @@ const UserSchema = new mongoose.Schema(
       rd: { type: Number, default: 350 }, // Độ lệch chuẩn (Rating Deviation)
       vol: { type: Number, default: 0.06 }, // Độ biến động (Volatility)
     },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 ); // Tự động thêm createdAt, updatedAt

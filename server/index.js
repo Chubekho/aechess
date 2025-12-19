@@ -20,6 +20,7 @@ import gameRoutes from "./routes/gameRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import puzzleRoutes from "./routes/puzzleRoutes.js";
 import friendRoutes from "./routes/friendRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 // Import middleware
 import logger from "./middleware/logger.js";
@@ -65,6 +66,9 @@ app.use("/api/games", gameRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/puzzle", puzzleRoutes);
 app.use("/api/friends", friendRoutes);
+app.use("/api/admin", adminRoutes);
+
+// === Socket.IO ===
 
 initializeSocket(io);
 

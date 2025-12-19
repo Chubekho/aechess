@@ -1,0 +1,31 @@
+@import "@/styles/variables.scss";
+
+.sidebarNav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navItem {
+  margin-bottom: 10px;
+}
+
+.navLink {
+  display: block;
+  padding: 10px 15px;
+  border-radius: 4px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: background-color 0.2s, color 0.2s;
+
+  &:hover {
+    background-color: var(--color-admin-sidebar-hover);
+    color: var(--color-text-hover);
+  }
+
+  &.active {
+    background-color: var(--color-admin-sidebar-hover);
+    color: var(--color-admin-active-item);
+    font-weight: bold;
+  }
+}

@@ -1,0 +1,33 @@
+@import "@/styles/variables.scss";
+
+.container {
+  padding: 20px;
+  background-color: var(--color-bg-high);
+  color: var(--color-text-l-dark);
+  border-radius: 8px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.searchInput {
+  padding: 8px 12px;
+  background-color: var(--color-board-control);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text-l-dark);
+  width: 250px;
+
+  &::placeholder {
+    color: var(--color-text-primary);
+  }
+}

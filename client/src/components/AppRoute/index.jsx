@@ -21,6 +21,13 @@ import ImportPage from "@/pages/Import";
 import Puzzle from "@/pages/Puzzle";
 import SetUsername from "@/pages/Auth/SetUsername";
 
+// Import các trang thuộc Admin Layout
+import AdminLayout from "@/layouts/AdminLayout";
+import AdminDashboard from "@/pages/Admin/Dashboard";
+import AdminUserManager from "@/pages/Admin/UserManager";
+import AdminGameMonitor from "@/pages/Admin/GameMonitor";
+import AdminGuard from "../guards/AdminGuard";
+
 function AppRoute() {
   return (
     <Router>
@@ -49,6 +56,17 @@ function AppRoute() {
                 <Route path="/auth-callback" element={<AuthCallback />} />
                 <Route path="/set-username" element={<SetUsername />} />
               </Route>
+
+              {/* Admin Layout */}
+              <Route element={<AdminGuard />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="users" element={<AdminUserManager />} />
+                  <Route path="games" element={<AdminGameMonitor />} />
+                </Route>
+              </Route>
+
               {/* No Layout */}
             </Routes>
           </SocketProvider>

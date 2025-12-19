@@ -50,7 +50,6 @@ function GameHistory({ limit = 5, userId }) {
         const res = await axiosClient.get(
           `/games/history?limit=${limit}&userId=${targetId}`
         );
-        console.log(res.data);
         
         setGames(res.data);
       } catch (err) {

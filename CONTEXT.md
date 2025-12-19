@@ -11,38 +11,94 @@
   - **Backend**: Node.js, Express, Socket.IO (Server), MongoDB (Mongoose), Passport.js (Google Auth).
   - **DevOps/Tools**: Git, Nodemon, Concurrently.
 
-## 2. Directory Structure & Key Files
+## 2. Directory Structure & Key Files (Updated)
 
-### Client (`/client`)
+### Client (`/client/src`)
 
-- `src/main.jsx`: Bootstrapper, imports global styles.
-- `src/context/`:
-  - `AuthProvider.jsx`: Manages User State (`user`, `loading`), Login/Logout, Google Auth callback.
-  - `SocketProvider.jsx`: Initializes Socket connection **only if** `user` exists. Passes `token` in `auth` query.
-- `src/pages/`:
-  - `GamePage/`: **CRITICAL**. Handles the chessboard logic.
-    - `index.jsx`: Orchestrates `Chessboard`, `GameInfoPanel`, `PlayerInfoBox`.
-    - `logic/`: (Implicit) Logic for legal moves, highlighting, and sound effects.
-  - `Lobby/index.jsx`: Matchmaking UI. Uses `useRef` for visual timer to prevent re-renders.
-  - `AnalysisPage/index.jsx`: Read-only board for reviewing games.
-  - `Profile/`: `GameHistory`, `StatsChart` (Radar/Doughnut).
-- `src/components/`:
-  - `ChessBoard/`: The visual board component (likely wrapping `chessground` or custom).
-  - `GameInfoPanel/`: **(Complex Logic)**. Contains Move List + Action Buttons (Resign, Draw).
-  - `FlipBoardButton.jsx`: Shared component to toggle board orientation.
+- **`main.jsx`**: Entry point, renders App and imports global styles (`styles/main.scss`).
+- **`components/`**: Shared UI components.
+  - `AppRoute/`: Centralized routing logic (Protected Routes, Layout wrapping).
+  - `CapturedPieces/`: Visualizes captured material and advantage score.
+  - `FlipBoardButton/`: Toggles board orientation locally.
+  - `GameHistory/`: Displays move list or PGN.
+  - `GameInfoPanel/`: Main control panel (Moves, Chat, Actions).
+  - `guards/`: **Security Barriers**.
+    - `AdminGuard.jsx`: Protects routes requiring `role: 'admin'`.
+  - `Modal/`: Reusable modal for game ends/prompts.
+  - `MoveBoard/`: Visual move list with evaluation icons.
+  - `PlayerInfoBox/`: Player avatar, timer, rating, and captured pieces.
+  - `ToastMessage/`: Global notification UI.
+- **`context/`**: Strict Separation of Definition vs Implementation.
+  - `AuthContext.js` / `AuthProvider.jsx`: User state & Google Auth.
+  - `SocketContext.js` / `SocketProvider.jsx`: Real-time connection management.
+  - `ToastContext.js` / `ToastProvider.jsx`: Notification system logic.
+- **`hooks/`**: Custom hooks (Barrel exported via `index.js`).
+  - `useFullGameAnalysis.js`: Stockfish worker integration.
+  - `useGameNavigation.js`: Logic for traversing move history.
+  - `useOnlineGame.js`: Core socket event handlers for gameplay.
+  - `useStockfish.js`: Engine evaluation logic.
+- **`layouts/`**:
+  - `AdminLayout/`: **Dedicated Admin Interface**.
+    - `components/SideBar/`: Navigation specific to admin tasks.
+    - `index.jsx`: Layout shell (Sidebar + Outlet).
+  - `AuthLayout/`: For Login/Register pages (Clean UI).
+  - `DefaultLayout/`: For main app (Header, Footer, Navigation, User dropdown).
+- **`pages/`**:
+  - `Admin/`: **Administrative Modules**.
+    - `Dashboard/`: Overview stats.
+    - `GameMonitor/`: Real-time game supervision.
+      - `ActiveGameList/`: Component to list live games.
+    - `UserManager/`: User administration.
+      - `components/UserTable/`: Atomic component for user data rows & actions.
+  - `Analysis/`: Game review tool (`AnalysisSettings`, `EngineOutput`, `EvaluationBar`, `PlayerReportCard`).
+  - `Auth/`: `Login`, `Register`, `AuthCallback`, `SetUsername`.
+  - `GamePage/`: **Core Gameplay**. Orchestrates Board + InfoPanel.
+  - `Lobby/`: Matchmaking and room creation.
+  - `PlayAI/`: PvE mode.
+  - `PlayFriend/`: Custom room mode.
+  - `Profile/`: User stats and history.
+  - `Puzzle/`: Tactics trainer.
+- **`styles/`**: Global SCSS (`main.scss`, `reset.scss`, `variables.scss`).
+- **`utils/`**:
+  - `axiosConfig.js`: API interceptors.
+  - `chessAnalysis.js`: Win chance & Move classification logic.
+  - `chessUtils.js`: Board layout & Material calculation.
+  - `gameHelpers.js`: Time formatting & misc helpers.
+  - `GameTree.js`: Data structure for move variations.
+  - `validators.js`: Form validation.
 
 ### Server (`/server`)
 
-- `index.js`: Entry point. Connects DB, configures CORS, mounts Routes, attaches Socket.IO to HTTP server.
-- `routes/`: REST API definitions (`auth.js`, `users.js`, `games.js`).
-- `controllers/`: Logic for REST endpoints.
-  - `gameController.js`: Fetches history, formatting PGN/FEN for API responses.
-- `socket/`: **Realtime Core**.
-  - `socketManager.js`: Main entry. Uses `socketAuth` middleware.
-  - `handlers/`:
-    - `roomHandlers.js`: Logic for `joinRoom` (Determines Player vs Spectator).
-    - `gameHandlers.js`: Logic for `move`, `resign`, `draw` flows.
-- `models/`: Mongoose Schemas (`User`, `Game`, `Friendship`).
+- **`index.js`**: App entry point. Connects DB, CORS, Routes, and Socket.IO attachment.
+- **`config/`**:
+  - `passport.js`: Google OAuth strategy configuration.
+- **`controllers/`**: Logic for REST endpoints.
+  - `authController.js`: Login/Register logic.
+  - `friendController.js`: Friend request logic.
+  - `gameController.js`: Game history, PGN retrieval.
+  - `puzzleController.js`: Logic for tactics trainer.
+  - `userController.js`: User profile & stats management.
+- **`middleware/`**:
+  - `authMiddleware.js`: JWT verification for HTTP routes.
+  - `logger.js`: Request logging.
+  - `socketAuth.js`: JWT verification for Socket connection handshake.
+- **`models/`**: Mongoose Schemas.
+  - `Friendship.js`, `Game.js`, `Puzzle.js`, `User.js`.
+- **`routes/`**: API Route definitions.
+  - `authRoutes.js`, `friendRoutes.js`, `gameRoutes.js`, `puzzleRoutes.js`, `userRoutes.js`.
+- **`socket/`**: **Realtime Core Logic**.
+  - `socketHandler.js`: Main socket entry point.
+  - `matchmakingHandlers.js`: Queue logic & pairing.
+  - `roomHandlers.js`: Joining rooms, determining Player vs Spectator.
+  - `gameHandlers.js`: Moves, validation, time sync.
+  - `gameEndHandler.js`: Checkmate/Resign/Draw processing.
+  - `helpers.js`: Shared socket utilities.
+- **`utils/`**:
+  - `eloCalculator.js`: Logic for rating updates after game end.
+  - `pgnFormatter.js`: Converts game state to PGN string.
+  - `seedPuzzles.js`: Database seeding script.
+  - `validators.js`: Input validation helpers.
+  - `CreateShortId.js`: Utility for generating room IDs.
 
 ## 3. Database Schema (Detailed)
 
@@ -223,11 +279,9 @@ Moves are classified based on **Win Chance Difference** (Sigmoid conversion of C
 - **Responsive Layout**: The container uses `flex-wrap: wrap` so if many pieces are captured, low-value pieces (Pawns) naturally flow to the second row.
 
 ### D. Rating Change & End-Game Visualization
-
 > **Goal**: Provide immediate visual feedback on Rating gain/loss when a match concludes.
 
 **1. Logic & Data Flow**
-
 - **Trigger**: Socket event `game_over` returns `gameResult` containing `newRating: { white: number, black: number }`.
 - **Calculation (`GamePage.jsx`)**:
   - `currentRating` = `gameResult.newRating[side]` (if exists) OR `player.rating`.
@@ -235,12 +289,39 @@ Moves are classified based on **Win Chance Difference** (Sigmoid conversion of C
 - **Prop Drilling**: `ratingDiff` passed from `GamePage` -> `PlayerInfoBox`.
 
 **2. Visual Implementation (`PlayerInfoBox`)**
-
 - **Condition**: Only renders if `ratingDiff !== null`.
 - **Styles**:
   - **Positive**: Green (`#629924`) with `+` prefix.
   - **Negative**: Red (`#cc3333`).
   - **Animation**: Uses `@keyframes slideFadeIn` to delay appearance (0.2s) and slide up, drawing attention after the game ends.
+
+### E. Admin Module (RBAC & Management System)
+> **Goal**: A secure, isolated portal for system administration, styled independently (Lichess Dark Theme) and protected by Role-Based Access Control (RBAC).
+
+**1. Security Architecture (Full-Stack RBAC)**
+
+- **Database**: `User` model includes `role: 'user' | 'admin'` and `isActive: boolean`.
+- **API Security**:
+  - Endpoint `/api/auth/me` updated to return `{ ..., role, isActive }` for initial client state.
+  - Middleware `verifyAdmin` (Server) blocks unauthorized API requests (403 Forbidden).
+- **Client Security (`components/guards/AdminGuard.jsx`)**:
+  - Wraps all `/admin` routes.
+  - Checks `user.role === 'admin'`. If false, redirects to `/` immediately.
+
+**2. Component Architecture (Atomic Design)**
+The Admin module follows a strict component hierarchy to maintain scalability:
+
+- **Layout**: `layouts/AdminLayout` is completely separate from `DefaultLayout`. It uses a dedicated `SideBar` component.
+- **Pages as Containers**:
+  - `UserManager/index.jsx`: Handles Data Fetching (`GET /users`) and State Management (Optimistic UI updates for Ban/Unban).
+  - `UserManager/components/UserTable/`: **Pure Presentational Component**. Receives `users` array and renders the Lichess-style table. Isolated styles in `UserTable.module.scss`.
+- **Game Monitor**:
+  - `GameMonitor/ActiveGameList/`: Specialized component to list live matches with Force End/Draw controls.
+
+**3. Styling Strategy**
+
+- **Variables**: Extends `variables.scss` with admin-specific tokens (`--color-admin-sidebar-bg`, `--color-table-header-bg`).
+- **Scoping**: Each module (`Dashboard`, `UserTable`) uses strict CSS Modules to prevent style leakage into the main game app.
 
 ## 6. Recent "Lessons Learned" & Fixes
 

@@ -8,7 +8,7 @@ import { validateEmail, validateUsername } from "../utils/validators.js";
 // === HÀM HỖ TRỢ: Tạo JWT ===
 const createToken = (user) => {
   return jwt.sign(
-    { id: user._id, email: user.email },
+    { id: user._id, email: user.email, role: user.role, isActive: user.isActive},
     process.env.JWT_SECRET,
     { expiresIn: "1d" } // Token hết hạn sau 1 ngày
   );

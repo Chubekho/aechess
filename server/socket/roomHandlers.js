@@ -1,6 +1,7 @@
 // server/socket/roomHandlers.js
 import { Chess } from "chess.js";
 import createShortId from "../utils/CreateShortId.js";
+import Game from "../models/Game.js";
 
 // Đăng ký các event 'createRoom' và 'joinRoom'
 export const registerRoomHandlers = (io, socket, activeGames) => {
@@ -42,7 +43,7 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
   });
 
   // === 2. THAM GIA PHÒNG ===
-  socket.on("joinRoom", ({ gameId }, callback) => {
+  socket.on("joinRoom", async ({ gameId }, callback) => {
     const gameData = activeGames.get(gameId);
     if (!gameData) return callback({ error: "Phòng không tồn tại." });
 
@@ -119,6 +120,18 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
     const blackPlayer = gameData.players.find((p) => p.color === "b");
 
     gameData.lastMoveTimestamp = Date.now();
+
+    const timeControl = `${gameData.config.time.base}+${gameData.config.time.inc}`;
+    const newGame = new Game({
+      whitePlayer: whitePlayer.id,
+      blackPlayer: blackPlayer.id,
+      whiteRating: whitePlayer.rating,
+      blackRating: blackPlayer.rating,
+      timeControl: timeControl,
+      isRated: gameData.config.isRated,
+    });
+    await newGame.save();
+    gameData.dbGameId = newGame._id;
 
     io.to(gameId).emit("gameStart", {
       gameId: gameId,

@@ -1,6 +1,7 @@
 //server/socket/matchmakingHandlers.js
 import { Chess } from "chess.js";
 import createShortId from "../utils/CreateShortId.js";
+import Game from "../models/Game.js";
 
 // State (bộ nhớ) cho các trận đang chờ xác nhận
 const pendingMatches = new Map();
@@ -49,7 +50,7 @@ export const registerMatchmakingHandlers = (
   });
 
   // --- 3. User nhấn "Chơi" (Chấp nhận) ---
-  socket.on("acceptMatch", ({ matchId }) => {
+  socket.on("acceptMatch", async ({ matchId }) => {
     const match = pendingMatches.get(matchId);
     if (!match) return; // Trận đã bị hủy
 
@@ -87,8 +88,19 @@ export const registerMatchmakingHandlers = (
       const whiteRating = whitePlayer.user.ratings[category] || 1200;
       const blackRating = blackPlayer.user.ratings[category] || 1200;
 
+      const newGame = new Game({
+        whitePlayer: whitePlayer.user.id,
+        blackPlayer: blackPlayer.user.id,
+        whiteRating: whiteRating,
+        blackRating: blackRating,
+        timeControl: playerA.config.timeControl,
+        isRated: config.isRated,
+      });
+      await newGame.save();
+
       // SỬA: Xóa bỏ 1 lần activeGames.set bị trùng
       activeGames.set(gameId, {
+        dbGameId: newGame._id,
         game: game,
         players: [
           {

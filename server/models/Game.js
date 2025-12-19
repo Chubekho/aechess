@@ -1,6 +1,8 @@
 // server/models/Game.js
 import mongoose from "mongoose";
 
+const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 const GameSchema = new mongoose.Schema({
   // --- Dùng để truy vấn nhanh (Querying) ---
   whitePlayer: {
@@ -17,7 +19,13 @@ const GameSchema = new mongoose.Schema({
   },
   result: {
     type: String, // '1-0', '0-1', '1/2-1/2'
-    required: true,
+    default: '*',
+    index: true
+  },
+  status: {
+    type: String,
+    enum: ['active', 'completed', 'aborted'],
+    default: 'active',
     index: true
   },
   isRated: {
@@ -31,6 +39,10 @@ const GameSchema = new mongoose.Schema({
   // --- Dùng để lưu trữ & Phân tích ---
   pgn: {
     type: String,
+  },
+  fen: {
+    type: String,
+    default: START_FEN,
   },
   timeControl: {
     type: String, // e.g., "10+0", "5+3"

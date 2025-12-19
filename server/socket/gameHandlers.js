@@ -1,9 +1,10 @@
 // server/socket/gameHandlers.js
 import { getPlayerColor, getOpponent } from "./helpers.js";
 import { endGame } from "./gameEndHandler.js";
+import Game from "../models/Game.js";
 
 export const registerGameHandlers = (io, socket, activeGames) => {
-  socket.on("makeMove", ({ gameId, move }) => {
+  socket.on("makeMove", async ({ gameId, move }) => {
     const gameData = activeGames.get(gameId);
     if (!gameData || gameData.isFinished) return;
 
@@ -50,8 +51,15 @@ export const registerGameHandlers = (io, socket, activeGames) => {
     gameData.clocks[playerTurn] += increment;
     gameData.lastMoveTimestamp = now;
 
+    const newFen = gameData.game.fen();
+    if (gameData.dbGameId) {
+      Game.findByIdAndUpdate(gameData.dbGameId, { fen: newFen }).catch(err => {
+        console.error(`Lỗi khi cập nhật FEN cho game ${gameId}:`, err);
+      });
+    }
+
     io.to(gameId).emit("movePlayed", {
-      newFen: gameData.game.fen(),
+      newFen: newFen,
       lastMove: moveResult.san,
       clocks: gameData.clocks,
       moverSocketId: socket.id,

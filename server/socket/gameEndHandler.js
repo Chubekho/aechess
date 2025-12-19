@@ -5,27 +5,22 @@ import { generatePgnWithHeaders } from "../utils/pgnFormatter.js";
 
 export async function endGame(io, activeGames, gameId, result, reason) {
   const gameData = activeGames.get(gameId);
-  if (!gameData) return;
+  if (!gameData || gameData.isFinished) return;
 
   gameData.isFinished = true;
-
   console.log(`Game ${gameId} kết thúc: ${result} (${reason})`);
 
-  io.to(gameId).emit("gameOver", { result: result, reason: reason });
+  // We can emit gameOver early to the client for responsiveness
+  io.to(gameId).emit("gameOver", { 
+    result: result, 
+    reason: reason,
+    dbGameId: gameData.dbGameId // Emit the existing ID
+  });
 
   const game = gameData.game;
   const whitePlayerInfo = gameData.players.find((p) => p.color === "w");
   const blackPlayerInfo = gameData.players.find((p) => p.color === "b");
 
-  let dbGameId = null;
-
-  // 1. Nếu game KHÔNG xếp hạng -> Emit ngay và xóa
-  if (!gameData.config.isRated) {
-    io.to(gameId).emit("gameOver", { result, reason });
-    return;
-  }
-
-  // 2. Xử lý Game Xếp hạng (Lưu DB trước khi Emit)
   try {
     const { fullPgn, timeControlForDb } = generatePgnWithHeaders(
       game,
@@ -34,8 +29,11 @@ export async function endGame(io, activeGames, gameId, result, reason) {
     );
     const category = gameData.config.category;
 
-    // A. Tính và Update Elo
-    if (category) {
+    let finalWhiteRating = whitePlayerInfo.rating;
+    let finalBlackRating = blackPlayerInfo.rating;
+    
+    // 1. Nếu game XẾP HẠNG -> Tính và Update Elo
+    if (gameData.config.isRated && category) {
       const oldRatings = {
         white: whitePlayerInfo.rating,
         black: blackPlayerInfo.rating,
@@ -46,11 +44,15 @@ export async function endGame(io, activeGames, gameId, result, reason) {
         result
       );
 
+      finalWhiteRating = newRatings.whiteNew;
+      finalBlackRating = newRatings.blackNew;
+
+      // Update User models
       await User.findByIdAndUpdate(whitePlayerInfo.id, {
-        $set: { [`ratings.${category}`]: newRatings.whiteNew },
+        $set: { [`ratings.${category}`]: finalWhiteRating },
       });
       await User.findByIdAndUpdate(blackPlayerInfo.id, {
-        $set: { [`ratings.${category}`]: newRatings.blackNew },
+        $set: { [`ratings.${category}`]: finalBlackRating },
       });
 
       // Gửi update rating riêng (để update UI avatar realtime)
@@ -60,42 +62,31 @@ export async function endGame(io, activeGames, gameId, result, reason) {
         newRatings: newRatings,
         category: category,
       });
-
-      // Lưu vào DB cho Game model (cần update rating snapshot)
-      whitePlayerInfo.rating = newRatings.whiteNew;
-      blackPlayerInfo.rating = newRatings.blackNew;
+    }
+    
+    // 2. Cập nhật Game vào DB
+    const dbGameId = gameData.dbGameId;
+    if (dbGameId) {
+      await Game.findByIdAndUpdate(dbGameId, {
+        result: result,
+        status: 'completed',
+        pgn: fullPgn,
+        fen: game.fen(),
+        whiteRating: finalWhiteRating, // Cập nhật rating cuối cùng
+        blackRating: finalBlackRating,
+      });
+    } else {
+      console.warn(`Game ${gameId} không có dbGameId, không thể cập nhật kết quả.`);
     }
 
-    // B. Lưu Game vào DB
-    const newGame = new Game({
-      whitePlayer: whitePlayerInfo.id,
-      blackPlayer: blackPlayerInfo.id,
-      result: result,
-      pgn: fullPgn,
-      timeControl: timeControlForDb,
-      isRated: true,
-      whiteRating: whitePlayerInfo.rating,
-      blackRating: blackPlayerInfo.rating,
-    });
-
-    await newGame.save();
-    dbGameId = newGame._id;
   } catch (err) {
-    console.error("Lỗi khi kết thúc game:", err);
+    console.error("Lỗi khi kết thúc và lưu game:", err);
   }
-  io.to(gameId).emit("gameOver", {
-    result: result,
-    reason: reason,
-    dbGameId: dbGameId,
-  });
 
   // --- QUẢN LÝ BỘ NHỚ (Cleanup Logic) ---
-  // Thay vì delete ngay, ta set timeout 15 phút.
-  // Nếu người chơi tái đấu, timeout này sẽ bị clear trong gameHandlers.
   if (gameData.cleanupTimer) {
     clearTimeout(gameData.cleanupTimer);
   }
-
   gameData.cleanupTimer = setTimeout(() => {
     if (activeGames.has(gameId)) {
       console.log(`Dọn dẹp phòng game ${gameId} do không hoạt động.`);

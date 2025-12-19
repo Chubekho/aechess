@@ -137,6 +137,8 @@ export const getMe = async (req, res) => {
       ratings: user.ratings,
       puzzleStats: user.puzzleStats,
       createdAt: user.createdAt,
+      role: user.role,
+      isActive: user.isActive,
     };
 
     res.json(userData);

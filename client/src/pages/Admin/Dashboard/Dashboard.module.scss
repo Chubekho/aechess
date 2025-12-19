@@ -1,0 +1,59 @@
+/* client/src/pages/Admin/Dashboard/Dashboard.module.scss */
+
+.dashboardContainer {
+  padding: 2rem;
+  .header {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    color: var(--color-text-primary);
+  }
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.statCard {
+  background-color: var(--color-bg-panel);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  border: 1px solid var(--color-border);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .icon {
+    font-size: 2.5rem;
+    color: var(--color-text-weaker);
+  }
+
+  .content {
+    .value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--color-text-primary);
+      line-height: 1.1;
+    }
+    .title {
+      font-size: 1rem;
+      color: var(--color-text-weaker);
+    }
+  }
+
+  // Modifier for highlighting
+  &.highlight {
+    border-left: 5px solid var(--color-accent); // A distinct highlight
+    .content .value {
+      color: var(--color-accent);
+    }
+  }
+}

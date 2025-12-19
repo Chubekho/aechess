@@ -1,0 +1,83 @@
+.tableContainer {
+  overflow-x: auto;
+}
+
+.gameTable {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-low);
+  box-shadow: var(--group-shadow);
+
+  th,
+  td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  thead th {
+    background-color: var(--color-table-header-bg);
+    font-weight: 600;
+    color: var(--color-text-l-dark);
+  }
+
+  tbody tr {
+    &:hover {
+      background-color: var(--color-table-row-hover);
+    }
+  }
+}
+
+.playerInfo {
+  font-size: 0.9rem;
+  strong {
+    font-weight: 600;
+    color: var(--color-text-l-dark);
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.3em 0.6em;
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
+  color: #fff;
+}
+
+.badgeActive {
+  background-color: var(--color-status-active);
+}
+
+.button {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease-in-out;
+  color: #fff;
+}
+
+.buttonAbort {
+  background-color: var(--color-btn-danger-bg);
+
+  &:hover {
+    background-color: var(--color-btn-danger-hover);
+  }
+}
+
+.noGames {
+  padding: 2rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-low);
+  border-radius: 4px;
+  margin-top: 1rem;
+}

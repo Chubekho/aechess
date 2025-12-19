@@ -2,27 +2,18 @@
 import React, { useState, useEffect } from "react";
 import UserTable from "./components/UserTable";
 import styles from "./UserManager.module.scss";
-import axios from "@/utils/axiosConfig"; // Using aliased path
-import { useAuth } from "@/hooks/index";
+import axiosClient from "@/utils/axiosConfig";
 
 const UserManager = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { token } = useAuth();
 
   useEffect(() => {
     const fetchUsers = async () => {
-      if (!token) {
-        setLoading(false);
-        setError("Authentication required.");
-        return;
-      }
       try {
         setLoading(true);
-        const response = await axios.get("/admin/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axiosClient.get("/admin/users");
         setUsers(response.data.users);
         setError(null);
       } catch (err) {
@@ -33,7 +24,7 @@ const UserManager = () => {
     };
 
     fetchUsers();
-  }, [token]);
+  }, []);
 
   const handleToggleBan = async (userId) => {
     // --- Optimistic UI Update ---
@@ -45,13 +36,7 @@ const UserManager = () => {
     // --- End Optimistic UI Update ---
 
     try {
-      await axios.patch(
-        `/admin/users/${userId}/ban`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await axiosClient.patch(`/admin/users/${userId}/ban`);
       // API call was successful, state is already updated
     } catch (err) {
       // --- Revert UI on API error ---

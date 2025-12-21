@@ -1,0 +1,14 @@
+.settingsPage {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebarContainer {
+  width: 250px;
+  flex-shrink: 0;
+}
+
+.contentContainer {
+  flex-grow: 1;
+  padding: 2rem;
+}

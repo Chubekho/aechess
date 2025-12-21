@@ -20,6 +20,7 @@ import AnalysisPage from "@/pages/Analysis";
 import ImportPage from "@/pages/Import";
 import Puzzle from "@/pages/Puzzle";
 import SetUsername from "@/pages/Auth/SetUsername";
+import Settings from "@/pages/Settings";
 
 // Import các trang thuộc Admin Layout
 import AdminLayout from "@/layouts/AdminLayout";
@@ -42,6 +43,7 @@ function AppRoute() {
                 <Route path="/play/friend" element={<PlayFriend />} />
                 <Route path="/game/:gameId" element={<GamePage />} />
                 <Route path="/profile/:username" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="/import" element={<ImportPage />} />
                 <Route path="/puzzle" element={<Puzzle />} />
                 <Route path="/analysis" element={<AnalysisPage />} />

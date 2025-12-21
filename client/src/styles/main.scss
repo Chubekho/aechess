@@ -1,5 +1,6 @@
 @use "./variables.scss";
 @use "./reset.scss";
+@use "./chessboard-overrides.scss";
 
 * {
     box-sizing: border-box;
@@ -23,3 +24,4 @@ input, button, select, textarea {
 body {
     background: #000;
 }
+

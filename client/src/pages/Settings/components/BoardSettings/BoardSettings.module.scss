@@ -1,0 +1,50 @@
+@use "@/styles/variables.scss" as *;
+
+.boardSettings {
+  h3 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+}
+
+.themeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1.5rem;
+}
+
+.themePreview {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: var(--color-btn-def-hover);
+  }
+
+  &.selected {
+    border-color: var(--color-border);
+    background-color: rgba(var(--primary-color), 0.1);
+  }
+
+  span {
+    font-size: 0.9rem;
+  }
+}
+
+.board {
+  width: 60px;
+  height: 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

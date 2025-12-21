@@ -1,3 +1,4 @@
+//client/src/layouts/DefaultLayout/components/Header/components/User/index.jsx
 import { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router';
 import { useAuth } from '@/hooks/index';

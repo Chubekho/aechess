@@ -1,0 +1,9 @@
+@use "./variables.scss" as *;
+
+[data-square-color="light"] {
+  background-color: var(--board-bg-white, #eeeed2);
+}
+
+[data-square-color="dark"] {
+  background-color: var(--board-bg-black, #769656);
+}

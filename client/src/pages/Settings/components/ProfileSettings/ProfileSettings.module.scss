@@ -1,0 +1,74 @@
+@use "@/styles/variables.scss" as *;
+
+.profileSettings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-weight: bold;
+    color: var(--color-text-l-dark);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 100px;
+    background-color: var(--color-input-bg);
+    color: var(--color-text-l-dark);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 8px;
+    resize: vertical;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-item-selected);
+    }
+  }
+}
+
+.avatarGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 1rem;
+}
+
+.avatarItem {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  object-fit: cover;
+
+  &:hover {
+    border-color: var(--color-avatar-hover);
+  }
+
+  &.selected {
+    border-color: var(--color-item-selected);
+    transform: scale(1.1);
+  }
+}
+
+.saveButton {
+  align-self: flex-start;
+  padding: 8px 16px;
+  background-color: var(--color-btn-green);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+
+  &:hover {
+    background-color: var(--color-btn-green-hover);
+  }
+}

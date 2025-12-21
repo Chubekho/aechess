@@ -26,4 +26,22 @@ instance.interceptors.request.use(
   }
 );
 
+instance.interceptors.response.use(
+  (response) => {
+    // Nếu server trả về 2xx, trả về data bình thường
+    // Bạn có thể return response.data để đỡ phải chấm .data ở client
+    return response.data;
+  },
+  (error) => {
+    // Xử lý các lỗi chung
+    if (error.response && error.response.status === 401) {
+      // Ví dụ: Token hết hạn hoặc không hợp lệ
+      console.error("Token expired or unauthorized. Redirecting to login...");
+      localStorage.removeItem("accessToken");
+      // window.location.href = "/auth/login"; // Có thể redirect cứng về trang login
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default instance;

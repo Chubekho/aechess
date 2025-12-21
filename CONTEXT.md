@@ -23,7 +23,7 @@
   - `Modal/`, `ToastMessage/`: Feedback UI.
 - **`context/`**: Barrel exported via hooks.
   - `AuthContext`, `SocketContext`, `ToastContext`.
-- **`hooks/`**: Custom hooks (`useOnlineGame`, `useFullGameAnalysis`, etc.).
+- **`hooks/`**: Custom hooks (`useOnlineGame`, `useFullGameAnalysis`, `useThemeSync`, etc.).
 - **`layouts/`**:
   - `AdminLayout/`: **Dedicated Admin UI** (Sidebar + Outlet).
   - `AuthLayout/`: Clean UI for Login/Register.
@@ -33,13 +33,20 @@
     - `Dashboard/`: Stats Overview.
     - `GameMonitor/`: Real-time game supervision (`ActiveGameList`).
     - `UserManager/`: User management (`UserTable` component).
+  - **`Settings/`**: User Preferences & Account Management.
+    - `ProfileSettings/`: Bio & Avatar management.
+    - `AccountSettings/`: Password & Security.
+    - `BoardSettings/`: Board/Piece Theme customization.
   - `GamePage/`: **Core Gameplay**.
   - `Analysis/`: Game review tool.
   - `Lobby/`, `PlayAI/`, `PlayFriend/`, `Profile/`, `Puzzle/`.
 - **`styles/`**: Global SCSS.
   - `variables.scss`: Color tokens & mixins.
   - `main.scss`, `reset.scss`.
-- **`utils/`**: Helper logic (`axiosConfig.js`, `chessAnalysis.js`, `chessUtils.js`, `validators.js`).
+- **`utils/`**: Helper logic.
+  - **`axiosConfig.js`**: **CRITICAL**. Custom axios instance with Auth Interceptors.
+  - `avatarConfig.js`: Configuration for static avatar assets.
+  - `chessAnalysis.js`, `chessUtils.js`, `validators.js`.
 
 ### Server (`/server`)
 
@@ -50,7 +57,7 @@
   - `adminMiddleware.js`: **RBAC** (Verify `role === 'admin'`).
   - `socketAuth.js`: Socket handshake verification.
 - **`models/`**: Mongoose Schemas (`User`, `Game`, `Puzzle`).
-- **`routes/`**: `authRoutes`, `adminRoutes`, `gameRoutes`, etc.
+- **`routes/`**: `authRoutes`, `adminRoutes`, `gameRoutes`, `userRoutes`.
 - **`socket/`**: **Realtime Core Logic**.
   - `gameHandlers.js`: Move validation, Game creation (Active).
   - `gameEndHandler.js`: Game completion logic.
@@ -66,16 +73,18 @@
 - `isActive`: Boolean (Default: `true`). Used for Soft Ban.
 - `passwordHash`: String (Optional/Not Required). Allows Google-only accounts. **(Updated)**
 - `authProvider`: String (Enum: `['local', 'google', 'hybrid']`). **(New)**
-- `preferences`: Nested Object. Stores UI settings. **(New)**
+- **`preferences`**: Nested Object. Stores UI settings. **(New)**
   - `boardTheme`: String (e.g., `'brown'`, `'green'`).
   - `pieceTheme`: String.
+- **`bio`**: String (Max 200 chars). **(New)**
+- **`avatar`**: String (Path to static asset, e.g., `"/avatars/1.png"`). **(New)**
 - `ratings`: Nested Object (`bullet`, `blitz`, `rapid`, `classical`).
 
 ### Game Model (`Game.js`)
 
 - `whitePlayer`, `blackPlayer`: ObjectId (Ref User).
-- `status`: String (`"active"`, `"completed"`, `"aborted"`). Default: `"active"`. **(New)**
-- `fen`: String (Real-time board state). **(New)**
+- `status`: String (`"active"`, `"completed"`, `"aborted"`). Default: `"active"`.
+- `fen`: String (Real-time board state).
 - `result`: String (`"1-0"`, `"0-1"`, `"1/2-1/2"`, `"*"`). Default: `"*"` (Not required initially).
 - `pgn`: String (Full move history).
 - `endReason`: String (`"checkmate"`, `"resignation"`, `"admin_intervention"`, etc.).
@@ -85,7 +94,7 @@
 ### A. Authentication & RBAC
 
 1.  **Login**: User receives JWT.
-2.  **Client State**: `/api/auth/me` returns `{ user, role, isActive }`.
+2.  **Client State**: `/api/auth/me` returns `{ user, role, isActive, preferences, hasPassword }`.
 3.  **Protection**:
     - **API**: `verifyAdmin` middleware blocks non-admins (403).
     - **UI**: `AdminGuard` redirects non-admins to Home.
@@ -124,13 +133,21 @@
 
 **2. Hybrid Authentication (Password Management)**
 
-- **Challenge**: Google-login users have no password initially but might want to set one later (to convert to Hybrid account).
+- **Challenge**: Google-login users have no password initially but might want to set one later.
 - **Logic**:
   - API `/me` returns virtual field `hasPassword: boolean`.
   - **Frontend**:
     - If `!hasPassword`: Shows "Set Password" form (`POST /set-password`).
     - If `hasPassword`: Shows "Change Password" form (`POST /change-password`).
-  - **Backend**: `passwordHash` is optional in Schema. Login strategy adapts based on existing credentials.
+
+**3. Profile Management (Static Assets)**
+
+- **Avatar Strategy**: We DO NOT store image binaries in the database.
+- **Implementation**:
+  - Users select from a predefined list of images located in `client/public/avatars/`.
+  - The DB stores the _relative path_ (e.g., `"/avatars/luffy.png"`).
+  - Frontend renders `<img src={user.avatar} />`.
+- **Bio**: Simple text update via `PATCH /profile`.
 
 ## 5. Admin Module Implementation
 
@@ -150,7 +167,6 @@
 **3. Styling Strategy**
 
 - **Variables**: Extends `variables.scss` with admin-specific tokens (`--color-admin-sidebar-bg`, `--color-status-active`).
-- **SCSS Standards**: Strictly uses `@use "@/styles/variables.scss" as *;`.
 
 ## 6. Socket Event Reference
 
@@ -162,80 +178,13 @@
 
 - `room_joined`, `move_made`, `game_over`, `draw_offered`, `error`.
 
-## 7. Development Protocols (Strict)
+## 7. Development Protocols (STRICT RULES)
 
-**A. Coding Environment Constraints**
+**A. Network Requests (Axios Client)**
 
-- **NO SHELL COMMANDS**: AI must NOT run `npm`, `mkdir`, `touch`. Only generate code.
-- **File Creation**: User handles file creation based on paths provided by AI.
-
-**B. CSS/SCSS Standards**
-
-- **Deprecation**: `@import` is BANNED.
-- **Requirement**: MUST use `@use "@/styles/variables.scss" as *;` in every module needing variables.
-- **Variable Usage**: Check `variables.scss` first. If a color is missing, prompt user to add it.
-- **STYLING RULE** : This project uses CSS Custom Properties (e.g., var(--color-bg-high)) defined in variables.scss. DO NOT use SCSS variables ($variable). Always check the provided variables.scss file for correct variable names."
-
-**C. Architecture Patterns**
-
-- **Barrel Exports**: Import hooks from `hooks/index.js`, not directly from Context.
-- **Component Isolation**: Admin components (`UserTable`) stay inside `pages/Admin/...` folder structure.
-
-## 8. Environment Variables
-
-```env
-PORT=8080 (or 5000)
-MONGO_URI=mongodb+srv://...
-JWT_SECRET=...
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-CLIENT_URL=http://localhost:5173
-```
-
----
-
-## 9. System Instruction: "ENVIRONMENT RESTRICTION: My local environment BLOCKS all automated shell/terminal commands. DO NOT attempt to run npm install, mkdir, touch, or start the server. DO NOT use the run_shell_command tool. Just generate the code snippets and file paths. I will create files and run commands manually."
-
-"Build the Game Monitor UI with strict pathing and SCSS standards.
-
-1. SCSS Variables Update (client/src/styles/variables.scss)
-
-- First, analyze the file. I need new color variables for the game status and actions if they don't exist.
-- Add these if missing:
-  - --color-status-active: A bright green or blue indicating live play.
-  - --color-btn-danger-bg: Red color for the Abort button.
-  - --color-btn-danger-hover: Darker red.
-
-2. Create ActiveGameList Component
-
-- Path: client/src/pages/Admin/GameMonitor/components/ActiveGameList/index.jsx (Create the components folder if needed).
-- Logic:
-  - Props: games (array), onAbort (function).
-  - Render a Table showing: White Player, Black Player, Started At (Time), Status Badge, Action Button.
-- Styling (ActiveGameList.module.scss):
-  - IMPORTANT: Use @use "@/styles/variables.scss" as \*; instead of @import.
-  - Use the variables defined above.
-
-3. Create Main Page GameMonitor
-
-- Path: client/src/pages/Admin/GameMonitor/index.jsx.
-- Logic:
-  - Import ActiveGameList from ./components/ActiveGameList.
-  - Fetch active games from /api/admin/games/active using axiosClient.
-  - Implement handleAbort(gameId): Confirm -> Call API -> Remove game from list.
-- Styling (GameMonitor.module.scss):
-  _ Use @use "@/styles/variables.scss" as _;. \* Layout the page container.
-  REMINDER: Do NOT run any shell commands. Just write the code."
-
----
-
-### Những điểm tôi đã tối ưu:###
-
-1.  **Hợp nhất cấu trúc (Consolidation):**
-    - Xóa bỏ các phần E, F, G, H ở cuối file cũ.
-    - Logic Admin được đưa vào mục **5. Admin Module Implementation**.
-    - Logic lưu game Active được đưa vào mục **4. Complex Business Logic (Section B)**.
-    - Schema `User` và `Game` được cập nhật ngay tại mục **3. Database Schema**.
-2.  **Cập nhật Directory Tree:** Phản ánh đúng cấu trúc thực tế từ ảnh bạn gửi (thêm `guards`, cấu trúc `pages/Admin`, `layouts/AdminLayout`).
-3.  **Cập nhật Rules (Mục 7):** Thêm rule cứng về việc **Cấm dùng Shell Command** và **Bắt buộc dùng `@use` SCSS** để tránh lỗi lặp lại.
-4.  **Loại bỏ rác:** Xóa các mục "Current Work Status" cũ kỹ không còn đúng (ví dụ: Mobile Responsiveness, Deploy... những thứ chưa làm hoặc đã cũ).
+- **CRITICAL RULE**: **NEVER** use raw `import axios from 'axios'`.
+- **REQUIREMENT**: You MUST import and use the custom instance:
+  ```javascript
+  import axiosClient from "@/utils/axiosConfig";
+  // Usage: axiosClient.get(...), axiosClient.post(...)
+  ```

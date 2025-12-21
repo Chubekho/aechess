@@ -3,7 +3,8 @@ import {
     getUserProfile,
     updatePreferences,
     setPassword,
-    changePassword 
+    changePassword,
+    updateProfile
 } from "../controllers/userController.js";
 import checkAuth from "../middleware/authMiddleware.js";
 
@@ -13,6 +14,7 @@ const router = express.Router();
 router.get("/:username", getUserProfile);
 
 // Protected routes
+router.patch("/profile", checkAuth, updateProfile);
 router.patch("/preferences", checkAuth, updatePreferences);
 router.post("/set-password", checkAuth, setPassword);
 router.post("/change-password", checkAuth, changePassword);

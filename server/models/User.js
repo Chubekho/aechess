@@ -26,6 +26,15 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "New Player",
     },
+    bio: {
+      type: String,
+      maxlength: 200,
+      default: "",
+    },
+    avatar: {
+      type: String,
+      default: "/avatars/user-default.png",
+    },
     googleId: {
       type: String,
       unique: true,

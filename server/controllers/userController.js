@@ -168,3 +168,35 @@ export const setPassword = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// @desc: Update user profile (bio, avatar)
+// @route: PATCH /api/users/profile
+export const updateProfile = async (req, res) => {
+  try {
+    const { bio, avatar } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    if (bio !== undefined) {
+      user.bio = bio;
+    }
+    if (avatar) {
+      user.avatar = avatar;
+    }
+
+    await user.save();
+
+    // Return updated user data, excluding sensitive info
+    const updatedUser = user.toObject();
+    delete updatedUser.passwordHash;
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

@@ -67,21 +67,23 @@
 
 ### User Model (`User.js`)
 
+- **`_id`**: ObjectId (Standard identifier).
 - `username`: String (Unique, Lowercase).
 - `email`: String (Unique).
 - `role`: String (Enum: `['user', 'admin']`, Default: `'user'`).
 - `isActive`: Boolean (Default: `true`). Used for Soft Ban.
-- `passwordHash`: String (Optional/Not Required). Allows Google-only accounts. **(Updated)**
-- `authProvider`: String (Enum: `['local', 'google', 'hybrid']`). **(New)**
-- **`preferences`**: Nested Object. Stores UI settings. **(New)**
+- `passwordHash`: String (Optional/Not Required). Allows Google-only accounts.
+- `authProvider`: String (Enum: `['local', 'google', 'hybrid']`).
+- **`preferences`**: Nested Object. Stores UI settings.
   - `boardTheme`: String (e.g., `'brown'`, `'green'`).
   - `pieceTheme`: String.
-- **`bio`**: String (Max 200 chars). **(New)**
-- **`avatar`**: String (Path to static asset, e.g., `"/avatars/1.png"`). **(New)**
+- **`bio`**: String (Max 200 chars).
+- **`avatar`**: String (Path to static asset, e.g., `"/avatars/1.png"`).
 - `ratings`: Nested Object (`bullet`, `blitz`, `rapid`, `classical`).
 
 ### Game Model (`Game.js`)
 
+- **`_id`**: ObjectId.
 - `whitePlayer`, `blackPlayer`: ObjectId (Ref User).
 - `status`: String (`"active"`, `"completed"`, `"aborted"`). Default: `"active"`.
 - `fen`: String (Real-time board state).
@@ -110,7 +112,7 @@
 
 ### C. Spectator Mode
 
-- **Logic**: If `socket.user.id` is not White or Black player -> Role is **Spectator**.
+- **Logic**: If `socket.user._id` is not White or Black player -> Role is **Spectator**.
 - **UI**: Draggable pieces disabled, "Resign" hidden, "Watching" badge shown.
 
 ### D. Move Analysis System
@@ -124,49 +126,29 @@
 
 **1. Hybrid Storage Strategy (Theme Sync)**
 
-- **Problem**: Users want instant load times (no flickering) but also cross-device synchronization.
-- **Solution**:
-  - **Local-First Read**: App loads theme from `localStorage` immediately upon boot.
-  - **Network Sync**: Upon login (`/me`), Client compares `localStorage` vs `user.preferences` (DB).
-    - If different: DB value overrides Local.
-  - **Write**: Changing settings updates both `localStorage` and DB (via `PATCH /preferences`).
+- **Local-First Read**: App loads theme from `localStorage` immediately upon boot.
+- **Network Sync**: Upon login (`/me`), Client compares `localStorage` vs `user.preferences` (DB).
+- **Write**: Changing settings updates both `localStorage` and DB.
 
 **2. Hybrid Authentication (Password Management)**
 
-- **Challenge**: Google-login users have no password initially but might want to set one later.
 - **Logic**:
   - API `/me` returns virtual field `hasPassword: boolean`.
   - **Frontend**:
-    - If `!hasPassword`: Shows "Set Password" form (`POST /set-password`).
-    - If `hasPassword`: Shows "Change Password" form (`POST /change-password`).
+    - If `!hasPassword`: Shows "Set Password" form.
+    - If `hasPassword`: Shows "Change Password" form.
 
 **3. Profile Management (Static Assets)**
 
-- **Avatar Strategy**: We DO NOT store image binaries in the database.
-- **Implementation**:
-  - Users select from a predefined list of images located in `client/public/avatars/`.
-  - The DB stores the _relative path_ (e.g., `"/avatars/luffy.png"`).
-  - Frontend renders `<img src={user.avatar} />`.
+- **Avatar Strategy**: DB stores _relative path_ (e.g., `"/avatars/luffy.png"`). Frontend renders `<img src={user.avatar} />`.
 - **Bio**: Simple text update via `PATCH /profile`.
 
 ## 5. Admin Module Implementation
 
 > **Goal**: A dedicated Lichess-style portal for system management.
 
-**1. Architecture**
-
-- **Isolated Layout**: `AdminLayout` (Sidebar-based) vs `DefaultLayout` (Header-based).
-- **Atomic Components**: `UserTable`, `ActiveGameList` are isolated in their respective pages.
-
-**2. Features**
-
-- **Dashboard**: Stats (Total Users, Active/Completed Games) via `Promise.all`.
-- **User Manager**: List users, View Details, **Ban/Unban** (Toggle `isActive`).
-- **Game Monitor**: View live games (populated from DB). **Force Abort** action for stuck games.
-
-**3. Styling Strategy**
-
-- **Variables**: Extends `variables.scss` with admin-specific tokens (`--color-admin-sidebar-bg`, `--color-status-active`).
+- **Architecture**: `AdminLayout` (Sidebar-based).
+- **Features**: Dashboard Stats, User Manager (Ban/Unban), Game Monitor (Force Abort).
 
 ## 6. Socket Event Reference
 
@@ -183,33 +165,31 @@
 **A. Network Requests (Axios Client)**
 
 - **CRITICAL RULE**: **NEVER** use raw `import axios from 'axios'`.
-- **REQUIREMENT**: You MUST import and use the custom instance:
-  ```javascript
-  import axiosClient from "@/utils/axiosConfig";
-  // Usage: axiosClient.get(...), axiosClient.post(...)
-  ```
-- **Context**: **axiosClient** is pre-configured with the Base URL and an Interceptor that automatically attaches the Authorization: Bearer <token> header from localStorage.
+- **REQUIREMENT**: You MUST import and use the custom instance: `import axiosClient from "@/utils/axiosConfig";`.
 
 **B. Styling (CSS/SCSS Standards)**
 
-- **STRICT FORBIDDEN**: Do NOT use SCSS variables (e.g., $border-color, $primary-color).
-- **REQUIRED**: This project uses CSS Custom Properties defined in client/src/styles/variables.scss.
-- **SYNTAX**: ALWAYS use var(--variable-name).
-- **Correct**: border: 1px solid var(--color-border);
-- **Incorrect**: border: 1px solid $border-color;
-- **MISSING VARIABLES**: If a design token is missing in variables.scss, INSTRUCT THE USER to add it. Do NOT invent new variables or hardcode hex values.
-- **IMPORT**: Always add @use "@/styles/variables.scss" as \*; at the top of component style files.
+- **STRICT FORBIDDEN**: Do NOT use SCSS variables (e.g., `$border-color`).
+- **REQUIRED**: Use CSS Custom Properties defined in `client/src/styles/variables.scss` (e.g., `var(--color-border)`).
+- **IMPORT**: Always add `@use "@/styles/variables.scss" as *;`.
 
 **C. Environment Constraints**
 
 - **NO SHELL COMMANDS**: AI must NOT run npm, mkdir, touch. Only generate code.
-- **File Creation**: User handles file creation based on paths provided by AI.
+
+**D. Data Structure Standards (MongoDB ID) [NEW]**
+
+- **UNIFIED ID**: We STRICTLY use **`_id`** (underscore id) across the entire stack (Database -> API -> Frontend).
+- **NO MAPPING**: Do **NOT** manually map `_id` to `id` in Controllers. Return the raw Mongoose object or `toObject()`.
+- **FRONTEND**: Client components must access `user._id` or `game._id`. Do NOT assume `.id` exists.
 
 ## 8. Environment Variables
-PORT=8080 (or 5000)
+
+```env
+PORT=8080
 MONGO_URI=mongodb+srv://...
 JWT_SECRET=...
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 CLIENT_URL=http://localhost:5173
-
+```

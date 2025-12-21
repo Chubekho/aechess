@@ -124,22 +124,20 @@ export const login = async (req, res) => {
 // @route: GET /api/auth/me
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-passwordHash");
+    // Lấy cả passwordHash để kiểm tra
+    const user = await User.findById(req.user.id); 
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    const userData = {
-      id: user._id,
-      email: user.email,
-      username: user.username, // Thêm trả về username
-      displayName: user.displayName,
-      ratings: user.ratings,
-      puzzleStats: user.puzzleStats,
-      createdAt: user.createdAt,
-      role: user.role,
-      isActive: user.isActive,
-    };
+    // Chuyển sang object để có thể thêm trường mới
+    const userData = user.toObject();
+
+    // Thêm trường hasPassword
+    userData.hasPassword = !!user.passwordHash;
+
+    // Xóa passwordHash khỏi object trả về
+    delete userData.passwordHash;
 
     res.json(userData);
   } catch (err) {

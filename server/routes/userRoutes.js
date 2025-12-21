@@ -1,9 +1,21 @@
 import express from "express";
-import { getUserById, getUserProfile } from "../controllers/userController.js";
+import { 
+    getUserProfile,
+    updatePreferences,
+    setPassword,
+    changePassword 
+} from "../controllers/userController.js";
+import checkAuth from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Route này công khai (Public), ai cũng xem được
+// Public route to get user profile
 router.get("/:username", getUserProfile);
+
+// Protected routes
+router.patch("/preferences", checkAuth, updatePreferences);
+router.post("/set-password", checkAuth, setPassword);
+router.post("/change-password", checkAuth, changePassword);
+
 
 export default router;

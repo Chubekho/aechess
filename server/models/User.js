@@ -18,20 +18,27 @@ const UserSchema = new mongoose.Schema(
       minlength: 3,
       lowercase: true, // Lưu thường để không phân biệt hoa thường khi login
     },
-    // Không 'required' vì user có thể login bằng Google
     passwordHash: {
       type: String,
+      required: false,
     },
-    // Tên hiển thị (lấy từ Google hoặc cho user tự đặt sau)
     displayName: {
       type: String,
       default: "New Player",
     },
-    // Dùng để liên kết tài khoản Google
     googleId: {
       type: String,
       unique: true,
       sparse: true, // Cho phép nhiều 'null'
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "google", "hybrid"],
+      default: "local",
+    },
+    preferences: {
+      boardTheme: { type: String, default: "brown" },
+      pieceTheme: { type: String, default: "neo" },
     },
     ratings: {
       bullet: { type: Number, default: 1200 },

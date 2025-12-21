@@ -6,24 +6,17 @@ import bcrypt from "bcryptjs";
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select(
-      "-passwordHash -email -googleId"
-    ); // KHÔNG trả về thông tin nhạy cảm
+      "-passwordHash -email -googleId -__v" // Exclude sensitive fields
+    );
 
     if (!user) {
       return res.status(404).json({ msg: "Người chơi không tồn tại." });
     }
 
-    // Trả về format thống nhất
-    res.status(200).json({
-      id: user._id,
-      username: user.username,
-      displayName: user.displayName,
-      ratings: user.ratings,
-      puzzleStats: user.puzzleStats,
-      createdAt: user.createdAt,
-    });
+    // Return the user object directly. Any new fields will be included automatically.
+    res.status(200).json(user);
+
   } catch (err) {
-    // Lỗi CastError xảy ra nếu ID không đúng định dạng MongoDB
     if (err.name === "CastError") {
       return res.status(404).json({ msg: "Người chơi không tồn tại." });
     }
@@ -32,29 +25,22 @@ export const getUserById = async (req, res) => {
 };
 
 // @desc: Lấy thông tin công khai của user bằng USERNAME
-// @route: GET /api/users/:username
+// @route: GET /api/users/profile/:username
 export const getUserProfile = async (req, res) => {
   try {
     const { username } = req.params;
     
-    // Tìm trong DB theo username
     const user = await User.findOne({
       username: username.toLowerCase(),
-    }).select("-passwordHash -email -googleId");
+    }).select("-passwordHash -email -googleId -__v"); // Exclude sensitive fields
 
     if (!user) {
       return res.status(404).json({ msg: "Người chơi không tồn tại." });
     }
+    
+    // Return the user object directly.
+    res.status(200).json(user);
 
-    res.status(200).json({
-      id: user._id, // Vẫn trả về ID để Frontend dùng cho các logic so sánh/kết bạn
-      username: user.username,
-      displayName: user.displayName,
-      avatar: user.avatar, // (Nếu có)
-      ratings: user.ratings,
-      puzzleStats: user.puzzleStats,
-      createdAt: user.createdAt,
-    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -82,9 +68,13 @@ export const updatePreferences = async (req, res) => {
 
         await user.save();
         
-        // Return updated user data, excluding sensitive info
+        // Return updated user data, excluding all sensitive info
         const updatedUser = user.toObject();
         delete updatedUser.passwordHash;
+        delete updatedUser.email;
+        delete updatedUser.googleId;
+        delete updatedUser.__v;
+
 
         res.status(200).json(updatedUser);
 
@@ -155,7 +145,6 @@ export const setPassword = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         user.passwordHash = await bcrypt.hash(password, salt);
         
-        // If user was Google-only, now they are hybrid
         if(user.authProvider === 'google') {
             user.authProvider = 'hybrid';
         }
@@ -191,9 +180,12 @@ export const updateProfile = async (req, res) => {
 
     await user.save();
 
-    // Return updated user data, excluding sensitive info
+    // Return updated user data, excluding all sensitive info
     const updatedUser = user.toObject();
     delete updatedUser.passwordHash;
+    delete updatedUser.email;
+    delete updatedUser.googleId;
+    delete updatedUser.__v;
 
     res.status(200).json(updatedUser);
   } catch (err) {

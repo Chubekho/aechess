@@ -50,6 +50,7 @@ function Lobby() {
   const socket = useSocket();
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const toast = useToast();
 
   const [searchState, setSearchState] = useState("idle");
@@ -62,9 +63,9 @@ function Lobby() {
   // ... (Giữ nguyên logic useEffect và Event Handlers không thay đổi) ...
   // Để tiết kiệm không gian câu trả lời, mình ẩn phần logic Socket/Timer đi vì nó giữ nguyên
   // Bạn hãy copy lại phần logic từ code cũ vào đây nhé
-  
+
   // === Logic Socket & Timer (GIỮ NGUYÊN) ===
-   useEffect(() => {
+  useEffect(() => {
     if (!socket) return;
     const onMatchFound = (data) => {
       console.log("Match Found:", data);
@@ -127,7 +128,8 @@ function Lobby() {
 
   const handleFindMatch = (timeControl) => {
     if (!socket) return alert("Chưa kết nối server!");
-    if (timeControl === "custom") return toast.error("Chế độ chưa hỗ trợ !", 3000);
+    if (timeControl === "custom")
+      return toast.error("Chế độ chưa hỗ trợ !", 3000);
     startTimeRef.current = null;
     setElapsedTime(0);
     socket.emit("findMatch", { timeControl, isRated: true });
@@ -135,7 +137,7 @@ function Lobby() {
   };
 
   const handleCloseSearchingModal = () => setSearchState("searching_panel");
-  
+
   const handleCancelSearch = () => {
     if (!socket) return;
     socket.emit("cancelFindMatch");
@@ -178,7 +180,9 @@ function Lobby() {
   );
 
   const renderSearchingBox = (isMinimized = false) => (
-    <div className={clsx(styles.searchingBox, { [styles.minimized]: isMinimized })}>
+    <div
+      className={clsx(styles.searchingBox, { [styles.minimized]: isMinimized })}
+    >
       <div className={styles.searchingAnimation}></div>
       <h3>Đang tìm trận...</h3>
       <div className={styles.searchingTimer}>{formatTime(elapsedTime)}</div>
@@ -192,13 +196,25 @@ function Lobby() {
     <div className={styles.matchFoundBox}>
       <h3>{isDeclined ? "Đã từ chối" : "Đã tìm thấy trận!"}</h3>
       <div className={styles.durationBar}>
-        <div className={clsx(styles.durationProgress, { [styles.declinedBar]: isDeclined })}></div>
+        <div
+          className={clsx(styles.durationProgress, {
+            [styles.declinedBar]: isDeclined,
+          })}
+        ></div>
       </div>
       <div className={styles.matchActions}>
-        <button className={clsx(styles.actionButton, styles.decline)} onClick={handleDeclineMatch} disabled={isDeclined}>
+        <button
+          className={clsx(styles.actionButton, styles.decline)}
+          onClick={handleDeclineMatch}
+          disabled={isDeclined}
+        >
           Hủy
         </button>
-        <button className={clsx(styles.actionButton, styles.accept)} onClick={handleAcceptMatch} disabled={isDeclined}>
+        <button
+          className={clsx(styles.actionButton, styles.accept)}
+          onClick={handleAcceptMatch}
+          disabled={isDeclined}
+        >
           Chơi
         </button>
       </div>
@@ -216,18 +232,17 @@ function Lobby() {
     <div className={styles.wrapper}>
       {/* --- CẬP NHẬT: Layout mới sử dụng CSS Grid --- */}
       <div className={styles.lobbyContainer}>
-        
         {/* Khu vực Chính: Chọn trận & Lịch sử */}
         <main className={styles.mainSection}>
-           {/* Tiêu đề Mobile (Optional) */}
-           <div className={styles.mobileHeader}>
-              <h2>Play Chess</h2>
-           </div>
+          {/* Tiêu đề Mobile (Optional) */}
+          <div className={styles.mobileHeader}>
+            <h2>Play Chess</h2>
+          </div>
 
-           {renderPoolGrid()}
-           <div className={styles.historySection}>
-              <GameHistory limit={5} userId={user._id}/>
-           </div>
+          {renderPoolGrid()}
+          <div className={styles.historySection}>
+            {user && <GameHistory limit={5} userId={user._id} />}
+          </div>
         </main>
 
         {/* Khu vực Bên phải (Sidebar): Info User & Tìm kiếm thu nhỏ */}
@@ -237,17 +252,22 @@ function Lobby() {
               {renderSearchingBox(true)}
             </div>
           )}
-          
+
           <div className={styles.infoPanel}>
             <div className={styles.playerInfo}>
               {user ? (
                 <>
-                  <Link to={`/profile/${user.username}`} className={styles.playerInfoLink}>
+                  <Link
+                    to={`/profile/${user.username}`}
+                    className={styles.playerInfoLink}
+                  >
                     <h4>{user.username}</h4>
                   </Link>
                   <div className={styles.ratingsRow}>
                     <div className={styles.ratingItem}>
-                      <i className={clsx("fa-solid fa-rocket", styles.icon)}></i>
+                      <i
+                        className={clsx("fa-solid fa-rocket", styles.icon)}
+                      ></i>
                       <span>{user.ratings.bullet || 1200}</span>
                     </div>
                     <div className={styles.ratingItem}>
@@ -255,11 +275,18 @@ function Lobby() {
                       <span>{user.ratings.blitz || 1200}</span>
                     </div>
                     <div className={styles.ratingItem}>
-                      <i className={clsx("fa-regular fa-clock", styles.icon)}></i>
+                      <i
+                        className={clsx("fa-regular fa-clock", styles.icon)}
+                      ></i>
                       <span>{user.ratings.rapid || 1200}</span>
                     </div>
                     <div className={styles.ratingItem}>
-                      <i className={clsx("fa-solid fa-hourglass-half", styles.icon)}></i>
+                      <i
+                        className={clsx(
+                          "fa-solid fa-hourglass-half",
+                          styles.icon
+                        )}
+                      ></i>
                       <span>{user.ratings.classical || 1200}</span>
                     </div>
                   </div>
@@ -270,7 +297,6 @@ function Lobby() {
             </div>
           </div>
         </aside>
-
       </div>
 
       {/* --- Modals --- */}
@@ -284,7 +310,9 @@ function Lobby() {
       </Modal>
 
       <Modal
-        isOpen={["found_modal", "accepted_modal", "declined"].includes(searchState)}
+        isOpen={["found_modal", "accepted_modal", "declined"].includes(
+          searchState
+        )}
         shouldCloseOnOverlayClick={false}
         style={customModalStyles}
         contentLabel="Match Found"

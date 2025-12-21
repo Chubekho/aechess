@@ -35,19 +35,30 @@ function StatsChart({ user }) {
     const calculateStats = async () => {
       try {
         setLoading(true);
-        // Lấy 50-100 game gần nhất để tính tỷ lệ cho chính xác
+        // Lấy 100 game gần nhất để tính tỷ lệ cho chính xác
         const res = await axiosClient.get(
           `/games/history?limit=100&userId=${user.id}`
         );
-        const games = res.data;
+        const games = res;
+
+        // --- FIX: Verify Array Safety ---
+        if (!Array.isArray(games)) {
+          console.error("API did not return an array for game history.");
+          return; // Dừng thực thi nếu không phải mảng
+        }
 
         let win = 0;
         let loss = 0;
         let draw = 0;
 
         games.forEach((game) => {
+          // --- FIX: Add defensive checks for players ---
+          // Bỏ qua game nếu whitePlayer hoặc blackPlayer bị null (do user bị xóa)
+          if (!game.whitePlayer || !game.blackPlayer) {
+            return; 
+          }
+
           // Xác định xem user hiện tại là Trắng hay Đen
-          // API có thể trả về object (nếu populate) hoặc string id
           const whiteId = game.whitePlayer._id || game.whitePlayer;
           const isMeWhite = whiteId.toString() === user.id.toString();
 
@@ -75,7 +86,7 @@ function StatsChart({ user }) {
     };
 
     calculateStats();
-  }, [user.id]);
+  }, [user?.id]); // Thêm user?.id để an toàn hơn
 
   // 2. Data cho Radar Chart (Lấy từ User Model Ratings)
   const radarData = {
@@ -134,6 +145,7 @@ function StatsChart({ user }) {
     cutout: "70%",
     plugins: {
       legend: {
+        display: hasGames, // Hide legend if no games
         position: "right",
         labels: { color: "#ccc", boxWidth: 12, padding: 10 },
       },
@@ -170,7 +182,7 @@ function StatsChart({ user }) {
                     <span className={styles.winRateLabel}>Thắng</span>
                   </>
                 ) : (
-                  <span className={styles.noDataText}>Chưa có đấu</span>
+                  <span className={styles.noDataText}>Chưa có ván đấu nào.</span>
                 )}
               </div>
               <Doughnut data={doughnutData} options={doughnutOptions} />

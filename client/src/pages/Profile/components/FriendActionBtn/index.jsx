@@ -16,7 +16,7 @@ function FriendActionBtn({ targetUserId }) {
       if (!currentUser || !targetUserId) return;
       try {
         const res = await axiosClient.get(`/friends/status/${targetUserId}`);
-        const { status, isRequester } = res.data;
+        const { status, isRequester } = res;
         if (status === "none") setStatus("none");
         else if (status === "accepted") setStatus("accepted");
         else if (status === "pending") {

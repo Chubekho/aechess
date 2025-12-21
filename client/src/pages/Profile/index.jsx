@@ -1,5 +1,5 @@
 // client/src/pages/Profile/index.jsx
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/index";
 
@@ -24,7 +24,7 @@ function Profile() {
   const [profileUser, setProfileUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
-
+  const navigate = useNavigate();
   const friendCount = 0;
 
   useEffect(() => {
@@ -41,7 +41,7 @@ function Profile() {
     const fetchUser = async () => {
       try {
         const res = await axiosClient.get(`/users/${username}`);
-        setProfileUser(res.data);
+        setProfileUser(res);
       } catch (err) {
         console.error("Lỗi tải profile:", err);
       } finally {
@@ -56,7 +56,7 @@ function Profile() {
   if (!profileUser)
     return <div className={styles.loading}>Không tìm thấy người chơi</div>;
 
-  const isMe = currentUser && profileUser.id === currentUser.id;
+  const isMe = currentUser && profileUser._id === currentUser._id;
 
   // --- RENDER CONTENT THEO TAB ---
   const renderTabContent = () => {
@@ -90,6 +90,10 @@ function Profile() {
             <h1 className={styles.username}>{profileUser.username}</h1>
             <p className={styles.displayName}>{profileUser.displayName}</p>
           </div>
+          {console.log(profileUser)}
+          {profileUser.bio && (
+            <p className={styles.userBio}>{profileUser.bio}</p>
+          )}
 
           <div className={styles.metaRow}>
             <div className={styles.metaItem} title="Ngày tham gia">
@@ -108,7 +112,10 @@ function Profile() {
         {/* Cột 3: Actions (Nút bấm) */}
         <div className={styles.actionCol}>
           {isMe ? (
-            <button className={styles.btnEdit}>
+            <button
+              className={styles.btnEdit}
+              onClick={() => navigate("/settings")}
+            >
               <i className="fa-solid fa-pen-to-square"></i> Chỉnh sửa hồ sơ
             </button>
           ) : (
@@ -116,7 +123,7 @@ function Profile() {
               <button className={styles.btnChallenge}>
                 <i className="fa-solid fa-chess-board"></i> Thách đấu
               </button>
-              {profileUser && <FriendActionBtn targetUserId={profileUser.id} />}
+              {profileUser && <FriendActionBtn targetUserId={profileUser._id} />}
             </div>
           )}
         </div>

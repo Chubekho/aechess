@@ -1,24 +1,18 @@
 // client/src/components/GameHistory/index.jsx
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/index";
-import { Link } from "react-router"; // hoặc 'react-router-dom'
+import { Link } from "react-router";
 import axiosClient from "@/utils/axiosConfig";
 import clsx from "clsx";
 import styles from "./GameHistory.module.scss";
 import { TimeControlIcon, formatDate } from "./helpers.jsx";
 
-// --- SUB-COMPONENT: Hiển thị thông tin 1 người chơi ---
-// Giúp code gọn hơn, không bị lặp lại logic White/Black
 const PlayerInfo = ({ player, rating, color }) => {
-  // Kiểm tra xem user có tồn tại và có username hợp lệ không
   const hasProfile = player && player.username && player.username !== "undefined";
-  const displayName = player?.username || "Anonymous"; // Hoặc hiển thị "Người chơi ẩn danh"
+  const displayName = player?.username || "Anonymous";
 
   return (
     <div className={styles.player}>
       <span className={clsx(styles.colorIcon, styles[color])}></span>
-      
-      {/* Logic: Nếu có profile thì Link, không thì hiện Text thường */}
       {hasProfile ? (
         <Link to={`/profile/${player.username}`} className={styles.playerInfoLink}>
           <h4>{displayName}</h4>
@@ -28,84 +22,80 @@ const PlayerInfo = ({ player, rating, color }) => {
           <h4>{displayName}</h4>
         </span>
       )}
-      
       <span className={styles.rating}>({rating})</span>
     </div>
   );
 };
 
-function GameHistory({ limit = 5, userId }) {
-  const { token, user } = useAuth();
+function GameHistory({ limit = 10, userId }) {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const targetId = userId || user?.id;
-
   useEffect(() => {
-    if (!token || !targetId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
 
     const fetchHistory = async () => {
       setLoading(true);
       try {
         const res = await axiosClient.get(
-          `/games/history?limit=${limit}&userId=${targetId}`
+          `/games/history?limit=${limit}&userId=${userId}`
         );
         
-        setGames(res.data);
+        if (Array.isArray(res)) {
+          setGames(res);
+        }
       } catch (err) {
-        console.error("Lỗi lấy lịch sử đấu:", err);
+        console.error("Error fetching game history:", err);
+        setGames([]); // Reset to empty array on error
       } finally {
         setLoading(false);
       }
     };
 
     fetchHistory();
-  }, [token, limit, targetId]);
+  }, [limit, userId]);
 
-  if (loading) return <div className={styles.loading}>Đang tải lịch sử...</div>;
+  if (loading) return <div className={styles.loading}>Loading game history...</div>;
 
   return (
     <div className={styles.wrapper}>
-      <h2 className={styles.title}>Lịch sử ván đấu</h2>
+      <h2 className={styles.title}>Game History</h2>
       <table className={styles.table}>
         <thead>
           <tr>
             <th />
-            <th>Các kỳ thủ</th>
-            <th>Kết quả</th>
-            <th>Nước đi</th>
-            <th>Ngày</th>
+            <th>Players</th>
+            <th>Result</th>
+            <th>Moves</th>
+            <th>Date</th>
           </tr>
         </thead>
         <tbody>
-          {games.length === 0 ? (
+          {(!games || games.length === 0) ? (
             <tr>
               <td colSpan="5" className={styles.noGames}>
-                Chưa có ván đấu nào.
+                No games found.
               </td>
             </tr>
           ) : (
             games.map((game) => (
               <tr key={game._id}>
-                {/* Cột 1: Time Control */}
                 <td>
                   <div className={styles.timeControl}>
                     <TimeControlIcon timeControl={game.timeControl} />
                     <span>{game.timeControl}</span>
                   </div>
                 </td>
-
-                {/* Cột 2: Players (Đã tối ưu) */}
                 <td className={styles.players}>
                   <div className={styles.playerNames}>
-                    {/* Render White Player */}
                     <PlayerInfo 
                       player={game.whitePlayer} 
                       rating={game.whiteRating} 
                       color="white" 
                     />
-                    
-                    {/* Render Black Player */}
                     <PlayerInfo 
                       player={game.blackPlayer} 
                       rating={game.blackRating} 
@@ -113,8 +103,6 @@ function GameHistory({ limit = 5, userId }) {
                     />
                   </div>
                 </td>
-
-                {/* Cột 3: Kết quả */}
                 <td className={styles.result}>
                   <div className={styles.resultContent}>
                     {game.result === "1-0" && <strong>1 - 0</strong>}
@@ -123,29 +111,19 @@ function GameHistory({ limit = 5, userId }) {
                     <Link
                       to={`/analysis/${game._id}`}
                       className={styles.analysisButton}
-                      title="Phân tích ván đấu"
+                      title="Analyze game"
                     >
                       <i className="fa-solid fa-magnifying-glass-chart"></i>
                     </Link>
                   </div>
                 </td>
-
-                {/* Cột 4: Số nước đi */}
-                <td className={styles.moves}>{game.moveCount}</td>
-                
-                {/* Cột 5: Ngày */}
+                <td className={styles.moves}>{game.moveCount || 0}</td>
                 <td className={styles.date}>{formatDate(game.createdAt)}</td>
               </tr>
             ))
           )}
         </tbody>
       </table>
-      
-      {limit === 5 && (
-        <div className={styles.viewMore}>
-          <Link to={`/profile/${user.username}`}>Xem tất cả</Link>
-        </div>
-      )}
     </div>
   );
 }

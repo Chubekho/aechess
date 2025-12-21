@@ -226,7 +226,7 @@ function Lobby() {
 
            {renderPoolGrid()}
            <div className={styles.historySection}>
-              <GameHistory limit={5} />
+              <GameHistory limit={5} userId={user._id}/>
            </div>
         </main>
 

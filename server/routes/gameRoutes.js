@@ -5,7 +5,7 @@ import checkAuth from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 // Lấy lịch sử đấu (cần đăng nhập)
-router.get("/history", checkAuth, getGameHistory);
+router.get("/history", getGameHistory);
 router.get("/:id", checkAuth, getGameById);
 
 

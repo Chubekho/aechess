@@ -1,77 +1,36 @@
 import Game from "../models/Game.js";
-import { Chess } from "chess.js"; // Cần để đếm nước đi
+import { Chess } from "chess.js";
 import mongoose from "mongoose";
 
-// @desc: Lấy các ván đấu của user
-// @route: GET /api/games/history?userId=...&limit=50
 export const getGameHistory = async (req, res) => {
   try {
-    let targetUserId = req.user.id; // Mặc định lấy của người đang login
+    const { userId, limit: limitQuery } = req.query;
 
-    // Nếu client gửi userId lên (để xem profile người khác)
-    if (req.query.userId) {
-      // 1. Validate ID để tránh lỗi CastError
-      if (!mongoose.Types.ObjectId.isValid(req.query.userId)) {
-        return res.status(400).json({ msg: "User ID không hợp lệ." });
-      }
-      targetUserId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ msg: "Missing userId query parameter." });
     }
 
-    const limit = parseInt(req.query.limit) || 50;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ msg: "Invalid User ID format." });
+    }
 
-    // Tìm các ván đấu
+    const limit = parseInt(limitQuery) || 10;
+
     const games = await Game.find({
-      $or: [{ whitePlayer: targetUserId }, { blackPlayer: targetUserId }],
+      $or: [{ whitePlayer: userId }, { blackPlayer: userId }],
     })
-    .populate("whitePlayer", "username displayName ratings")
-    .populate("blackPlayer", "username displayName ratings")
-    .sort({ createdAt: -1 })
-    .limit(limit);
+      .populate("whitePlayer", "username avatar ratings")
+      .populate("blackPlayer", "username avatar ratings")
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean(); // Use .lean() for better performance on read-only queries
 
-    // Xử lý dữ liệu an toàn (Safe Mapping)
-    const gamesWithMoveCount = games.map(game => {
-      let moveCount = 0;
-      
-      // 2. Xử lý đếm nước đi an toàn (Try-Catch cho Chess.js)
-      if (game.moveCount) {
-        moveCount = game.moveCount; // Nếu đã lưu trong DB thì lấy luôn
-      } else if (game.pgn) {
-        try {
-          const chess = new Chess();
-          chess.loadPgn(game.pgn);
-          moveCount = chess.history().length;
-        } catch (e) {
-          // Nếu PGN lỗi, chỉ log warning server chứ không làm sập API
-          console.warn(`[Warning] Lỗi parse PGN ván ${game._id}:`, e.message);
-          moveCount = 0; 
-        }
-      }
-
-      // 3. Xử lý User bị xóa (Null check)
-      // Nếu user bị xóa khỏi DB, populate sẽ trả về null. 
-      // Ta tạo object giả để FE không crash khi gọi .displayName
-      const unknownUser = { displayName: "Người chơi ẩn", ratings: {}, id: "deleted" };
-      const whitePlayer = game.whitePlayer || unknownUser;
-      const blackPlayer = game.blackPlayer || unknownUser;
-
-      return {
-        _id: game._id,
-        whitePlayer: whitePlayer,
-        blackPlayer: blackPlayer,
-        result: game.result,
-        timeControl: game.timeControl || "Unlimited",
-        createdAt: game.createdAt,
-        moveCount: moveCount,
-        whiteRating: game.whiteRating || 1200, // Fallback rating
-        blackRating: game.blackRating || 1200,
-      };
-    });
-
-    res.status(200).json(gamesWithMoveCount);
+    // The entire games array is returned, further processing happens on the client
+    res.json(games);
 
   } catch (err) {
-    console.error("Lỗi server (getGameHistory):", err); // Log lỗi ra terminal để debug
-    res.status(500).json({ error: "Lỗi máy chủ nội bộ." });
+    console.error("Server error in getGameHistory:", err);
+    res.status(500).json({ error: "Internal Server Error." });
   }
 };
 

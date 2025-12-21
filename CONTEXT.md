@@ -188,3 +188,28 @@
   import axiosClient from "@/utils/axiosConfig";
   // Usage: axiosClient.get(...), axiosClient.post(...)
   ```
+- **Context**: **axiosClient** is pre-configured with the Base URL and an Interceptor that automatically attaches the Authorization: Bearer <token> header from localStorage.
+
+**B. Styling (CSS/SCSS Standards)**
+
+- **STRICT FORBIDDEN**: Do NOT use SCSS variables (e.g., $border-color, $primary-color).
+- **REQUIRED**: This project uses CSS Custom Properties defined in client/src/styles/variables.scss.
+- **SYNTAX**: ALWAYS use var(--variable-name).
+- **Correct**: border: 1px solid var(--color-border);
+- **Incorrect**: border: 1px solid $border-color;
+- **MISSING VARIABLES**: If a design token is missing in variables.scss, INSTRUCT THE USER to add it. Do NOT invent new variables or hardcode hex values.
+- **IMPORT**: Always add @use "@/styles/variables.scss" as \*; at the top of component style files.
+
+**C. Environment Constraints**
+
+- **NO SHELL COMMANDS**: AI must NOT run npm, mkdir, touch. Only generate code.
+- **File Creation**: User handles file creation based on paths provided by AI.
+
+## 8. Environment Variables
+PORT=8080 (or 5000)
+MONGO_URI=mongodb+srv://...
+JWT_SECRET=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+CLIENT_URL=http://localhost:5173
+

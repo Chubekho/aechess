@@ -1,46 +1,47 @@
+@use "@/styles/variables.scss" as *;
+
 .navItem {
-  position: relative; // Quan trọng để định vị .subList
+  position: relative; // Important for positioning .subList
   height: 100%;
   display: flex;
   align-items: center;
 
-  /* Thêm viền khi active (giống :hover của Navigation) */
   &.active {
     background: #3c3934;
     border-left: 1px solid var(--color-link-hover);
   }
 }
 
-/* Nút bấm chứa tên user */
 .userButton {
-  // Reset style của button
   background: none;
   border: none;
   cursor: pointer;
-  
-  // Style chữ giống như .nav-item
   padding: 12px;
-  font-size: 1.5rem; // Đồng bộ với .loginButton
+  font-size: 1.5rem;
   font-weight: 300;
   color: #bababa;
-
-  // Căn chỉnh
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem; // Adjusted gap
   height: 100%;
 
   &:hover {
     color: var(--color-link-hover, #fff);
   }
+}
 
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-border);
 }
 
 .userButton--active {
-    background: #3c3934;
+  background: #3c3934;
 }
 
-/* Icon mũi tên */
 .caret {
   font-size: 1.2rem;
   transition: transform 0.2s ease-in-out;
@@ -49,12 +50,10 @@
   transform: rotate(180deg);
 }
 
-/* Dropdown (giống .sub-list) */
 .subList {
-  /* display: none; -> Không cần, JS sẽ render */
   position: absolute;
-  top: 100%; // Nằm ngay dưới header
-  right: 0; // Căn lề phải
+  top: 100%;
+  right: 0;
   width: max-content;
   min-width: 160px;
   background: #3c3934;
@@ -65,11 +64,9 @@
   z-index: 10;
 }
 
-/* Các mục trong dropdown (giống .sub-item) */
 .subItem {
-  padding: 0; // Reset padding để NavLink/button chiếm toàn bộ
+  padding: 0;
 
-  // Style chung cho các link và nút
   a, .logoutButton {
     display: block;
     width: 100%;
@@ -90,19 +87,23 @@
     color: var(--color-text-hover);
     background: var(--color-link-hover);
     
-    // Đổi màu chữ khi hover
     a, .logoutButton {
        color: var(--color-text-hover);
     }
   }
 }
 
-/* Thêm viền đỏ cho nút Đăng xuất (tùy chọn) */
 .logoutItem {
   border-top: 1px solid #555;
   
   .logoutButton:hover {
-    background: #c0392b; // Màu đỏ khi hover
+    background: #c0392b;
     color: #fff;
+  }
+}
+
+@media (max-width: 768px) {
+  .userButton span {
+    display: none; // Hide username on mobile to save space
   }
 }

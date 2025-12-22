@@ -9,8 +9,11 @@
     var(--color-bg-high) 100%
   );
   color: var(--color-text-primary);
+  overflow: visible;
 }
 
 .body {
   padding-top: var(--header-height);
+  position: relative;
+  z-index: 1;
 }

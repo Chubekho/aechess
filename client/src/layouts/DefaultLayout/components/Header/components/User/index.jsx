@@ -8,43 +8,42 @@ import styles from './User.module.scss';
 function User({ user }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { logout } = useAuth();
-  const dropdownRef = useRef(null); // Ref để bắt sự kiện click-outside
+  const dropdownRef = useRef(null); // Ref to catch click-outside events
 
   const handleLogout = () => {
     logout();
-    setIsDropdownOpen(false); // Đóng dropdown sau khi logout
+    setIsDropdownOpen(false); // Close dropdown after logout
   };
 
-  // Logic xử lý click-outside
+  // Click-outside handling logic
   useEffect(() => {
     function handleClickOutside(event) {
-      // Nếu click ra ngoài component (dropdownRef) thì đóng dropdown
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
       }
     }
-    // Gắn event listener
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      // Gỡ event listener khi component unmount
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [dropdownRef]);
 
   return (
-    // Dùng chung class .navItem từ Navigation để đồng bộ style
-    // Gắn ref vào đây để bắt click-outside
     <div className={styles.navItem} ref={dropdownRef}>
       
-      {/* Nút bấm để toggle dropdown */}
+      {/* Button to toggle dropdown */}
       <button 
         className={clsx(styles.userButton, {
             [styles["userButton--active"]]: isDropdownOpen
         })}
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)} // Toggle
+        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
-        <span>{user.displayName || user.email}</span>
-        {/* Thêm icon mũi tên (lấy từ FontAwesome) */}
+        <img 
+          src={user.avatar || '/avatars/jerry1.jpg'} 
+          alt={user.username} 
+          className={styles.avatar}
+        />
+        <span>{user.username || user.email}</span>
         <i className={clsx("fa-solid fa-caret-down", styles.caret, {
             [styles.caretActive]: isDropdownOpen 
           })}
@@ -52,7 +51,6 @@ function User({ user }) {
       </button>
 
       {/* Dropdown (Sub-list) */}
-      {/* Chỉ render khi isDropdownOpen là true */}
       {isDropdownOpen && (
         <ul className={styles.subList}>
           <li className={styles.subItem}>
@@ -65,7 +63,6 @@ function User({ user }) {
               Tuỳ chỉnh
             </NavLink>
           </li>
-          {/* Nút Đăng xuất */}
           <li className={clsx(styles.subItem, styles.logoutItem)}>
             <button onClick={handleLogout} className={styles.logoutButton}>
               Đăng xuất

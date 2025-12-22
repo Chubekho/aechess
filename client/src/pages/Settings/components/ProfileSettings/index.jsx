@@ -22,7 +22,6 @@ const ProfileSettings = () => {
       });
       
       setUser(response); // Update user in context
-      console.log(response + " ok");
       
       toast.success("Cập nhật thông tin thành công!");
     } catch (error) {

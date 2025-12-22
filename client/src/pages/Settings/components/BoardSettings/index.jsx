@@ -1,27 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BOARD_THEMES, applyBoardTheme } from "@/utils/themeConfig";
+import { useToast } from "@/hooks/index";
 import axiosClient from "@/utils/axiosConfig";
 import styles from "./BoardSettings.module.scss";
 
 const BoardSettings = () => {
-  const [currentTheme, setCurrentTheme] = useState(() => {
-    try {
-      return localStorage.getItem("boardTheme") || "brown";
-    } catch (error) {
-      return "brown";
-    }
+  const toast = useToast();
+  const [selectedTheme, setSelectedTheme] = useState(() => {
+    return localStorage.getItem("boardTheme") || "brown";
   });
+  const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    applyBoardTheme(currentTheme);
-  }, [currentTheme]);
+  const handleThemeClick = (themeKey) => {
+    setSelectedTheme(themeKey);
+  };
 
-  const handleThemeChange = (themeKey) => {
-    setCurrentTheme(themeKey);
-    applyBoardTheme(themeKey);
-    axiosClient.patch("/users/preferences", { boardTheme: themeKey }).catch((err) => {
-      console.error("Failed to save theme preference:", err);
-    });
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await axiosClient.patch("/users/preferences", { boardTheme: selectedTheme });
+      applyBoardTheme(selectedTheme);
+      toast.success("Board theme updated successfully!");
+    } catch (error) {
+      console.error("Failed to save theme preference:", error);
+      toast.error(error.response?.data?.msg || "Failed to update theme.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -32,9 +37,9 @@ const BoardSettings = () => {
           <div
             key={key}
             className={`${styles.themePreview} ${
-              currentTheme === key ? styles.selected : ""
+              selectedTheme === key ? styles.selected : ""
             }`}
-            onClick={() => handleThemeChange(key)}
+            onClick={() => handleThemeClick(key)}
           >
             <div className={styles.board}>
               <div style={{ backgroundColor: theme.white }}></div>
@@ -46,6 +51,13 @@ const BoardSettings = () => {
           </div>
         ))}
       </div>
+      <button
+        className={styles.saveButton}
+        onClick={handleSave}
+        disabled={isSaving}
+      >
+        {isSaving ? "Saving..." : "Save Changes"}
+      </button>
     </div>
   );
 };

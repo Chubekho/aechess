@@ -5,16 +5,16 @@ import clsx from "clsx";
 import styles from "./PlayAI.module.scss";
 import MoveBoard from "@/components/MoveBoard";
 import { useGameNavigation } from "@/hooks/index";
+import { BOARD_THEMES } from "@/utils/themeConfig";
 
-// Ánh xạ 8 level UI → Skill Level Stockfish (0-15)
 const difficultyLevels = [
-  { ui: 1, skill: 1 }, // Dễ
+  { ui: 1, skill: 1 },
   { ui: 2, skill: 3 },
   { ui: 3, skill: 5 },
-  { ui: 4, skill: 7 }, // Trung bình
+  { ui: 4, skill: 7 },
   { ui: 5, skill: 9 },
   { ui: 6, skill: 11 },
-  { ui: 7, skill: 13 }, // Khó
+  { ui: 7, skill: 13 },
   { ui: 8, skill: 15 },
 ];
 
@@ -29,15 +29,16 @@ function PlayAI() {
     useGameNavigation(setChessPosition);
 
   const [isStarted, setIsStarted] = useState(false);
-  const [selectedDifficulty, setSelectedDifficulty] = useState(5); // skill default
+  const [selectedDifficulty, setSelectedDifficulty] = useState(5);
   const [selectedColor, setSelectedColor] = useState("w");
   const [playerColor, setPlayerColor] = useState("w");
 
-  // Helper: Cập nhật trạng thái game và lịch sử (Dùng chung cho cả AI và Player)
+  const savedTheme = localStorage.getItem("boardTheme") || "brown";
+  const themeColors = BOARD_THEMES[savedTheme] || BOARD_THEMES.brown;
+
   const updateGameHistory = useCallback(
     (moveSan) => {
       const newFen = chessGameRef.current.fen();
-
       addMove(moveSan, newFen);
       fenHistoryRef.current.push(newFen);
       setChessPosition(newFen);
@@ -45,8 +46,6 @@ function PlayAI() {
     [addMove]
   );
 
-  // Khởi tạo engine
-  // 1. Khởi tạo Engine (Chạy 1 lần duy nhất)
   useEffect(() => {
     engine.current = new Worker("/stockfish.js");
     engine.current.postMessage("uci");
@@ -77,24 +76,20 @@ function PlayAI() {
     return () => engine.current?.terminate();
   }, [isStarted, playerColor, updateGameHistory]);
 
-  // 2. Hàm yêu cầu AI đi nước cờ
   const makeAiMove = useCallback(() => {
     const game = chessGameRef.current;
     if (!engine.current || game.isGameOver() || game.turn() === playerColor)
       return;
 
-    // Gửi lệnh cho Stockfish
     engine.current.postMessage(
       `setoption name Skill Level value ${selectedDifficulty}`
     );
     engine.current.postMessage(`position fen ${game.fen()}`);
-    engine.current.postMessage("go movetime 1000"); // Suy nghĩ 1s
+    engine.current.postMessage("go movetime 1000");
   }, [playerColor, selectedDifficulty]);
 
-  // Trigger AI đi khi đến lượt (quan trọng khi người chơi cầm Đen)
   useEffect(() => {
     const game = chessGameRef.current;
-    // Chỉ gọi AI nếu đang ở nước đi cuối cùng (không phải đang tua)
     const isAtLatestMove = currentNode.children.length === 0;
 
     if (isStarted && game.turn() !== playerColor && isAtLatestMove) {
@@ -102,14 +97,10 @@ function PlayAI() {
     }
   }, [chessPosition, isStarted, playerColor, makeAiMove, currentNode]);
 
-  // 3. Xử lý người chơi đi cờ
   const onPieceDrop = useCallback(
     ({ sourceSquare, targetSquare }) => {
       const game = chessGameRef.current;
-
-      // Chặn đi quân nếu đang tua lại quá khứ
       if (currentNode.children.length > 0) return false;
-
       if (!isStarted || game.isGameOver() || game.turn() !== playerColor)
         return false;
 
@@ -119,28 +110,19 @@ function PlayAI() {
           to: targetSquare,
           promotion: "q",
         });
-        console.log(move);
-
         if (!move) return false;
-
         updateGameHistory(move.san);
         return true;
       } catch {
         return false;
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isStarted, playerColor, currentNode, addMove]
+    [isStarted, playerColor, currentNode, updateGameHistory]
   );
 
-  // 4. Các hàm điều khiển Game
-  /// 4. Controls
   function handleStartGame() {
     chessGameRef.current.reset();
-
-    // Reset Hook
     resetNavigation(chessGameRef.current.fen());
-
     fenHistoryRef.current = [chessGameRef.current.fen()];
     setChessPosition(chessGameRef.current.fen());
 
@@ -151,16 +133,17 @@ function PlayAI() {
 
     if (finalColor === "b") setTimeout(makeAiMove, 500);
   }
+
   function handleStopGame() {
     setIsStarted(false);
     chessGameRef.current.reset();
-    resetNavigation(); // Reset cây
+    resetNavigation();
     setChessPosition(chessGameRef.current.fen());
   }
 
   function handleResign() {
-    alert("Bạn đã đầu hàng! Máy thắng.");
-    setIsStarted(false); // Dừng game nhưng không reset bàn cờ ngay để người chơi xem lại
+    alert("You resigned! The AI wins.");
+    setIsStarted(false);
   }
 
   // 5. Memoize Options để tránh lỗi render vô hạn
@@ -174,10 +157,11 @@ function PlayAI() {
         borderRadius: "4px",
         boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
       },
+      lightSquareStyle: { backgroundColor: themeColors.white },
+      darkSquareStyle: { backgroundColor: themeColors.black },
     };
-  }, [chessPosition, onPieceDrop, playerColor]);
+  }, [chessPosition, onPieceDrop, playerColor, themeColors]);
 
-  // --- RENDER JSX ---
   const renderSetupOptions = () => (
     <div className={styles["option-board"]}>
       <h3>Sức mạnh</h3>
@@ -195,7 +179,7 @@ function PlayAI() {
         ))}
       </div>
 
-      <h3 className={styles.headingMarginTop}>Bạn cầm quân</h3>
+      <h3 className={styles.headingMarginTop}>Your Side</h3>
       <div className={styles.colorSelector}>
         <button
           onClick={() => setSelectedColor("w")}
@@ -223,7 +207,6 @@ function PlayAI() {
     <div className={styles.wrapper}>
       <div className={clsx("row", "gx-6", "justify-content-center")}>
         <div className="col-3" />
-        {/* Cột Giữa (Bàn Cờ) */}
         <div className="col-5">
           <div className={styles.board}>
             <Chessboard options={chessboardOptions} />

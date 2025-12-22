@@ -1,10 +1,12 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useAuth } from "@/hooks/index";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
+
 import axios from "axios";
 import clsx from "clsx";
+import { BOARD_THEMES } from "@/utils/themeConfig";
 import styles from "./Puzzle.module.scss";
-import { useAuth } from "@/hooks/index";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -31,6 +33,10 @@ function PuzzlePage() {
   const [hasFailed, setHasFailed] = useState(false);
   const [isReplay, setIsReplay] = useState(false);
   const [history, setHistory] = useState([]);
+
+  // --- Theme ---
+  const savedTheme = localStorage.getItem("boardTheme") || "brown";
+  const themeColors = BOARD_THEMES[savedTheme] || BOARD_THEMES.brown;
 
   const loadPuzzleState = useCallback((puzzle) => {
     if (!puzzle || !puzzle.fen || !puzzle.moves.length) return;
@@ -352,8 +358,10 @@ function PuzzlePage() {
       animationDuration: 250,
       squareStyles: hintSquares,
       arrows,
+      lightSquareStyle: { backgroundColor: themeColors.white },
+      darkSquareStyle: { backgroundColor: themeColors.black },
     };
-  }, [fen, onPieceDrop, orientation, hintSquares, arrows]);
+  }, [fen, onPieceDrop, orientation, hintSquares, arrows, themeColors]);
 
   return (
     <div className={clsx(styles.wrapper, "row", "gx-0")}>

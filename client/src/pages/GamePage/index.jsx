@@ -5,6 +5,7 @@ import clsx from "clsx";
 
 import { useGameNavigation, useOnlineGame } from "@/hooks/index";
 import { getPlayerLayout, calculateMaterial } from "@/utils/chessUtils";
+import { BOARD_THEMES } from "@/utils/themeConfig";
 
 import { Chessboard } from "react-chessboard";
 import PlayerInfoBox from "@/components/PlayerInfoBox";
@@ -19,7 +20,7 @@ function GamePage() {
   const [fen, setFen] = useState(START_FEN);
   const socket = useSocket();
 
-  // --- State của Game ---
+  // --- Game State ---
   const {
     currentNode,
     rootNode,
@@ -36,7 +37,7 @@ function GamePage() {
     gameData,
     makeMove,
     isSpectator,
-    gameResult, // { result, winner, reason, newRating: { white: 1210, black: 1190 } }
+    gameResult,
     drawStatus,
     rematchStatus,
     handlers,
@@ -47,6 +48,10 @@ function GamePage() {
   const materialData = useMemo(() => {
     return calculateMaterial(fen);
   }, [fen]);
+
+  // --- Theme ---
+  const savedTheme = localStorage.getItem("boardTheme") || "brown";
+  const themeColors = BOARD_THEMES[savedTheme] || BOARD_THEMES.brown;
 
   const currentTurnColor = gameData?.turn === "w" ? "white" : "black";
   const isGameActive = gameStatus === "playing";
@@ -64,23 +69,16 @@ function GamePage() {
     const inc = gameData.config.time.inc;
     const timeControl = `${base}+${inc}`;
 
-    // Emit tìm trận mới
     socket.emit("findMatch", {
       timeControl,
       isRated: gameData.config.isRated,
     });
-
-    // Navigate về Lobby và mở sẵn trạng thái tìm kiếm (nếu Lobby hỗ trợ)
-    // Hoặc đơn giản là navigate về Lobby, socket event sẽ tự handle việc matchFound
-    // Ở đây ta dùng cách đơn giản nhất:
-    window.location.href = "/"; // Hoặc navigate("/")
+    window.location.href = "/";
   };
 
-  // === 4. XỬ LÝ KHI NGƯỜI CHƠI ĐI CỜ ===
   const onPieceDrop = useCallback(
     ({ sourceSquare, targetSquare }) => {
       if (isSpectator) return false;
-      // Logic Tree: Nếu currentNode có children, nghĩa là ta đang ở quá khứ
       if (gameStatus !== "playing" || currentNode.children.length > 0) {
         return false;
       }
@@ -96,22 +94,17 @@ function GamePage() {
     });
   };
 
-  // === 5. LOGIC TÍNH TOÁN RATING MỚI ===
   const getDisplayPlayer = (originalPlayer, side) => {
     if (!originalPlayer) return null;
-
-    // 1. Lấy rating gốc
     let currentRating = originalPlayer.rating;
     let diff = null;
 
-    // 2. Nếu game đã kết thúc và có newRating
     if (gameResult?.newRating && gameResult.newRating[side] !== undefined) {
       const newRating = gameResult.newRating[side];
-      diff = newRating - currentRating; // Tính chênh lệch
-      currentRating = newRating; // Cập nhật rating hiển thị thành rating mới
+      diff = newRating - currentRating;
+      currentRating = newRating;
     }
 
-    // Trả về object player mới (đã update rating và thêm diff)
     return {
       ...originalPlayer,
       rating: currentRating,
@@ -119,18 +112,15 @@ function GamePage() {
     };
   };
 
-  // === 6. RENDER ===
   const whitePlayerDisplay = getDisplayPlayer(gameData?.whitePlayer, "white");
   const blackPlayerDisplay = getDisplayPlayer(gameData?.blackPlayer, "black");
 
   let top, bottom;
 
   if (isSpectator) {
-    // Layout cố định cho Spectator (Trắng dưới, Đen trên)
     top = { player: blackPlayerDisplay, side: "black" };
     bottom = { player: whitePlayerDisplay, side: "white" };
   } else {
-    // Layout động cho Player
     const layout = getPlayerLayout(
       boardOrientation,
       whitePlayerDisplay,
@@ -150,19 +140,19 @@ function GamePage() {
       id: "PlayVsPerson",
       boardOrientation: boardOrientation,
       arePiecesDraggable: !isSpectator && gameStatus === "playing",
+      lightSquareStyle: { backgroundColor: themeColors.white },
+      darkSquareStyle: { backgroundColor: themeColors.black },
     }),
-    [fen, onPieceDrop, boardOrientation, isSpectator, gameStatus]
+    [fen, onPieceDrop, boardOrientation, isSpectator, gameStatus, themeColors]
   );
 
   return (
     <div className={clsx(styles.wrapper, "row", "gx-6")}>
-      {/* --- CỘT 1 (3/12): THÔNG TIN NGƯỜI CHƠI --- */}
       <div className={clsx("col-3", styles.playerInfoColumn)}>
-        {/* Đối thủ (Luôn ở trên) */}
         <div className={styles.playerBlock}>
           <PlayerInfoBox
             player={top.player}
-            timeControl={topClock} // Truyền giây còn lại vào
+            timeControl={topClock}
             variant="top"
             side={top.side}
             material={materialData[top.side]}
@@ -171,7 +161,6 @@ function GamePage() {
           />
         </div>
 
-        {/* Divider */}
         <div
           style={{
             height: "1px",
@@ -181,11 +170,10 @@ function GamePage() {
           }}
         />
 
-        {/* Mình (Luôn ở dưới) */}
         <div className={styles.playerBlock}>
           <PlayerInfoBox
             player={bottom.player}
-            timeControl={bottomClock} // Truyền giây còn lại vào
+            timeControl={bottomClock}
             variant="bottom"
             side={bottom.side}
             material={materialData[bottom.side]}

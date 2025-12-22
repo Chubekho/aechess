@@ -1,8 +1,8 @@
 export const BOARD_THEMES = {
-  brown: { name: "Gỗ (Cổ điển)", white: "#eeeed2", black: "#769656" },
-  green: { name: "Xanh lá", white: "#ffffdd", black: "#86a666" },
-  blue: { name: "Xanh dương", white: "#dee3e6", black: "#8ca2ad" },
-  dark: { name: "Xám tối", white: "#bababa", black: "#646464" },
+  brown: { name: "Brown (Classic)", white: "#f0d9b5", black: "#b58863" },
+  green: { name: "Green", white: "#ffffdd", black: "#86a666" },
+  blue: { name: "Blue", white: "#dee3e6", black: "#8ca2ad" },
+  dark: { name: "Dark Gray", white: "#bababa", black: "#646464" },
 };
 
 export function applyBoardTheme(themeName) {

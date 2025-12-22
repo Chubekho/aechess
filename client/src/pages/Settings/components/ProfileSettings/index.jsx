@@ -20,10 +20,13 @@ const ProfileSettings = () => {
         bio,
         avatar: selectedAvatar,
       });
-      setUser(response.data); // Update user in context
-      toast.success("Profile updated successfully!");
+      
+      setUser(response); // Update user in context
+      console.log(response + " ok");
+      
+      toast.success("Cập nhật thông tin thành công!");
     } catch (error) {
-      toast.error(error.response?.data?.msg || "Failed to update profile.");
+      toast.error(error.response?.data?.msg || "Lỗi khi cập nhật thông tin.");
     } finally {
       setIsSaving(false);
     }
@@ -31,16 +34,16 @@ const ProfileSettings = () => {
 
   return (
     <div className={styles.profileSettings}>
-      <h2>Profile Settings</h2>
+      <h2>Tuỳ chỉnh thông tin cá nhân</h2>
 
       <div className={styles.formGroup}>
-        <label htmlFor="bio">Bio</label>
+        <label htmlFor="bio">Tiểu sử</label>
         <textarea
           id="bio"
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           maxLength="200"
-          placeholder="Tell everyone a little about yourself..."
+          placeholder="Chia sẻ về mình đi ní..."
         />
       </div>
 
@@ -66,7 +69,7 @@ const ProfileSettings = () => {
         onClick={handleSave}
         disabled={isSaving}
       >
-        {isSaving ? "Saving..." : "Save Changes"}
+        {isSaving ? "Saving..." : "Lưu thay đổi"}
       </button>
     </div>
   );

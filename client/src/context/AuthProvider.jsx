@@ -3,7 +3,7 @@ import axios from "axios";
 
 import { AuthContext } from "./AuthContext";
 
-// 2. Tạo Provider (Component "bọc")
+// 2. Create Provider (Wrapper Component)
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(
@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   );
   const [loading, setLoading] = useState(true);
 
-  // Cấu hình axios gửi token theo mỗi request
+  // Configure axios to send token with each request
   const api = useMemo(
     () =>
       axios.create({
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
     []
   );
 
-  // Logic này sẽ chạy lại mỗi khi 'token' hoặc 'api' thay đổi
+  // This logic runs again whenever 'token' or 'api' changes
   useEffect(() => {
     const interceptor = api.interceptors.request.use((config) => {
       if (token) {
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
       return config;
     });
 
-    // Hàm dọn dẹp: gỡ interceptor cũ khi token thay đổi
+    // Cleanup function: remove old interceptor when token changes
     return () => {
       api.interceptors.request.eject(interceptor);
     };
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("accessToken");
   }, [setToken, setUser]);
 
-  // useEffect để tự động lấy thông tin user khi có token
+  // useEffect to automatically fetch user info when a token exists
   useEffect(() => {
     const fetchUser = async () => {
       if (token) {
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
           const res = await api.get("/auth/me");
           setUser(res.data);
         } catch (err) {
-          console.error("Token hết hạn hoặc không hợp lệ, đăng xuất:", err);
+          console.error("Token expired or invalid, logging out:", err);
           logout();
         }
       } else {
@@ -64,17 +64,17 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [token, api, logout]);
 
-  // === Các hàm (Actions) ===
+  // === Actions ===
 
   const login = async (loginId, password) => {
     try {
-      // Backend mong đợi: req.body = { loginId, password }
+      // Backend expects: req.body = { loginId, password }
       const res = await api.post("/auth/login", { loginId, password });
       setToken(res.data.token);
     } catch (err) {
-      console.error("Lỗi đăng nhập:", err);
-      // Lấy msg lỗi từ backend trả về
-      const msg = err.response?.data?.msg || "Đăng nhập thất bại";
+      console.error("Login error:", err);
+      // Get error message from backend response
+      const msg = err.response?.data?.msg || "Login failed";
       throw new Error(msg);
     }
   };
@@ -85,21 +85,22 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
       });
-      // Lưu token
+      // Save token
       setToken(res.data.token); 
       return res.data;
 
-    } catch (err) {
-      console.error("Lỗi đăng ký:", err);
-      const msg = err.response?.data?.msg || "Đăng ký thất bại";
+    } catch (err)
+      {
+      console.error("Registration error:", err);
+      const msg = err.response?.data?.msg || "Registration failed";
       throw new Error(msg);
     }
   };
 
-  // MỚI: Hàm này dành cho AuthCallback.jsx
+  // NEW: This function is for AuthCallback.jsx
   const manualSetToken = (newToken) => {
     if (newToken) {
-      setToken(newToken); // Kích hoạt useEffect để lấy user
+      setToken(newToken); // Triggers useEffect to fetch user
     }
   };
 
@@ -107,6 +108,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        setUser, // Expose setUser to consumers
         token,
         login,
         register,
@@ -115,7 +117,7 @@ export const AuthProvider = ({ children }) => {
         manualSetToken, 
       }}
     >
-      {!loading && children} {/* Chỉ render khi đã check xong auth */}
+      {!loading && children} {/* Only render children after auth check is complete */}
     </AuthContext.Provider>
   );
 };

@@ -144,6 +144,17 @@
 - **Avatar Strategy**: DB stores _relative path_ (e.g., `"/avatars/luffy.png"`). Frontend renders `<img src={user.avatar} />`.
 - **Bio**: Simple text update via `PATCH /profile`.
 
+### F. Game End Sequence & Rating Sync (Race Condition Handling) [NEW]
+
+> **Problem**: Previous flow emitted `gameOver` before calculating Elo, causing Frontend to render the result modal without updated ratings (race condition).
+
+- **Revised Flow (Strict Ordering)**:
+  1.  **Calculate (In-Memory)**: Determine new Elo ratings immediately using `eloCalculator`.
+  2.  **Emit (Realtime)**: Send `gameOver` event **including** the `newRatings` object (`{ white: number, black: number }`) in the payload.
+  3.  **Persist (Async)**: Save updated User ratings and Game result to MongoDB via `await`.
+- **Frontend Handling**:
+  - `getDisplayPlayer` checks for `gameResult.newRatings` payload immediately instead of waiting for a separate `ratingUpdate` event (though the separate event is still sent for other listeners).
+
 ## 5. Admin Module Implementation
 
 > **Goal**: A dedicated Lichess-style portal for system management.

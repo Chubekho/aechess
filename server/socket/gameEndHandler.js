@@ -10,61 +10,66 @@ export async function endGame(io, activeGames, gameId, result, reason) {
   gameData.isFinished = true;
   console.log(`Game ${gameId} kết thúc: ${result} (${reason})`);
 
-  // We can emit gameOver early to the client for responsiveness
-  io.to(gameId).emit("gameOver", { 
-    result: result, 
-    reason: reason,
-    dbGameId: gameData.dbGameId // Emit the existing ID
-  });
-
   const game = gameData.game;
   const whitePlayerInfo = gameData.players.find((p) => p.color === "w");
   const blackPlayerInfo = gameData.players.find((p) => p.color === "b");
+  const category = gameData.config.category;
 
+  let finalWhiteRating = whitePlayerInfo.rating;
+  let finalBlackRating = blackPlayerInfo.rating;
+  let newRatingsForPayload = null;
+
+  // 1. Calculate ratings BEFORE emitting gameOver if the game is rated.
+  if (gameData.config.isRated && category) {
+    const oldRatings = {
+      white: whitePlayerInfo.rating,
+      black: blackPlayerInfo.rating,
+    };
+    const calculatedRatings = calculateNewRatings(
+      oldRatings.white,
+      oldRatings.black,
+      result
+    );
+
+    finalWhiteRating = calculatedRatings.whiteNew;
+    finalBlackRating = calculatedRatings.blackNew;
+
+    newRatingsForPayload = {
+      white: finalWhiteRating,
+      black: finalBlackRating,
+      // You can also include diffs if the frontend needs them
+      // whiteDiff: calculatedRatings.whiteDiff,
+      // blackDiff: calculatedRatings.blackDiff,
+    };
+  }
+
+  // 2. Emit gameOver with the new ratings included in the payload.
+  io.to(gameId).emit("gameOver", {
+    result: result,
+    reason: reason,
+    dbGameId: gameData.dbGameId,
+    newRatings: newRatingsForPayload, // <-- Ratings are sent here
+  });
+
+  // 3. Perform database updates asynchronously after emitting.
   try {
-    const { fullPgn, timeControlForDb } = generatePgnWithHeaders(
+    const { fullPgn } = generatePgnWithHeaders(
       game,
       gameData,
       result
     );
-    const category = gameData.config.category;
 
-    let finalWhiteRating = whitePlayerInfo.rating;
-    let finalBlackRating = blackPlayerInfo.rating;
-    
-    // 1. Nếu game XẾP HẠNG -> Tính và Update Elo
+    // Update User models if rated
     if (gameData.config.isRated && category) {
-      const oldRatings = {
-        white: whitePlayerInfo.rating,
-        black: blackPlayerInfo.rating,
-      };
-      const newRatings = calculateNewRatings(
-        oldRatings.white,
-        oldRatings.black,
-        result
-      );
-
-      finalWhiteRating = newRatings.whiteNew;
-      finalBlackRating = newRatings.blackNew;
-
-      // Update User models
       await User.findByIdAndUpdate(whitePlayerInfo.id, {
         $set: { [`ratings.${category}`]: finalWhiteRating },
       });
       await User.findByIdAndUpdate(blackPlayerInfo.id, {
         $set: { [`ratings.${category}`]: finalBlackRating },
       });
-
-      // Gửi update rating riêng (để update UI avatar realtime)
-      io.to(gameId).emit("ratingUpdate", {
-        whitePlayerId: whitePlayerInfo.id,
-        blackPlayerId: blackPlayerInfo.id,
-        newRatings: newRatings,
-        category: category,
-      });
     }
-    
-    // 2. Cập nhật Game vào DB
+
+    // Update Game model
     const dbGameId = gameData.dbGameId;
     if (dbGameId) {
       await Game.findByIdAndUpdate(dbGameId, {
@@ -72,7 +77,7 @@ export async function endGame(io, activeGames, gameId, result, reason) {
         status: 'completed',
         pgn: fullPgn,
         fen: game.fen(),
-        whiteRating: finalWhiteRating, // Cập nhật rating cuối cùng
+        whiteRating: finalWhiteRating,
         blackRating: finalBlackRating,
       });
     } else {
@@ -83,7 +88,7 @@ export async function endGame(io, activeGames, gameId, result, reason) {
     console.error("Lỗi khi kết thúc và lưu game:", err);
   }
 
-  // --- QUẢN LÝ BỘ NHỚ (Cleanup Logic) ---
+  // 4. Memory Cleanup
   if (gameData.cleanupTimer) {
     clearTimeout(gameData.cleanupTimer);
   }

@@ -91,13 +91,19 @@ function GamePage() {
 
   const getDisplayPlayer = (originalPlayer, side) => {
     if (!originalPlayer) return null;
+
     let currentRating = originalPlayer.rating;
     let diff = null;
 
-    if (gameResult?.newRating && gameResult.newRating[side] !== undefined) {
-      const newRating = gameResult.newRating[side];
-      diff = newRating - currentRating;
-      currentRating = newRating;
+    // The 'newRatings' object now comes directly from the 'gameOver' event payload.
+    if (gameResult?.newRatings) {
+      // Access the new rating for the correct side ('white' or 'black').
+      const newRating = gameResult.newRatings[side];
+
+      if (newRating !== undefined) {
+        diff = newRating - originalPlayer.rating;
+        currentRating = newRating;
+      }
     }
 
     return {

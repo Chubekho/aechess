@@ -47,7 +47,9 @@
 - **`utils/`**: Helper logic.
   - **`axiosConfig.js`**: **CRITICAL**. Custom axios instance with Auth Interceptors.
   - `avatarConfig.js`: Configuration for static avatar assets.
-  - `chessAnalysis.js`, `chessUtils.js`, `validators.js`.
+  - `chessAnalysis.js`: Engine analysis worker helpers.
+  - `chessUtils.js`: **Unified Utils**. Merged `gameHelpers.js`. Contains Board Layout, PGN Parsing, Material Calculation, and Formatters.
+  - `validators.js`: Form validation logic.
 
 ### Server (`/server`)
 

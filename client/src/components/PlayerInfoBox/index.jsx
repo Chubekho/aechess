@@ -1,7 +1,7 @@
 //client/src/components/PlayerInfoBox/index.jsx
 import styles from "./PlayerInfoBox.module.scss";
 import clsx from "clsx";
-import { formatTimeControl } from "@/utils/gameHelpers";
+import { formatTimeControl } from "@/utils/chessUtils";
 import CapturedPieces from "@/components/CapturedPieces";
 
 function PlayerInfoBox({

@@ -4,6 +4,7 @@ import { Link } from "react-router";
 import axiosClient from "@/utils/axiosConfig";
 import clsx from "clsx";
 import styles from "./GameHistory.module.scss";
+import { getMoveCountFromPgn } from "@/utils/chessUtils";
 import { TimeControlIcon, formatDate } from "./helpers.jsx";
 
 const PlayerInfo = ({ player, rating, color }) => {
@@ -91,15 +92,15 @@ function GameHistory({ limit = 10, userId }) {
                 </td>
                 <td className={styles.players}>
                   <div className={styles.playerNames}>
-                    <PlayerInfo 
-                      player={game.whitePlayer} 
-                      rating={game.whiteRating} 
-                      color="white" 
+                    <PlayerInfo
+                      player={game.whitePlayer}
+                      rating={game.whiteRating}
+                      color="white"
                     />
-                    <PlayerInfo 
-                      player={game.blackPlayer} 
-                      rating={game.blackRating} 
-                      color="black" 
+                    <PlayerInfo
+                      player={game.blackPlayer}
+                      rating={game.blackRating}
+                      color="black"
                     />
                   </div>
                 </td>
@@ -117,7 +118,7 @@ function GameHistory({ limit = 10, userId }) {
                     </Link>
                   </div>
                 </td>
-                <td className={styles.moves}>{game.moveCount || 0}</td>
+                <td className={styles.moves}>{getMoveCountFromPgn(game.pgn)}</td>
                 <td className={styles.date}>{formatDate(game.createdAt)}</td>
               </tr>
             ))

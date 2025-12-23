@@ -19,6 +19,7 @@
 - **`components/`**: Shared UI & Logic components.
   - **`guards/`**: Security Wrappers (`AdminGuard.jsx`).
   - **`AppRoute/`**: Centralized routing & Provider wrapping.
+  - **`ChessBoardCustom/`**: **Standardized Board Wrapper**. Encapsulates `react-chessboard` + Theme logic.
   - `GameInfoPanel/`, `MoveBoard/`, `CapturedPieces/`, `PlayerInfoBox/`: Core Gameplay UI.
   - `Modal/`, `ToastMessage/`: Feedback UI.
 - **`context/`**: Barrel exported via hooks.

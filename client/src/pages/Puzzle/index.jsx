@@ -1,11 +1,10 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/index";
 import { Chess } from "chess.js";
-import { Chessboard } from "react-chessboard";
+import ChessBoardCustom from "@/components/ChessBoardCustom";
 
 import axios from "axios";
 import clsx from "clsx";
-import { BOARD_THEMES } from "@/utils/themeConfig";
 import styles from "./Puzzle.module.scss";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -33,10 +32,6 @@ function PuzzlePage() {
   const [hasFailed, setHasFailed] = useState(false);
   const [isReplay, setIsReplay] = useState(false);
   const [history, setHistory] = useState([]);
-
-  // --- Theme ---
-  const savedTheme = localStorage.getItem("boardTheme") || "brown";
-  const themeColors = BOARD_THEMES[savedTheme] || BOARD_THEMES.brown;
 
   const loadPuzzleState = useCallback((puzzle) => {
     if (!puzzle || !puzzle.fen || !puzzle.moves.length) return;
@@ -349,19 +344,6 @@ function PuzzlePage() {
   };
 
   // --- OPTIONS ---
-  const chessboardOptions = useMemo(() => {
-    return {
-      position: fen,
-      onPieceDrop: onPieceDrop,
-      id: "PuzzleBoard",
-      boardOrientation: orientation,
-      animationDuration: 250,
-      squareStyles: hintSquares,
-      arrows,
-      lightSquareStyle: { backgroundColor: themeColors.white },
-      darkSquareStyle: { backgroundColor: themeColors.black },
-    };
-  }, [fen, onPieceDrop, orientation, hintSquares, arrows, themeColors]);
 
   return (
     <div className={clsx(styles.wrapper, "row", "gx-0")}>
@@ -427,9 +409,15 @@ function PuzzlePage() {
 
       {/* CỘT 2 (GIỮA): BÀN CỜ */}
       <div className={clsx("col-12 col-md-6", styles.boardArea)}>
-        <div className={styles.boardWrapper}>
-          <Chessboard options={chessboardOptions} />
-        </div>
+        <ChessBoardCustom
+          position={fen}
+          onPieceDrop={onPieceDrop}
+          id="PuzzleBoard"
+          boardOrientation={orientation}
+          animationDuration={250}
+          squareStyles={hintSquares}
+          arrows={arrows}
+        />
       </div>
 
       {/* CỘT 3 (PHẢI): ACTION */}

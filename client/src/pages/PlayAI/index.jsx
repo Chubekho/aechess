@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Chessboard } from "react-chessboard";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import clsx from "clsx";
-import styles from "./PlayAI.module.scss";
+
+import ChessBoardCustom from "@/components/ChessBoardCustom";
 import MoveBoard from "@/components/MoveBoard";
 import { useGameNavigation } from "@/hooks/index";
-import { BOARD_THEMES } from "@/utils/themeConfig";
+
+import styles from "./PlayAI.module.scss";
 
 const difficultyLevels = [
   { ui: 1, skill: 1 },
@@ -32,9 +33,6 @@ function PlayAI() {
   const [selectedDifficulty, setSelectedDifficulty] = useState(5);
   const [selectedColor, setSelectedColor] = useState("w");
   const [playerColor, setPlayerColor] = useState("w");
-
-  const savedTheme = localStorage.getItem("boardTheme") || "brown";
-  const themeColors = BOARD_THEMES[savedTheme] || BOARD_THEMES.brown;
 
   const updateGameHistory = useCallback(
     (moveSan) => {
@@ -146,22 +144,6 @@ function PlayAI() {
     setIsStarted(false);
   }
 
-  // 5. Memoize Options để tránh lỗi render vô hạn
-  const chessboardOptions = useMemo(() => {
-    return {
-      position: chessPosition,
-      onPieceDrop: onPieceDrop,
-      id: "PlayVsAI",
-      boardOrientation: playerColor === "b" ? "black" : "white",
-      customBoardStyle: {
-        borderRadius: "4px",
-        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
-      },
-      lightSquareStyle: { backgroundColor: themeColors.white },
-      darkSquareStyle: { backgroundColor: themeColors.black },
-    };
-  }, [chessPosition, onPieceDrop, playerColor, themeColors]);
-
   const renderSetupOptions = () => (
     <div className={styles["option-board"]}>
       <h3>Sức mạnh</h3>
@@ -209,7 +191,12 @@ function PlayAI() {
         <div className="col-3" />
         <div className="col-5">
           <div className={styles.board}>
-            <Chessboard options={chessboardOptions} />
+            <ChessBoardCustom
+              position={chessPosition}
+              onPieceDrop={onPieceDrop}
+              id="PlayVsAI"
+              boardOrientation={playerColor === "b" ? "black" : "white"}
+            />
           </div>
         </div>
 

@@ -5,9 +5,8 @@ import clsx from "clsx";
 
 import { useGameNavigation, useOnlineGame } from "@/hooks/index";
 import { getPlayerLayout, calculateMaterial } from "@/utils/chessUtils";
-import { BOARD_THEMES } from "@/utils/themeConfig";
 
-import { Chessboard } from "react-chessboard";
+import ChessBoardCustom from "@/components/ChessBoardCustom";
 import PlayerInfoBox from "@/components/PlayerInfoBox";
 import GameInfoPanel from "@/components/GameInfoPanel";
 import FlipBoardButton from "@/components/FlipBoardButton";
@@ -48,10 +47,6 @@ function GamePage() {
   const materialData = useMemo(() => {
     return calculateMaterial(fen);
   }, [fen]);
-
-  // --- Theme ---
-  const savedTheme = localStorage.getItem("boardTheme") || "brown";
-  const themeColors = BOARD_THEMES[savedTheme] || BOARD_THEMES.brown;
 
   const currentTurnColor = gameData?.turn === "w" ? "white" : "black";
   const isGameActive = gameStatus === "playing";
@@ -133,19 +128,6 @@ function GamePage() {
   const topClock = clocks[top.side === "white" ? "w" : "b"];
   const bottomClock = clocks[bottom.side === "white" ? "w" : "b"];
 
-  const chessboardOptions = useMemo(
-    () => ({
-      position: fen,
-      onPieceDrop: onPieceDrop,
-      id: "PlayVsPerson",
-      boardOrientation: boardOrientation,
-      arePiecesDraggable: !isSpectator && gameStatus === "playing",
-      lightSquareStyle: { backgroundColor: themeColors.white },
-      darkSquareStyle: { backgroundColor: themeColors.black },
-    }),
-    [fen, onPieceDrop, boardOrientation, isSpectator, gameStatus, themeColors]
-  );
-
   return (
     <div className={clsx(styles.wrapper, "row", "gx-6")}>
       <div className={clsx("col-3", styles.playerInfoColumn)}>
@@ -190,7 +172,13 @@ function GamePage() {
           </div>
         )}
         <div className={styles.board}>
-          <Chessboard options={chessboardOptions} />
+          <ChessBoardCustom
+            position={fen}
+            onPieceDrop={onPieceDrop}
+            id="PlayVsPerson"
+            boardOrientation={boardOrientation}
+            arePiecesDraggable={!isSpectator && gameStatus === "playing"}
+          />
         </div>
       </div>
       <div className={clsx("col-3", styles.panelArea, styles["col-height"])}>

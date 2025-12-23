@@ -1,7 +1,7 @@
 //client/src/hooks/useOnlineGame.js
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Chess } from "chess.js";
-import { useSocket } from "@/context/SocketContext";
+import { useSocket,useToast } from "@/hooks/index";
 import { useNavigate } from "react-router";
 
 export const useOnlineGame = (
@@ -15,6 +15,8 @@ export const useOnlineGame = (
   const socket = useSocket();
   const navigate = useNavigate();
   const gameRef = useRef(new Chess());
+  const toast = useToast();
+
 
   const [myColor, setMyColor] = useState(null);
   const [isSpectator, setIsSpectator] = useState(false);
@@ -156,14 +158,14 @@ export const useOnlineGame = (
     socket.on("drawOffered", () => setDrawStatus("offered_to_me"));
     socket.on("drawDeclined", () => {
       setDrawStatus("idle");
-      alert("Đối thủ từ chối hòa.");
+      toast.error("Đối thủ từ chối hòa.");
     });
 
     // F. Rematch
     socket.on("rematchOffered", () => setRematchStatus("offered_to_me"));
     socket.on("rematchDeclined", () => {
       setRematchStatus("idle");
-      alert("Đối thủ từ chối tái đấu.");
+      toast.error("Đối thủ từ chối tái đấu.");
     });
 
     // G. Error
@@ -188,6 +190,7 @@ export const useOnlineGame = (
     addMove,
     setFen,
     isSpectator,
+    toast
   ]);
 
   // --- 4. ACTION HANDLERS (Export ra để UI dùng) ---

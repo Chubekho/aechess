@@ -1,13 +1,10 @@
 // GameInfoPanel.module.scss
 
-// Import biến màu nếu file variable nằm ở src/styles/variables.scss (tuỳ cấu trúc dự án của bạn)
-// @import "@/styles/variables.scss";
-
 .wrapper {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #262522; /* Màu nền tối chủ đạo */
+  background-color: #262522;
   border-radius: 4px;
   overflow: hidden;
 }

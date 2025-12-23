@@ -79,7 +79,7 @@ export const ToastProvider = ({ children }) => {
               <i className="fa-solid fa-xmark"></i>
             </button>
 
-            <style jsx>{`
+            <style jsx="true">{`
               .${styles.toast}:last-child::after {
                 animation-duration: ${t.duration}ms;
               }

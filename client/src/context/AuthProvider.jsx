@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 
 import { AuthContext } from "./AuthContext";
+import { useToast } from "@/hooks/index";
 
 // 2. Create Provider (Wrapper Component)
 export const AuthProvider = ({ children }) => {
@@ -10,6 +11,7 @@ export const AuthProvider = ({ children }) => {
     () => localStorage.getItem("accessToken") || null
   );
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
 
   // Configure axios to send token with each request
   const api = useMemo(
@@ -54,6 +56,9 @@ export const AuthProvider = ({ children }) => {
           setUser(res.data);
         } catch (err) {
           console.error("Token expired or invalid, logging out:", err);
+          toast.error(
+            "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục."
+          );
           logout();
         }
       } else {
@@ -62,7 +67,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
     fetchUser();
-  }, [token, api, logout]);
+  }, [token, api, logout, toast]);
 
   // === Actions ===
 
@@ -86,11 +91,9 @@ export const AuthProvider = ({ children }) => {
         password,
       });
       // Save token
-      setToken(res.data.token); 
+      setToken(res.data.token);
       return res.data;
-
-    } catch (err)
-      {
+    } catch (err) {
       console.error("Registration error:", err);
       const msg = err.response?.data?.msg || "Registration failed";
       throw new Error(msg);
@@ -114,10 +117,11 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         loading,
-        manualSetToken, 
+        manualSetToken,
       }}
     >
-      {!loading && children} {/* Only render children after auth check is complete */}
+      {!loading && children}{" "}
+      {/* Only render children after auth check is complete */}
     </AuthContext.Provider>
   );
 };

@@ -2,7 +2,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useLocation } from "react-router";
 import { Chess } from "chess.js";
-import clsx from "clsx";
 
 import ChessBoardCustom from "@/components/ChessBoardCustom";
 import styles from "./Analysis.module.scss";
@@ -27,29 +26,24 @@ import AnalysisSettings from "./components/AnalysisSettings";
 import PlayerReportCard from "./components/PlayerReportCard";
 import FlipBoardButton from "@/components/FlipBoardButton";
 
-// FEN chuẩn của bàn cờ vua khi bắt đầu
+// FEN Mặc định của bàn cờ khi bắt đầu
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 function AnalysisPage() {
   const { id: gameId } = useParams();
   const { token, user } = useAuth();
-
   const location = useLocation();
 
-  // --- 1. State & Refs ---
-
-  // State UI
+  // --- State ---
   const [fen, setFen] = useState(START_FEN);
   const [pgnHeaders, setPgnHeaders] = useState({});
   const [pgn, setPgn] = useState(null);
   const [boardOrientation, setBoardOrientation] = useState("white");
-
-  // Engine Settings
   const [depth, setDepth] = useState(18);
   const [multiPV, setMultiPV] = useState(3);
   const [isAnalyzing, setIsAnalyzing] = useState(true);
 
-  // --- 2. Game Logic Hooks ---
+  // --- Game Logic & Data Fetching ---
   const {
     currentNode,
     rootNode,
@@ -59,8 +53,6 @@ function AnalysisPage() {
     loadHistory,
   } = useGameNavigation(setFen);
 
-  // --- FETCH DATA HOOK ---
-  // Gọi hook và truyền các hàm setter vào
   const { loading } = useAnalysisData(gameId, token, user, location.state, {
     setPgnHeaders,
     setPgn,
@@ -70,27 +62,23 @@ function AnalysisPage() {
     setBoardOrientation,
   });
 
-  // --- Engine & Analysis Hooks ---
   const gameResult = useMemo(() => {
     const tempGame = new Chess(fen);
-
     if (tempGame.isCheckmate()) {
-      // Nếu đến lượt Trắng đi mà bị chiếu hết -> Đen thắng ('b')
       const winner = tempGame.turn() === "w" ? "b" : "w";
       return { isGameOver: true, type: "checkmate", winner };
     }
-
     if (tempGame.isDraw()) {
-      let reason = "Hòa";
-      if (tempGame.isStalemate()) reason = "Hòa (Stalemate)";
-      if (tempGame.isThreefoldRepetition()) reason = "Hòa (Lặp lại 3 lần)";
-      if (tempGame.isInsufficientMaterial()) reason = "Hòa (Không đủ quân)";
-
+      let reason = "Draw";
+      if (tempGame.isStalemate()) reason = "Draw (Stalemate)";
+      if (tempGame.isThreefoldRepetition()) reason = "Draw (3-fold Rep.)";
+      if (tempGame.isInsufficientMaterial()) reason = "Draw (Material)";
       return { isGameOver: true, type: "draw", reason };
     }
-    return null; // Game chưa kết thúc
+    return null;
   }, [fen]);
 
+  // --- Engine & Analysis ---
   const { lines, isEngineReady } = useStockfish(fen, {
     depth,
     multiPV,
@@ -104,17 +92,6 @@ function AnalysisPage() {
     report,
   } = useFullGameAnalysis();
 
-  // --- 3. Fetch & Init Game Data ---
-  useEffect(() => {}, [
-    gameId,
-    token,
-    user,
-    resetNavigation,
-    loadHistory,
-    location.state,
-  ]);
-
-  // --- 5. AUTO RUN ANALYSIS ---
   useEffect(() => {
     if (pgn && !isReportAnalyzing && !report) {
       runAnalysis(pgn);
@@ -122,26 +99,19 @@ function AnalysisPage() {
   }, [pgn, isReportAnalyzing, report, runAnalysis]);
 
   const analysisMap = useMemo(() => {
-    if (!report || !report.moves) return {};
-
+    if (!report?.moves) return {};
     const map = {};
     report.moves.forEach((move) => {
-      // Dùng move.fen làm key duy nhất
-      map[move.fen] = {
-        type: move.type,
-        // score: move.score // Có thể lưu thêm score nếu muốn hiển thị
-      };
+      map[move.fen] = { type: move.type };
     });
     return map;
   }, [report]);
 
-  // --- 6. Helper & Handlers ---
-  // Hàm đảo ngược bàn cờ thủ công
+  // --- Handlers ---
   const handleFlipBoard = () => {
     setBoardOrientation((prev) => (prev === "white" ? "black" : "white"));
   };
 
-  // 5. Logic OnPieceDrop
   const onPieceDrop = useCallback(
     ({ sourceSquare, targetSquare }) => {
       const tempGame = new Chess(fen);
@@ -156,36 +126,32 @@ function AnalysisPage() {
         setFen(tempGame.fen());
         return true;
       } catch (e) {
-        console.log(e);
+        console.error(e);
         return false;
       }
     },
     [fen, addMove]
   );
 
-  // 4. Arrows logic
   const arrows = useMemo(() => {
-    const result = [];
-
-    if (isAnalyzing && lines.length > 0) {
-      lines.forEach((line, index) => {
-        if (line.bestMove) {
-          const { from, to } = line.bestMove;
-          let opacity = 1.0;
-          if (index === 1) opacity = 0.6;
-          if (index >= 2) opacity = 0.3;
-          result.push({
-            startSquare: from,
-            endSquare: to,
-            color: `rgba(0, 128, 0, ${opacity})`,
-          });
-        }
-      });
-    }
-    return result;
+    if (!isAnalyzing || lines.length === 0) return [];
+    return lines
+      .map((line, index) => {
+        if (!line.bestMove) return null;
+        const { from, to } = line.bestMove;
+        let opacity = 1.0;
+        if (index === 1) opacity = 0.6;
+        if (index >= 2) opacity = 0.3;
+        return {
+          startSquare: from,
+          endSquare: to,
+          color: `rgba(0, 128, 0, ${opacity})`,
+        };
+      })
+      .filter(Boolean);
   }, [lines, isAnalyzing]);
 
-  // Player Info & Layout Data
+  // --- Player Info & Layout ---
   const whitePlayerInfo = {
     name: pgnHeaders.White || "White",
     rating: pgnHeaders.WhiteElo,
@@ -195,7 +161,6 @@ function AnalysisPage() {
     rating: pgnHeaders.BlackElo,
   };
 
-  // 2. Gọi Helper (Truyền cả Report)
   const { top, bottom } = getPlayerLayout(
     boardOrientation,
     whitePlayerInfo,
@@ -215,14 +180,18 @@ function AnalysisPage() {
     />
   );
 
-  if (loading)
-    return <div className="text-center p-5">Loading game data...</div>;
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "20px" }}>
+        Loading game data...
+      </div>
+    );
+  }
 
   return (
-    <div className={clsx(styles.wrapper, "row", "gx-6")}>
-      {/* --- CỘT 1 (TRÁI): THÔNG TIN PLAYER & REPORT --- */}
-      <div className={clsx("col-3", styles.playerInfoColumn)}>
-        {/* PLAYER Ở TRÊN (TOP) */}
+    <div className={styles.analysisWrapper}>
+      {/* 1. Left Panel: Players & Reports */}
+      <div className={styles.leftPanel}>
         <div className={styles.playerBlock}>
           <PlayerInfoBox
             player={top.player}
@@ -236,10 +205,7 @@ function AnalysisPage() {
             </div>
           )}
         </div>
-
         <Divider />
-
-        {/* PLAYER Ở DƯỚI (BOTTOM) */}
         <div className={styles.playerBlock}>
           <PlayerInfoBox
             player={bottom.player}
@@ -255,9 +221,9 @@ function AnalysisPage() {
         </div>
       </div>
 
-      {/* --- CỘT 2 (6/12): BÀN CỜ + EVAL BAR --- */}
-      <div className={clsx("col-6", styles.boardContainerFlex)}>
-        <div className={styles.evalColumn}>
+      {/* 2. Center: Eval Bar + Board */}
+      <div className={styles.boardContainer}>
+        <div className={styles.evalBarWrapper}>
           <EvaluationBar
             evaluation={
               lines[0]
@@ -271,30 +237,26 @@ function AnalysisPage() {
             isAnalyzing={isAnalyzing}
           />
         </div>
-
         <div className={styles.boardWrapper}>
           <ChessBoardCustom
             position={fen}
             arrows={arrows}
             onPieceDrop={onPieceDrop}
             boardOrientation={boardOrientation}
-            arePiecesDraggable={true} // Always true for analysis
-            customBoardStyle={{
-              borderRadius: "4px",
-              boxShadow: "0 5px 15px rgba(0, 0, 0, 0.5)",
-            }}
+            arePiecesDraggable={true}
           />
         </div>
+        <FlipBoardButton
+          onClick={handleFlipBoard}
+          className={styles.flipBtn} 
+        />
       </div>
 
-      {/* --- CỘT 3 (3/12): PANEL PHÂN TÍCH --- */}
-      <div className={clsx("col-3", styles.panelArea)}>
+      {/* 3. Right Panel: Engine & Moves */}
+      <div className={styles.rightPanel}>
         <div className={styles.panelContainer}>
-          <div className={styles.panelHeaderActions}>
-            <FlipBoardButton onClick={handleFlipBoard} />
-          </div>
           <div className={styles.panelHeader}>
-            <h2>Phân tích & Engine</h2>
+            <h2>Analysis & Engine</h2>
             <label className={styles.engineToggle}>
               <input
                 type="checkbox"
@@ -304,7 +266,6 @@ function AnalysisPage() {
               <span className={styles.slider}></span>
             </label>
           </div>
-
           <div className={styles.engineOutputSection}>
             <AnalysisSettings
               depth={depth}
@@ -319,7 +280,6 @@ function AnalysisPage() {
               gameResult={gameResult}
             />
           </div>
-
           <div className={styles.moveListSection}>
             <MoveBoard
               rootNode={rootNode}
@@ -329,13 +289,9 @@ function AnalysisPage() {
               analysisData={analysisMap}
             />
           </div>
-
-          {/* CHỈ HIỂN THỊ LOADING BAR Ở ĐÂY (Vì Report Card đã chuyển sang trái) */}
           {isReportAnalyzing && (
             <div className={styles.analyzingState}>
-              <p style={{ color: "#aaa", fontSize: "1.3rem" }}>
-                Đang phân tích... {reportProgress}%
-              </p>
+              <p>Analyzing... {reportProgress}%</p>
               <div className={styles.progressBar}>
                 <div style={{ width: `${reportProgress}%` }}></div>
               </div>

@@ -127,7 +127,7 @@ function Lobby() {
   }, [searchState]);
 
   const handleFindMatch = (timeControl) => {
-    if (!socket) return alert("Chưa kết nối server!");
+    if (!socket) return toast.error("Bạn cần đăng nhập để oánh online!");
     if (timeControl === "custom")
       return toast.error("Chế độ chưa hỗ trợ !", 3000);
     startTimeRef.current = null;
@@ -292,7 +292,7 @@ function Lobby() {
                   </div>
                 </>
               ) : (
-                <p>Đang tải...</p>
+                <p>Đăng nhập đi ní ^^</p>
               )}
             </div>
           </div>

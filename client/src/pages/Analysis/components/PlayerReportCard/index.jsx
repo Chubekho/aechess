@@ -29,7 +29,7 @@ function PlayerReportCard({ stats }) {
             <span className={styles.icon} style={{ color: '#96bc4b' }}>
               <i className="fa-solid fa-star"></i>
             </span>
-            <span className={styles.label}>Tuyệt vời (Best)</span>
+            <span className={styles.label}>Tuyệt vời</span>
           </div>
           <span className={styles.value}>{stats.best}</span>
         </div>
@@ -40,7 +40,7 @@ function PlayerReportCard({ stats }) {
             <span className={styles.icon} style={{ color: '#98bf64' }}>
               <i className="fa-solid fa-thumbs-up"></i>
             </span>
-            <span className={styles.label}>Tốt (Good)</span>
+            <span className={styles.label}>Tốt</span>
           </div>
           <span className={styles.value}>{stats.good}</span>
         </div>
@@ -51,7 +51,7 @@ function PlayerReportCard({ stats }) {
             <span className={styles.icon} style={{ color: '#f0c15c' }}>
               <i className="fa-solid fa-circle-question"></i>
             </span>
-            <span className={styles.label}>Sai lầm (Mistake)</span>
+            <span className={styles.label}>Sai lầm</span>
           </div>
           <span className={styles.value}>{stats.mistake}</span>
         </div>
@@ -62,7 +62,7 @@ function PlayerReportCard({ stats }) {
             <span className={styles.icon} style={{ color: '#fa5c5c' }}>
               <i className="fa-solid fa-circle-xmark"></i>
             </span>
-            <span className={styles.label}>Nghiêm trọng (Blunder)</span>
+            <span className={styles.label}>Nghiêm trọng</span>
           </div>
           <span className={styles.value}>{stats.blunder}</span>
         </div>

@@ -12,6 +12,7 @@ const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 function PuzzlePage() {
   const { token, user } = useAuth();
   const gameRef = useRef(new Chess());
+  const activeHistoryRef = useRef(null);
 
   // --- STATE ---
   const [fen, setFen] = useState(START_FEN);
@@ -135,6 +136,15 @@ function PuzzlePage() {
     fetchNextPuzzle();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (activeHistoryRef.current) {
+      activeHistoryRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [puzzleData, history]);
 
   // --- API: Gửi kết quả ---
   const submitResult = useCallback(
@@ -346,32 +356,31 @@ function PuzzlePage() {
   // --- OPTIONS ---
 
   return (
-    <div className={clsx(styles.wrapper, "row", "gx-0")}>
-      {/* CỘT 1 (TRÁI): THÔNG TIN */}
-      <div className={clsx("col-12 col-md-3", styles.infoPanel)}>
-        <div className={styles.infoContent}>
-          <div className={styles.ratingBox}>
-            <span className={styles.label}>Your Rating</span>
-            <div className={styles.score}>
-              {userRating}
-              {ratingChange !== 0 && !isReplay && (
-                <span className={ratingChange > 0 ? styles.gain : styles.loss}>
-                  {ratingChange > 0 ? `+${ratingChange}` : ratingChange}
-                </span>
-              )}
-            </div>
+    <div className={styles.puzzleWrapper}>
+      {/* LEFT PANEL: INFO */}
+      <div className={styles.leftPanel}>
+        <div className={styles.ratingBox}>
+          <span className={styles.label}>Your Rating</span>
+          <div className={styles.score}>
+            {userRating}
+            {ratingChange !== 0 && !isReplay && (
+              <span className={ratingChange > 0 ? styles.gain : styles.loss}>
+                {ratingChange > 0 ? `+${ratingChange}` : ratingChange}
+              </span>
+            )}
           </div>
+        </div>
 
-          {/* --- KHỐI HISTORY BAR (MỚI) --- */}
-          <div className={styles.historyBar}>
-            {history.map((item, index) => (
+        <div className={styles.historyBar}>
+          {history.map((item) => {
+            const isActive = puzzleData?.puzzleId === item.id;
+            return (
               <div
-                key={index}
-                className={clsx(
-                  styles.historyItem,
-                  styles[item.result], // class: success, failed, hoặc current
-                  { [styles.active]: puzzleData?.puzzleId === item.id } // Highlight bài đang chọn
-                )}
+                key={item.id}
+                ref={isActive ? activeHistoryRef : null}
+                className={clsx(styles.historyItem, styles[item.result], {
+                  [styles.active]: isActive,
+                })}
                 onClick={() => handleReviewPuzzle(item)}
                 title={
                   item.ratingChange > 0
@@ -383,32 +392,31 @@ function PuzzlePage() {
                   ? `+${item.ratingChange}`
                   : item.ratingChange}
               </div>
-            ))}
-          </div>
-          {/* ----------------------------- */}
+            );
+          })}
+        </div>
 
-          <div className={styles.puzzleMeta}>
-            <div className={styles.metaItem}>
-              <i className="fa-solid fa-trophy"></i>
-              <span>
-                Puzzle Rating:{" "}
-                <strong>
-                  {puzzleData?.rating ? Math.floor(puzzleData.rating) : "..."}
-                </strong>
-              </span>
-            </div>
-            <div className={styles.metaItem}>
-              <i className="fa-solid fa-tags"></i>
-              <span className={styles.themes}>
-                {puzzleData?.themes?.slice(0, 3).join(", ").replace(/_/g, " ")}
-              </span>
-            </div>
+        <div className={styles.puzzleMeta}>
+          <div className={styles.metaItem}>
+            <i className="fa-solid fa-trophy"></i>
+            <span>
+              Puzzle Rating:{" "}
+              <strong>
+                {puzzleData?.rating ? Math.floor(puzzleData.rating) : "..."}
+              </strong>
+            </span>
+          </div>
+          <div className={styles.metaItem}>
+            <i className="fa-solid fa-tags"></i>
+            <span className={styles.themes}>
+              {puzzleData?.themes?.slice(0, 3).join(", ").replace(/_/g, " ")}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* CỘT 2 (GIỮA): BÀN CỜ */}
-      <div className={clsx("col-12 col-md-6", styles.boardArea)}>
+      {/* CENTER: BOARD */}
+      <div className={styles.boardArea}>
         <ChessBoardCustom
           position={fen}
           onPieceDrop={onPieceDrop}
@@ -420,74 +428,69 @@ function PuzzlePage() {
         />
       </div>
 
-      {/* CỘT 3 (PHẢI): ACTION */}
-      <div className={clsx("col-12 col-md-3", styles.actionPanel)}>
-        <div className={styles.actionContent}>
-          <div
-            className={clsx(
-              styles.turnIndicator,
-              status === "success" ? styles.success : styles.playing
-            )}
-          >
-            {status === "loading" && "Đang tải..."}
-            {status === "playing" && (
-              <>
-                <i
-                  className={`fa-solid fa-circle ${
-                    orientation === "white"
-                      ? styles.iconWhite
-                      : styles.iconBlack
-                  }`}
-                ></i>
-                <span>
-                  Lượt bạn đi ({orientation === "white" ? "Trắng" : "Đen"})
-                </span>
-              </>
-            )}
-            {status === "success" && (
+      {/* RIGHT PANEL: ACTIONS */}
+      <div className={styles.rightPanel}>
+        <div
+          className={clsx(
+            styles.turnIndicator,
+            status === "success" ? styles.success : styles.playing
+          )}
+        >
+          {status === "loading" && "Đang tải..."}
+          {status === "playing" && (
+            <>
+              <i
+                className={`fa-solid fa-circle ${
+                  orientation === "white" ? styles.iconWhite : styles.iconBlack
+                }`}
+              ></i>
               <span>
-                <i className="fa-solid fa-check"></i> Hoàn thành!
+                Lượt bạn đi ({orientation === "white" ? "Trắng" : "Đen"})
               </span>
-            )}
-          </div>
-
+            </>
+          )}
+          {status === "success" && (
+            <span>
+              <i className="fa-solid fa-check"></i> Hoàn thành!
+            </span>
+          )}
+        </div>
+        {message && (
           <div className={styles.messageBox}>
-            {message && (
-              <p className={hasFailed ? styles.textWarn : styles.textInfo}>
-                {message}
-              </p>
-            )}
+            <p className={hasFailed ? styles.textWarn : styles.textInfo}>
+              {message}
+            </p>
           </div>
+        )}
 
-          <div className={styles.btnGroup}>
-            {status === "playing" ? (
-              <>
-                <button
-                  className={styles.hintBtn}
-                  onClick={handleHint}
-                  title="- Điểm"
-                >
-                  <i className="fa-solid fa-lightbulb"></i> Gợi ý
-                </button>
-                <button
-                  className={styles.solutionBtn}
-                  onClick={handleSolution}
-                  title="- Điểm"
-                >
-                  <i className="fa-solid fa-eye"></i> Đáp án
-                </button>
-              </>
-            ) : (
-              <>
-                <button className={styles.retryBtn} onClick={handleRetry}>
-                  <i className="fa-solid fa-rotate-left"></i> Giải lại
-                </button>
-                <button className={styles.nextBtn} onClick={fetchNextPuzzle}>
-                  Puzzle Mới <i className="fa-solid fa-arrow-right"></i>
-                </button>
-              </>
-            )}
-          </div>
+        <div className={styles.btnGroup}>
+          {status === "playing" ? (
+            <>
+              <button
+                className={styles.hintBtn}
+                onClick={handleHint}
+                title="- Điểm"
+              >
+                <i className="fa-solid fa-lightbulb"></i> Gợi ý
+              </button>
+              <button
+                className={styles.solutionBtn}
+                onClick={handleSolution}
+                title="- Điểm"
+              >
+                <i className="fa-solid fa-eye"></i> Đáp án
+              </button>
+            </>
+          ) : (
+            <>
+              <button className={styles.retryBtn} onClick={handleRetry}>
+                <i className="fa-solid fa-rotate-left"></i> Giải lại
+              </button>
+              <button className={styles.nextBtn} onClick={fetchNextPuzzle}>
+                Puzzle Mới <i className="fa-solid fa-arrow-right"></i>
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

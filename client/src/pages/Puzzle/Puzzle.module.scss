@@ -1,31 +1,59 @@
-/* Puzzle.module.scss */
+:root {
+  --color-btn-warning: #e58f2a;
+}
 
-.wrapper {
+.puzzleWrapper {
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) auto minmax(250px, 1fr);
+  grid-template-areas: "left board right";
   height: calc(100vh - var(--header-height));
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px;
   width: 100%;
-  display: flex;
 }
 
-/* --- LEFT PANEL: INFO --- */
-.infoPanel {
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Căn giữa dọc */
-}
-
-.infoContent {
-  padding: 30px;
+/* --- PANELS --- */
+.leftPanel {
+  grid-area: left;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 20px 0;
 }
 
+.boardArea {
+  grid-area: board;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  > div { // Direct child, which is the ChessBoardCustom's wrapper
+    width: 100%;
+    height: 100%;
+    max-height: calc(100vh - var(--header-height) - 40px);
+    aspect-ratio: 1/1;
+  }
+}
+
+.rightPanel {
+  grid-area: right;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+/* --- LEFT PANEL CONTENT --- */
 .ratingBox {
   background-color: var(--color-board-dark);
   padding: 15px;
   border-radius: 8px;
   text-align: center;
-  margin-bottom: 20px;
 
   .label {
     text-transform: uppercase;
@@ -64,6 +92,9 @@
     gap: 10px;
     margin-bottom: 10px;
     color: var(--color-text-l-dark);
+    &:last-child {
+      margin-bottom: 0;
+    }
     i {
       width: 20px;
       text-align: center;
@@ -78,36 +109,7 @@
   }
 }
 
-/* --- CENTER: BOARD --- */
-.boardArea {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-.boardWrapper {
-  width: 80%;
-  aspect-ratio: 1/1;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-/* --- RIGHT PANEL: ACTIONS --- */
-.actionPanel {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.actionContent {
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
+/* --- RIGHT PANEL CONTENT --- */
 .turnIndicator {
   display: flex;
   align-items: center;
@@ -170,9 +172,8 @@
   }
 }
 
-/* Button Colors */
 .hintBtn {
-  background-color: #e58f2a;
+  background-color: var(--color-btn-warning);
   color: #fff;
 }
 
@@ -192,31 +193,30 @@
   color: #fff;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-  .wrapper {
-    flex-direction: column;
-    height: auto;
-  }
-
-  .infoPanel,
-  .actionPanel {
-    border: none;
-    border-top: 1px solid var(--color-border);
-    padding: 10px 0;
-  }
-
-  .boardArea {
-    padding: 10px;
-  }
-}
-
-/* HISTORY BAR */
+/* --- HISTORY BAR --- */
 .historyBar {
   display: flex;
   gap: 5px;
-  margin-top: 15px; /* Cách rating box một chút */
   flex-wrap: wrap;
+  max-height: 150px;
+  overflow-y: auto;
+  padding-right: 5px;
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: var(--color-board-dark);
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-board-control);
+    border-radius: 4px;
+    &:hover {
+      background: var(--color-text-primary);
+    }
+  }
 }
 
 .historyItem {
@@ -231,7 +231,7 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: transform 0.2s, filter 0.2s;
-  background-color: var(--color-board-control); /* Mặc định */
+  background-color: var(--color-board-control);
 
   &:hover {
     transform: translateY(-2px);
@@ -247,7 +247,49 @@
   }
 
   &.current {
-    background-color: #d64f00; /* Màu cam highlight */
+    background-color: var(--color-highlight);
     border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  // &.active {
+  //   box-shadow: 0 0 0 3px var(--color-highlight);
+  // }
+}
+
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 1024px) {
+  .puzzleWrapper {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow-y: auto;
+    padding: 10px;
+    gap: 0;
+  }
+
+  .boardArea {
+    order: 1;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 0;
+    max-height: none; // Reset max-height for mobile
+
+    > div {
+      max-height: none; // Ensure inner div also resets
+    }
+  }
+
+  .rightPanel {
+    order: 2;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 0;
+  }
+
+  .leftPanel {
+    order: 3;
+    width: 100%;
+    padding: 0;
   }
 }

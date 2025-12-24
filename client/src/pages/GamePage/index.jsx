@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { useSocket } from "@/context/SocketContext";
-import clsx from "clsx";
+// import clsx from "clsx";
 
 import { useGameNavigation, useOnlineGame } from "@/hooks/index";
 import { getPlayerLayout, calculateMaterial } from "@/utils/chessUtils";
@@ -135,43 +135,35 @@ function GamePage() {
   const bottomClock = clocks[bottom.side === "white" ? "w" : "b"];
 
   return (
-    <div className={clsx(styles.wrapper, "row", "gx-6")}>
-      <div className={clsx("col-3", styles.playerInfoColumn)}>
-        <div className={styles.playerBlock}>
-          <PlayerInfoBox
-            player={top.player}
-            timeControl={topClock}
-            variant="top"
-            side={top.side}
-            material={materialData[top.side]}
-            isTurn={isGameActive && currentTurnColor === top.side}
-            ratingDiff={top.player?.ratingDiff}
-          />
-        </div>
-
-        <div
-          style={{
-            height: "1px",
-            backgroundColor: "#3a3836",
-            margin: "15px 0",
-            width: "60%",
-          }}
+    <div className={styles.gamePageWrapper}>
+      {/* Player Top */}
+      <div className={styles.playerTop}>
+        <PlayerInfoBox
+          player={top.player}
+          timeControl={topClock}
+          variant="top"
+          side={top.side}
+          material={materialData[top.side]}
+          isTurn={isGameActive && currentTurnColor === top.side}
+          ratingDiff={top.player?.ratingDiff}
         />
-
-        <div className={styles.playerBlock}>
-          <PlayerInfoBox
-            player={bottom.player}
-            timeControl={bottomClock}
-            variant="bottom"
-            side={bottom.side}
-            material={materialData[bottom.side]}
-            isTurn={isGameActive && currentTurnColor === bottom.side}
-            ratingDiff={bottom.player?.ratingDiff}
-          />
-        </div>
       </div>
 
-      <div className={clsx("col-6", styles.boardArea, styles["col-height"])}>
+      {/* Player Bottom */}
+      <div className={styles.playerBottom}>
+        <PlayerInfoBox
+          player={bottom.player}
+          timeControl={bottomClock}
+          variant="bottom"
+          side={bottom.side}
+          material={materialData[bottom.side]}
+          isTurn={isGameActive && currentTurnColor === bottom.side}
+          ratingDiff={bottom.player?.ratingDiff}
+        />
+      </div>
+
+      {/* Board Area */}
+      <div className={styles.boardArea}>
         {isSpectator && (
           <div className={styles.spectatorBadge}>
             <i className="fa-solid fa-eye"></i> Bạn đang xem trận đấu
@@ -186,18 +178,21 @@ function GamePage() {
             arePiecesDraggable={!isSpectator && gameStatus === "playing"}
           />
         </div>
-      </div>
-      <div className={clsx("col-3", styles.panelArea, styles["col-height"])}>
         <FlipBoardButton
           onClick={handleFlipBoard}
           className={styles.gamePageFlipBtn}
         />
+      </div>
+
+      {/* Panel Area */}
+      <div className={styles.panelArea}>
         <GameInfoPanel
           gameId={gameId}
           rootNode={rootNode}
           currentNode={currentNode}
           onNavigate={handleNavigation}
           showVariations={false}
+  
           gameStatus={gameStatus}
           isSpectator={isSpectator}
           gameResult={gameResult}

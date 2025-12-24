@@ -15,7 +15,6 @@ const ChessBoardCustom = (props) => {
       darkSquareStyle: { backgroundColor: themeColors.black },
       customBoardStyle: {
         borderRadius: '4px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.5)',
         ...customBoardStyle,
       },
     };

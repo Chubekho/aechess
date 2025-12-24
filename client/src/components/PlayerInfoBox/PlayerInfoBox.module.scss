@@ -143,3 +143,11 @@
     transform: translateY(0);
   }
 }
+
+@media (max-width: 1024px) {
+  .wrapper {
+    width: 100%;
+    max-width: none;
+    padding: 8px;
+  }
+}

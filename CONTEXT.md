@@ -197,6 +197,18 @@
 - **NO MAPPING**: Do **NOT** manually map `_id` to `id` in Controllers. Return the raw Mongoose object or `toObject()`.
 - **FRONTEND**: Client components must access `user._id` or `game._id`. Do NOT assume `.id` exists.
 
+**E. UI/UX & Layout Standards (Game Views)**
+
+- **Layout Philosophy**: "Desktop First", Viewport-Constrained (100vh). No main page scrollbar on Desktop during gameplay.
+- **Grid System**: Prefer **CSS Grid** (Template Areas) over Bootstrap (`row/col`) for the main Game Layout to handle complex positioning (e.g., centering players).
+- **Responsive Strategy (Mobile)**:
+  - Switch to **Flexbox Column**.
+  - **Flatten JSX**: Avoid deep nesting wrapper divs (like `.leftColumn`) to allow Flexbox `order` property to re-arrange components (Top Player -> Board -> Bottom Player -> Info).
+  - Use `100dvh` (Dynamic Viewport Height) for mobile containers.
+- **Components**:
+  - **Board**: Always use `aspect-ratio: 1/1`. Height is the limiting factor on Desktop (`calc(100vh - header)`).
+  - **Panels**: Must implement internal scrolling (`overflow-y: auto`) to prevent pushing the page layout.
+
 ## 8. Environment Variables
 
 ```env

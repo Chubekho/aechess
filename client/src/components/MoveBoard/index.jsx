@@ -53,14 +53,23 @@ function MoveBoard({
 }) {
   const scrollRef = useRef(null);
   const activeMoveRef = useRef(null);
+  const movesEndRef = useRef(null);
 
-  // Auto-scroll
+  // Auto-scroll to the active move when navigating history
   useEffect(() => {
     if (activeMoveRef.current) {
       activeMoveRef.current.scrollIntoView({
         behavior: "smooth",
         block: "nearest",
       });
+    }
+  }, [currentNode]);
+
+  // Auto-scroll to the end of the moves list for the latest move
+  useEffect(() => {
+    // Only scroll to the end if the user is viewing the latest move
+    if (currentNode && currentNode.children.length === 0) {
+      movesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [currentNode]);
 
@@ -249,6 +258,7 @@ function MoveBoard({
         ) : (
           <div className={styles.emptyText}>Chưa có nước đi</div>
         )}
+        <div ref={movesEndRef} />
       </div>
     </div>
   );

@@ -16,129 +16,267 @@
 }
 
 /* --- Grid Area Assignments & Alignment (Desktop) --- */
+
 .playerTop {
+
   grid-area: playerTop;
+
   align-self: end;
+
   margin-bottom: 15px;
+
   display: flex;
+
   justify-content: center;
+
   width: 100%;
+
 }
+
+
 
 .playerBottom {
+
   grid-area: playerBottom;
+
   align-self: start;
+
   margin-top: 15px;
+
   display: flex;
+
   justify-content: center;
+
   width: 100%;
+
 }
+
+
 
 .boardArea {
+
   grid-area: board;
+
   grid-row: 1 / -1; /* Span both rows */
+
   position: relative;
+
   display: flex;
+
   justify-content: center;
+
   align-items: center;
+
   height: 100%;
+
 }
 
+
+
 .panelArea {
+
   grid-area: panel;
+
   grid-row: 1 / -1; /* Span both rows */
+
   height: 100%;
+
   max-height: calc(100vh - var(--header-height) - (var(--board-padding) * 2));
+
   overflow: hidden;
+
 }
+
+
+
 
 
 /* --- Board Sizing --- */
+
 .board {
+
   aspect-ratio: 1/1;
+
   width: auto;
+
   height: 100%;
+
   max-height: calc(100vh - var(--header-height) - (var(--board-padding) * 2));
+
   border-radius: 4px;
+
   overflow: hidden;
+
   box-shadow: var(--group-shadow);
+
 }
+
+
 
 /* --- Common UI Elements --- */
+
 .spectatorBadge {
+
   position: absolute;
+
   top: 0;
+
   left: 50%;
+
   transform: translateX(-50%);
+
   background-color: rgba(0, 0, 0, 0.5);
+
   color: white;
+
   padding: 5px 15px;
+
   border-radius: 0 0 10px 10px;
+
   font-size: 1.2rem;
+
   z-index: 10;
+
   i {
+
     margin-right: 8px;
+
   }
+
 }
+
+
 
 .gamePageFlipBtn {
+
   position: absolute;
-  bottom: -15px;
-  right: -5px;
+
+  top: 0;
+
+  right: -45px;
+
   z-index: 10;
+
+  opacity: 0.7;
+
+  transition: opacity 0.2s ease-in-out;
+
+
+
+  &:hover {
+
+    opacity: 1;
+
+  }
+
 }
 
+
+
 /* --- Responsive Layout (Mobile / Tablet) --- */
+
 @media (max-width: 1024px) {
+
   .gamePageWrapper {
+
     display: flex;
+
     flex-direction: column;
+
     height: auto; /* Allow the container to grow and scroll */
+
     padding: 10px;
+
     gap: 0; /* Reset gap for flex layout */
+
   }
+
+
 
   /* Reset grid-specific styles */
+
   .playerTop, .playerBottom, .boardArea, .panelArea {
+
     grid-area: unset;
+
     grid-row: unset;
+
     align-self: unset;
+
     justify-self: unset;
+
     margin: 0;
+
     width: 100%;
+
     max-height: none;
+
   }
+
+
 
   /* --- Mobile Ordering --- */
+
   .playerTop { order: 1; }
+
   .boardArea { order: 2; }
+
   .playerBottom { order: 3; }
+
   .panelArea { order: 4; }
 
+
+
   /* --- Mobile Sizing & Spacing --- */
+
   .playerTop, .playerBottom {
+
     padding: 5px 0;
+
   }
+
   
+
   .boardArea {
+
     padding: 15px 0;
+
   }
+
+
 
   .board {
+
     width: 100%;
+
     height: auto; /* Allow height to be set by aspect-ratio */
+
     max-height: none;
+
     margin: 0 auto;
+
   }
+
+
 
   .panelArea {
+
     height: 45vh; /* Fixed height for the panel */
+
     min-height: 350px; /* Ensure it's usable even on small viewports */
+
   }
 
+
+
   .gamePageFlipBtn {
-    top: -15px;
-    right: -5px;
+
+    top: 5px;
+
+    right: 5px;
+
     bottom: auto;
+
   }
+
 }

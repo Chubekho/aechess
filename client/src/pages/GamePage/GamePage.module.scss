@@ -125,9 +125,9 @@
 
   transform: translateX(-50%);
 
-  background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--color-bg-spectator-badge);
 
-  color: white;
+    color: var(--color-text-hover);
 
   padding: 5px 15px;
 

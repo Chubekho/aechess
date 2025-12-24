@@ -80,7 +80,7 @@
     /* Class .active khi được chọn */
     &.active {
       background-color: var(--color-btn-green);
-      color: var(--color-text-hover, #fff);
+      color: var(--color-text-hover);
     }
   }
 }
@@ -113,7 +113,7 @@
 
     &.active {
       background-color: var(--color-btn-green);
-      color: var(--color-text-hover, #fff); /* Màu chữ cho các icon */
+      color: var(--color-text-hover); /* Màu chữ cho các icon */
       border-color: var(--color-btn-green); /* MỚI: Đổi màu border khi active */
 
       // Khi nút active, icon bên trong sẽ có màu theo --color-text-hover
@@ -122,7 +122,7 @@
       .iconRandom {
         mask-image: none; /* Xóa mask để dùng màu color */
         -webkit-mask-image: none;
-        color: var(--color-text-hover, #fff);
+        color: var(--color-text-hover);
       }
     }
 
@@ -130,7 +130,7 @@
     i.fa-chess-king {
       font-size: 24px; /* Kích thước icon lớn hơn */
       // Đặt màu mặc định cho icon
-      color: #333; // Màu xám đậm mặc định khi không active
+      color: var(--color-icon-default); // Màu xám đậm mặc định khi không active
       -webkit-mask-size: cover; // Quan trọng cho mask-image
       mask-size: cover;
     }
@@ -140,15 +140,15 @@
 /* MỚI: Style cụ thể cho từng icon màu */
 /* MỚI: Style cụ thể cho từng icon màu */
 .iconWhite {
-  color: #f0f0f0; // Màu trắng cho icon
-  -webkit-text-fill-color: #f0f0f0;
+  color: var(--color-piece-white); // Màu trắng cho icon
+  -webkit-text-fill-color: var(--color-piece-white);
   -webkit-mask-image: none;
   mask-image: none;
 }
 
 .iconBlack {
-  color: #000; // Màu đen cho icon
-  -webkit-text-fill-color: #000;
+  color: var(--color-piece-black); // Màu đen cho icon
+  -webkit-text-fill-color: var(--color-piece-black);
   -webkit-mask-image: none;
   mask-image: none;
 }
@@ -158,8 +158,8 @@
   /* 1. Dùng background-image để tạo gradient màu */
   background-image: linear-gradient(
     to right,
-    #f0f0f0 50%,
-    /* 50% bên trái màu trắng */ #000 50% /* 50% bên phải màu đen */
+    var(--color-piece-white) 50%,
+    /* 50% bên trái màu trắng */ var(--color-piece-black) 50% /* 50% bên phải màu đen */
   );
 
   /* 2. Clip (cắt) background theo hình dạng của icon */
@@ -188,7 +188,7 @@
   font-size: 2rem;
   font-weight: 200;
   background-color: var(--color-board-control);
-  color: white;
+  color: var(--color-text-hover);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -223,7 +223,7 @@
     &:last-child:hover {
       // Nút "Đầu hàng"
       background-color: var(--color-highlight);
-      color: white;
+      color: var(--color-text-hover);
     }
   }
 }

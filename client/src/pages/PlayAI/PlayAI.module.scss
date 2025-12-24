@@ -1,10 +1,76 @@
-.wrapper {
-  padding: 20px 16px;
+.playAiWrapper {
+  height: calc(100vh - var(--header-height));
+  font-size: 1.4rem;
+  color: var(--text-secondary);
+  padding: 0 20px;
+
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) auto minmax(280px, 1fr);
+  grid-template-rows: 1fr 1fr;
+  grid-template-areas:
+    "playerTop board panel"
+    "playerBottom board panel";
+  align-items: center;
+  gap: 0 20px;
+}
+
+.playerTop {
+  grid-area: playerTop;
+  align-self: end;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.playerBottom {
+  grid-area: playerBottom;
+  align-self: start;
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.boardArea {
+  grid-area: board;
+  grid-row: 1 / -1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.panelArea {
+  grid-area: panel;
+  grid-row: 1 / -1;
+  height: 100%;
+  max-height: calc(100vh - var(--header-height) - (var(--board-padding) * 2));
+  overflow: hidden;
 }
 
 .board {
+  aspect-ratio: 1/1;
+  width: auto;
+  height: 100%;
+  max-height: calc(100vh - var(--header-height) - (var(--board-padding) * 2));
   border-radius: 4px;
   overflow: hidden;
+  box-shadow: var(--group-shadow);
+}
+
+.playAIFlipBtn {
+  position: absolute;
+  top: 0;
+  right: -45px;
+  z-index: 10;
+  opacity: 0.7;
+  transition: opacity 0.2s ease-in-out;
+
+  &:hover {
+    opacity: 1;
+  }
 }
 
 .container {
@@ -14,8 +80,7 @@
   border-radius: 4px;
   background: var(--color-board-dark);
   overflow: hidden;
-  min-height: 400px;
-  max-height: 500px;
+  height: 100%; // Make it fill panelArea
   color: var(--color-text-l-dark);
 }
 
@@ -34,12 +99,10 @@
   }
 }
 
-/* Thêm vào file PlayAI.module.scss */
 .board-body {
   background-color: var(--color-board-control);
   flex: 1;
   overflow-y: auto;
-  min-height: 250px;
 }
 
 .option-board {
@@ -59,16 +122,18 @@
 
 .difficultySelector {
   display: grid;
-  grid-template-columns: repeat(8, 1fr); // 4 cột
-  gap: 2px;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
   box-shadow: var(--group-shadow);
 
   button {
+    background-color: var(--color-border);
     padding: 10px 5px;
     font-size: 14px;
     font-weight: 600;
     border: 1px solid var(--color-border);
     border-radius: 4px;
+    justify-content: center;
     cursor: pointer;
     transition: all 0.2s;
     color: var(--color-text-primary);
@@ -77,16 +142,12 @@
       background-color: var(--color-btn-def-hover);
     }
 
-    /* Class .active khi được chọn */
     &.active {
       background-color: var(--color-btn-green);
       color: var(--color-text-hover);
     }
   }
 }
-
-/* Nhóm nút chọn màu */
-/* Trong file PlayAI.module.scss */
 
 .colorSelector {
   display: flex;
@@ -95,17 +156,19 @@
   gap: 8px;
 
   button {
+    background-color: var(--color-border);
     width: 100px;
     padding: 10px;
-    font-size: 20px; // Có thể tăng font-size cho icon nếu muốn
+    font-size: 20px;
     border: 1px solid var(--color-border);
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s;
-    display: flex; /* MỚI: Dùng flex để căn giữa icon */
-    justify-content: center; /* MỚI: Căn giữa theo chiều ngang */
-    align-items: center; /* MỚI: Căn giữa theo chiều dọc */
-    height: 44px; /* MỚI: Đặt chiều cao cố định để các nút bằng nhau */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--group-shadow);
+    height: 44px;
 
     &:hover {
       background-color: var(--color-btn-def-hover);
@@ -113,77 +176,64 @@
 
     &.active {
       background-color: var(--color-btn-green);
-      color: var(--color-text-hover); /* Màu chữ cho các icon */
-      border-color: var(--color-btn-green); /* MỚI: Đổi màu border khi active */
+      color: var(--color-text-hover);
+      border-color: var(--color-btn-green);
 
-      // Khi nút active, icon bên trong sẽ có màu theo --color-text-hover
       .iconWhite,
       .iconBlack,
       .iconRandom {
-        mask-image: none; /* Xóa mask để dùng màu color */
+        mask-image: none;
         -webkit-mask-image: none;
         color: var(--color-text-hover);
       }
     }
 
-    // MỚI: Style cho icon bên trong button
     i.fa-chess-king {
-      font-size: 24px; /* Kích thước icon lớn hơn */
-      // Đặt màu mặc định cho icon
-      color: var(--color-icon-default); // Màu xám đậm mặc định khi không active
-      -webkit-mask-size: cover; // Quan trọng cho mask-image
+      font-size: 24px;
+      color: var(--color-icon-default);
+      -webkit-mask-size: cover;
       mask-size: cover;
     }
   }
 }
 
-/* MỚI: Style cụ thể cho từng icon màu */
-/* MỚI: Style cụ thể cho từng icon màu */
 .iconWhite {
-  color: var(--color-piece-white); // Màu trắng cho icon
+  color: var(--color-piece-white);
   -webkit-text-fill-color: var(--color-piece-white);
   -webkit-mask-image: none;
   mask-image: none;
 }
 
 .iconBlack {
-  color: var(--color-piece-black); // Màu đen cho icon
+  color: var(--color-piece-black);
   -webkit-text-fill-color: var(--color-piece-black);
   -webkit-mask-image: none;
   mask-image: none;
 }
 
-/* === CẬP NHẬT PHẦN NÀY === */
 .iconRandom {
-  /* 1. Dùng background-image để tạo gradient màu */
   background-image: linear-gradient(
     to right,
     var(--color-piece-white) 50%,
-    /* 50% bên trái màu trắng */ var(--color-piece-black) 50% /* 50% bên phải màu đen */
+    var(--color-piece-black) 50%
   );
-
-  /* 2. Clip (cắt) background theo hình dạng của icon */
   -webkit-background-clip: text;
   background-clip: text;
-
-  /* 3. Làm cho màu gốc của icon trong suốt */
   color: transparent;
   -webkit-text-fill-color: transparent;
-
-  /* 4. Đảm bảo không bị mask (nếu có kế thừa) */
   -webkit-mask-image: none;
   mask-image: none;
 }
 
-/* Nút Bắt đầu / Footer */
 .board-footer {
   padding: 10px 0;
   text-align: center;
   border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: center;
 }
 
 .buttonStart {
-//   width: 100px;
   padding: 12px 20px;
   font-size: 2rem;
   font-weight: 200;
@@ -192,6 +242,7 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  justify-content: center;
 
   .icon {
     margin-right: 10px;
@@ -215,15 +266,78 @@
     border: none;
     cursor: pointer;
     background-color: var(--color-board-control);
+    justify-content: center;
 
     &:hover {
-        background: var(--color-btn-green);
+      background: var(--color-btn-green);
     }
 
     &:last-child:hover {
-      // Nút "Đầu hàng"
       background-color: var(--color-highlight);
       color: var(--color-text-hover);
     }
+  }
+}
+
+@media (max-width: 1024px) {
+  .playAiWrapper {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    padding: 10px;
+    gap: 0;
+  }
+
+  .playerTop,
+  .playerBottom,
+  .boardArea,
+  .panelArea {
+    grid-area: unset;
+    grid-row: unset;
+    align-self: unset;
+    justify-self: unset;
+    margin: 0;
+    width: 100%;
+    max-height: none;
+  }
+
+  .playerTop {
+    order: 1;
+  }
+  .boardArea {
+    order: 2;
+  }
+  .playerBottom {
+    order: 3;
+  }
+  .panelArea {
+    order: 4;
+  }
+
+  .playerTop,
+  .playerBottom {
+    padding: 5px 0;
+  }
+
+  .boardArea {
+    padding: 15px 0;
+  }
+
+  .board {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    margin: 0 auto;
+  }
+
+  .panelArea {
+    height: 45vh;
+    min-height: 350px;
+  }
+
+  .playAIFlipBtn {
+    top: 5px;
+    right: 5px;
+    bottom: auto;
   }
 }

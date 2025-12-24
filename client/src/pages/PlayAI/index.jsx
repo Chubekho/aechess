@@ -3,8 +3,10 @@ import { Chess } from "chess.js";
 import clsx from "clsx";
 
 import ChessBoardCustom from "@/components/ChessBoardCustom";
+import FlipBoardButton from "@/components/FlipBoardButton";
 import MoveBoard from "@/components/MoveBoard";
-import { useGameNavigation } from "@/hooks/index";
+import PlayerInfoBox from "@/components/PlayerInfoBox";
+import { useGameNavigation, useToast } from "@/hooks/index";
 
 import styles from "./PlayAI.module.scss";
 
@@ -33,6 +35,12 @@ function PlayAI() {
   const [selectedDifficulty, setSelectedDifficulty] = useState(5);
   const [selectedColor, setSelectedColor] = useState("w");
   const [playerColor, setPlayerColor] = useState("w");
+  const [boardOrientation, setBoardOrientation] = useState("white");
+  const toast = useToast();
+
+  const handleFlip = () => {
+    setBoardOrientation((prev) => (prev === "white" ? "black" : "white"));
+  };
 
   const updateGameHistory = useCallback(
     (moveSan) => {
@@ -95,6 +103,10 @@ function PlayAI() {
     }
   }, [chessPosition, isStarted, playerColor, makeAiMove, currentNode]);
 
+  useEffect(() => {
+    setBoardOrientation(playerColor === "w" ? "white" : "black");
+  }, [playerColor]);
+
   const onPieceDrop = useCallback(
     ({ sourceSquare, targetSquare }) => {
       const game = chessGameRef.current;
@@ -140,7 +152,7 @@ function PlayAI() {
   }
 
   function handleResign() {
-    alert("You resigned! The AI wins.");
+    toast.info("You resigned! The AI wins.");
     setIsStarted(false);
   }
 
@@ -185,62 +197,81 @@ function PlayAI() {
     </div>
   );
 
+  const aiPlayerProps = {
+    player: {
+      displayName: "Stockfish (Depth: " + selectedDifficulty + ")",
+      username: "AI",
+    },
+    side: playerColor === "w" ? "b" : "w",
+  };
+
+  const userPlayerProps = {
+    player: {
+      displayName: "You",
+      username: "me",
+    },
+    side: playerColor,
+  };
+
   return (
-    <div className={styles.wrapper}>
-      <div className={clsx("row", "gx-6", "justify-content-center")}>
-        <div className="col-3" />
-        <div className="col-5">
-          <div className={styles.board}>
-            <ChessBoardCustom
-              position={chessPosition}
-              onPieceDrop={onPieceDrop}
-              id="PlayVsAI"
-              boardOrientation={playerColor === "b" ? "black" : "white"}
-            />
-          </div>
+    <div className={styles.playAiWrapper}>
+      <div className={styles.playerTop}>
+        <PlayerInfoBox {...aiPlayerProps} />
+      </div>
+      <div className={styles.playerBottom}>
+        <PlayerInfoBox {...userPlayerProps} />
+      </div>
+      <div className={styles.boardArea}>
+        <div className={styles.board}>
+          <ChessBoardCustom
+            position={chessPosition}
+            onPieceDrop={onPieceDrop}
+            id="PlayVsAI"
+            boardOrientation={boardOrientation}
+          />
         </div>
+        <FlipBoardButton
+          onClick={handleFlip}
+          customClass={styles.playAIFlipBtn}
+        />
+      </div>
+      <div className={styles.panelArea}>
+        <div className={styles.container}>
+          <div className={styles["board-heading"]}>
+            <h2>{isStarted ? "Chơi với máy" : "Thiết lập ván đấu"}</h2>
+          </div>
 
-        <div className={clsx("col-3", "align-self-center")}>
-          <div className={styles.container}>
-            <div className={styles["board-heading"]}>
-              <h2>{isStarted ? "Chơi với máy" : "Thiết lập ván đấu"}</h2>
-            </div>
+          <div className={styles["board-body"]}>
+            {isStarted ? (
+              <MoveBoard
+                rootNode={rootNode}
+                currentNode={currentNode}
+                onNavigate={handleNavigation}
+                showVariations={false}
+              />
+            ) : (
+              renderSetupOptions()
+            )}
+          </div>
 
-            <div className={styles["board-body"]}>
-              {isStarted ? (
-                <MoveBoard
-                  rootNode={rootNode}
-                  currentNode={currentNode}
-                  onNavigate={handleNavigation}
-                  showVariations={false}
-                />
-              ) : (
-                renderSetupOptions()
-              )}
-            </div>
-
-            <div className={styles["board-footer"]}>
-              {isStarted ? (
-                <div className={styles.gameControls}>
-                  <button onClick={handleStopGame}>
-                    <i className="fa-solid fa-xmark"></i>
-                  </button>
-                  <button onClick={handleResign} title="Đầu hàng">
-                    <i className="fa-solid fa-flag"></i>
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleStartGame}
-                  className={styles.buttonStart}
-                >
-                  <i
-                    className={clsx("fa-solid", "fa-microchip", styles.icon)}
-                  />
-                  <span>CHƠI</span>
+          <div className={styles["board-footer"]}>
+            {isStarted ? (
+              <div className={styles.gameControls}>
+                <button onClick={handleStopGame}>
+                  <i className="fa-solid fa-xmark"></i>
                 </button>
-              )}
-            </div>
+                <button onClick={handleResign} title="Đầu hàng">
+                  <i className="fa-solid fa-flag"></i>
+                </button>
+              </div>
+            ) : (
+              <button onClick={handleStartGame} className={styles.buttonStart}>
+                <i
+                  className={clsx("fa-solid", "fa-microchip", styles.icon)}
+                />
+                <span>CHƠI</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

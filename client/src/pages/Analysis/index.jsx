@@ -2,8 +2,9 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useLocation } from "react-router";
 import { Chess } from "chess.js";
-import { Chessboard } from "react-chessboard";
 import clsx from "clsx";
+
+import ChessBoardCustom from "@/components/ChessBoardCustom";
 import styles from "./Analysis.module.scss";
 
 // Hooks & Context
@@ -203,17 +204,6 @@ function AnalysisPage() {
     report?.black
   );
 
-  const chessboardOptions = useMemo(
-    () => ({
-      position: fen,
-      arrows,
-      onPieceDrop: onPieceDrop,
-      id: "PlayVsPerson",
-      boardOrientation: boardOrientation,
-    }),
-    [fen, onPieceDrop, arrows, boardOrientation]
-  );
-
   const Divider = () => (
     <div
       style={{
@@ -283,7 +273,17 @@ function AnalysisPage() {
         </div>
 
         <div className={styles.boardWrapper}>
-          <Chessboard options={chessboardOptions} />
+          <ChessBoardCustom
+            position={fen}
+            arrows={arrows}
+            onPieceDrop={onPieceDrop}
+            boardOrientation={boardOrientation}
+            arePiecesDraggable={true} // Always true for analysis
+            customBoardStyle={{
+              borderRadius: "4px",
+              boxShadow: "0 5px 15px rgba(0, 0, 0, 0.5)",
+            }}
+          />
         </div>
       </div>
 

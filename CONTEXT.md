@@ -199,15 +199,29 @@
 
 **E. UI/UX & Layout Standards (Game Views)**
 
-- **Layout Philosophy**: "Desktop First", Viewport-Constrained (100vh). No main page scrollbar on Desktop during gameplay.
-- **Grid System**: Prefer **CSS Grid** (Template Areas) over Bootstrap (`row/col`) for the main Game Layout to handle complex positioning (e.g., centering players).
-- **Responsive Strategy (Mobile)**:
-  - Switch to **Flexbox Column**.
-  - **Flatten JSX**: Avoid deep nesting wrapper divs (like `.leftColumn`) to allow Flexbox `order` property to re-arrange components (Top Player -> Board -> Bottom Player -> Info).
-  - Use `100dvh` (Dynamic Viewport Height) for mobile containers.
-- **Components**:
-  - **Board**: Always use `aspect-ratio: 1/1`. Height is the limiting factor on Desktop (`calc(100vh - header)`).
-  - **Panels**: Must implement internal scrolling (`overflow-y: auto`) to prevent pushing the page layout.
+- **Layout Philosophy**: "Desktop First", Viewport-Constrained (`100vh`). The main page body must **NEVER** have a scrollbar on Desktop; scrolling is restricted to internal panels only.
+- **Grid System (Desktop)**:
+  - **Strictly remove Bootstrap Grid** (`row`, `col-`).
+  - **Standard Game/Play Layout**: Use CSS Grid Template Areas.
+    - _Structure_: `minmax(200px, 1fr) auto minmax(280px, 1fr)`.
+    - _Areas_: `"playerTop board panel" "playerBottom board panel"` (Aligns players vertically with board).
+  - **Analysis/Puzzle Layout**: Use 3-Column Grid.
+    - _Structure_: `minmax(260px, 1fr) auto minmax(320px, 1fr)`.
+    - _Areas_: `"left board right"`.
+- **Responsive Strategy (Mobile < 1024px)**:
+  - **Flatten JSX**: Wrapper must contain direct children (Players, Board, Panel) without deep intermediate `divs` to enable Flexbox Ordering.
+  - **Flex Column**: Switch `display: grid` -> `display: flex; flex-direction: column`.
+  - **Ordering Standard**:
+    1.  **Top Player** (or Board for Puzzles).
+    2.  **Board Area** (Must be `order: 2` or `1`, crucial for UX).
+    3.  **Bottom Player** / **Tools**.
+    4.  **Info Panel** (Last).
+  - **Viewport**: Use `height: auto` on mobile wrapper to allow natural scrolling.
+- **Component Standards**:
+  - **ChessBoardCustom**: Must be the standard wrapper.
+    - _Sizing_: `aspect-ratio: 1/1`. Height is the limiting factor (`max-height: calc(100vh - header - padding)`).
+  - **FlipBoardButton**: Must be positioned **Absolute** inside the `.boardContainer` (Top-Right corner), NOT inside side panels, to prevent layout overlap.
+  - **Panels**: Must implement **Custom Scrollbars** (thin, dark theme) and `overflow-y: auto`.
 
 ## 8. Environment Variables
 

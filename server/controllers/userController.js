@@ -1,5 +1,58 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
+import { validateUsername } from "../utils/validators.js";
+
+// @desc: Change username and display name
+// @route: PATCH /api/users/change-username
+export const changeUsername = async (req, res) => {
+  try {
+    const { username, displayName } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Validate and update username if it has changed
+    if (username && username !== user.username) {
+      if (!validateUsername(username)) {
+        return res.status(400).json({
+          msg: "Username must be 3-20 characters long and can only contain letters, numbers, underscores, and hyphens.",
+        });
+      }
+      const existingUser = await User.findOne({ username });
+      if (existingUser && existingUser._id.toString() !== userId) {
+        return res.status(400).json({ msg: "Username already taken" });
+      }
+      user.username = username;
+    }
+
+    // Validate and update displayName
+    if (displayName) {
+      if (typeof displayName !== 'string' || displayName.length === 0 || displayName.length > 50) {
+        return res.status(400).json({ msg: "Display name must be a string between 1 and 50 characters." });
+      }
+      user.displayName = displayName;
+    } else {
+      user.displayName = user.username;
+    }
+
+    await user.save();
+
+    // Return updated user data, excluding all sensitive info
+    const updatedUser = user.toObject();
+    delete updatedUser.passwordHash;
+    delete updatedUser.email;
+    delete updatedUser.googleId;
+    delete updatedUser.__v;
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 // @desc: Lấy thông tin công khai của user bằng ID
 // @route: GET /api/users/:id

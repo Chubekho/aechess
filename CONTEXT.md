@@ -2,12 +2,22 @@
 
 > **Role of this file**: This is the **Long-term Memory** of the project. It contains architecture details, business logic, schema definitions, and technical decisions. Use this to restore context after a chat memory reset.
 
+## 🚨 AI AGENT SYSTEM INSTRUCTIONS (CRITICAL)
+
+**Before generating any code, you MUST validate your response against these 3 constraints:**
+
+1.  **NO SHELL COMMANDS**: Do NOT generate bash/terminal commands (e.g., `npm install`, `mkdir`, `touch`). Only generate the code/text content.
+2.  **NETWORK STANDARD**: NEVER use `import axios from 'axios'`. You MUST use `import axiosClient from "@/utils/axiosConfig";`.
+3.  **STYLING STANDARD**: NEVER use SCSS variables (e.g., `$color`). MUST use CSS Variables (`var(--color-...)`) and import `@use "@/styles/variables.scss" as *;`.
+
+---
+
 ## 1. Project Identity & Stack
 
 - **Name**: AECheSS (Realtime Chess Application).
 - **Core Philosophy**: A robust, full-stack chess platform focusing on realtime performance, stability, and dark-mode aesthetics (inspired by Lichess/Chess.com).
 - **Tech Stack**:
-  - **Frontend**: React (Vite), SCSS Modules, Axios, Socket.IO-Client, Chart.js, React-Modal.
+  - **Frontend**: React (Vite), SCSS Modules, Axios, Socket.IO-Client, Chart.js, React-Modal. React Icons
   - **Backend**: Node.js, Express, Socket.IO (Server), MongoDB (Mongoose), Passport.js (Google Auth).
   - **DevOps/Tools**: Git, Nodemon, Concurrently.
 
@@ -181,23 +191,34 @@
 - **CRITICAL RULE**: **NEVER** use raw `import axios from 'axios'`.
 - **REQUIREMENT**: You MUST import and use the custom instance: `import axiosClient from "@/utils/axiosConfig";`.
 
-**B. Styling (CSS/SCSS Standards)**
+**B. Styling & Assets Standards**
 
-- **STRICT FORBIDDEN**: Do NOT use SCSS variables (e.g., `$border-color`).
-- **REQUIRED**: Use CSS Custom Properties defined in `client/src/styles/variables.scss` (e.g., `var(--color-border)`).
-- **IMPORT**: Always add `@use "@/styles/variables.scss" as *;`.
+- **SCSS**: Do NOT use SCSS variables (e.g., `$border-color`). Use CSS Variables defined in `client/src/styles/variables.scss` (e.g., `var(--color-border)`). Always add `@use "@/styles/variables.scss" as *;`.
+- **Icons (NEW)**:
+  - **Standard**: Use **`react-icons`** library (e.g., `import { FaUser } from "react-icons/fa"`).
+  - **Legacy**: Do NOT use FontAwesome classes (`<i class="fa...">`) for NEW features. Existing usages will be refactored gradually.
 
-**C. Environment Constraints**
+**C. Import Standards (Centralized Hooks)**
+
+- **Single Source of Truth**: Always import hooks from the barrel file **`@/hooks`**.
+- **Available Hooks**:
+  - _Context Consumers_: `useAuth`, `useSocket`, `useToast`.
+  - _Logic Hooks_: `useGameNavigation`, `useStockfish`, `useFullGameAnalysis`, `useOnlineGame`.
+- **Syntax Example**:
+  - _Good_: `import { useAuth, useOnlineGame } from "@/hooks";`
+  - _Bad_: `import { useAuth } from "@/context/AuthContext";` (Do not bypass the barrel file).
+
+**D. Environment Constraints**
 
 - **NO SHELL COMMANDS**: AI must NOT run npm, mkdir, touch. Only generate code.
 
-**D. Data Structure Standards (MongoDB ID) [NEW]**
+**E. Data Structure Standards (MongoDB ID)**
 
 - **UNIFIED ID**: We STRICTLY use **`_id`** (underscore id) across the entire stack (Database -> API -> Frontend).
 - **NO MAPPING**: Do **NOT** manually map `_id` to `id` in Controllers. Return the raw Mongoose object or `toObject()`.
 - **FRONTEND**: Client components must access `user._id` or `game._id`. Do NOT assume `.id` exists.
 
-**E. UI/UX & Layout Standards (Game Views)**
+**F. UI/UX & Layout Standards (Game Views)**
 
 - **Layout Philosophy**: "Desktop First", Viewport-Constrained (`100vh`). The main page body must **NEVER** have a scrollbar on Desktop; scrolling is restricted to internal panels only.
 - **Grid System (Desktop)**:

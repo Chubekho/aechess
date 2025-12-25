@@ -4,7 +4,8 @@ import {
     updatePreferences,
     setPassword,
     changePassword,
-    updateProfile
+    updateProfile,
+    changeUsername
 } from "../controllers/userController.js";
 import checkAuth from "../middleware/authMiddleware.js";
 
@@ -18,6 +19,7 @@ router.patch("/profile", checkAuth, updateProfile);
 router.patch("/preferences", checkAuth, updatePreferences);
 router.post("/set-password", checkAuth, setPassword);
 router.post("/change-password", checkAuth, changePassword);
+router.patch("/change-username", checkAuth, changeUsername);
 
 
 export default router;

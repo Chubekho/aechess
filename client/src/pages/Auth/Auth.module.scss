@@ -1,3 +1,5 @@
+@use "@/styles/variables.scss" as *;
+
 /* Dùng cho cả Login.module.scss và Register.module.scss */
 
 /* Wrapper cho toàn bộ trang */
@@ -6,7 +8,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background-color: var(--color-board-dark, #262522); /* Màu nền tối của bạn */
+  background-color: var(--color-board-dark); /* Màu nền tối của bạn */
 }
 
 /* "Tấm thẻ" chứa form */
@@ -14,10 +16,10 @@
   width: 100%;
   max-width: 420px;
   padding: 32px;
-  background-color: var(--color-board-control, #302e2c); /* Màu nền của form */
+  background-color: var(--color-board-control); /* Màu nền của form */
   border-radius: 8px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  color: var(--color-text, #e3e3e3);
+  color: var(--color-text-bright);
 }
 
 /* Tiêu đề (Đăng nhập / Đăng ký) */
@@ -43,23 +45,23 @@
     margin-bottom: 6px;
     font-size: 14px;
     font-weight: 500;
-    color: #b0b0b0;
+    color: var(--color-text-subtle);
   }
 
   input {
     width: 100%;
     padding: 12px;
     font-size: 16px;
-    background-color: #2b2927;
-    border: 1px solid #4a4a4a;
-    color: #f0f0f0;
+    background-color: var(--color-input-bg-dark);
+    border: 1px solid var(--color-border-light);
+    color: var(--color-piece-white);
     border-radius: 5px;
     transition: border-color 0.2s, box-shadow 0.2s;
 
     &:focus {
       outline: none;
-      border-color: var(--color-btn-green, #7fa650);
-      box-shadow: 0 0 0 2px rgba(127, 166, 80, 0.4);
+      border-color: var(--color-btn-green);
+      box-shadow: 0 0 0 2px var(--color-btn-green-auth-shadow);
     }
   }
 }
@@ -81,8 +83,8 @@
 /* Nút chính (Đăng nhập / Đăng ký) */
 .buttonPrimary {
   @extend .button;
-  background-color: var(--color-btn-green, #7fa650);
-  color: #ffffff;
+  background-color: var(--color-btn-green);
+  color: var(--color-google-bg);
   margin-top: 10px; /* Thêm khoảng cách sau input cuối */
 
   &:hover {
@@ -93,16 +95,16 @@
 /* Nút Google */
 .buttonGoogle {
   @extend .button;
-  background-color: #ffffff;
-  color: #222222;
-  border: 1px solid #ddd;
+  background-color: var(--color-google-bg);
+  color: var(--color-google-text);
+  border: 1px solid var(--color-google-border);
 
   i {
     font-size: 2rem;
   }
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: var(--color-google-hover);
   }
 }
 
@@ -110,13 +112,13 @@
 .separator {
   border: 0;
   height: 1px;
-  background-color: #4a4a4a;
+  background-color: var(--color-border-light);
   margin: 24px 0;
 }
 
 /* Thông báo lỗi */
 .error {
-  color: #ff5252;
+  color: var(--color-text-error);
   font-size: 14px;
   text-align: center;
   margin-bottom: 15px;
@@ -128,10 +130,10 @@
   text-align: center;
   margin-top: 20px;
   font-size: 14px;
-  color: #b0b0b0;
+  color: var(--color-text-subtle);
 
   a {
-    color: var(--color-btn-green, #7fa650);
+    color: var(--color-btn-green);
     text-decoration: none;
     font-weight: 500;
 

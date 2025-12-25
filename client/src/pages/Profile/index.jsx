@@ -79,8 +79,11 @@ function Profile() {
         {/* Cột 1: Avatar */}
         <div className={styles.avatarCol}>
           <div className={styles.avatar}>
-            {/* Thay bằng ảnh thật nếu có profileUser.avatar */}
-            <i className="fa-solid fa-user"></i>
+            <img
+              src={profileUser?.avatar || "/avatars/jerry1.jpg"}
+              alt={profileUser?.username}
+              className={styles.avatarImg}
+            />
           </div>
         </div>
 
@@ -90,7 +93,6 @@ function Profile() {
             <h1 className={styles.username}>{profileUser.username}</h1>
             <p className={styles.displayName}>{profileUser.displayName}</p>
           </div>
-          {console.log(profileUser)}
           {profileUser.bio && (
             <p className={styles.userBio}>{profileUser.bio}</p>
           )}

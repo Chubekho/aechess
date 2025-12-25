@@ -75,7 +75,7 @@ function FriendsTab({ user, isMe }) {
         }
 
         // Đảm bảo data luôn là mảng
-        setDataList(Array.isArray(res.data) ? res.data : []);
+        setDataList(Array.isArray(res) ? res : []);
       } catch (error) {
         console.error("Lỗi tải bạn bè", error);
         setDataList([]);

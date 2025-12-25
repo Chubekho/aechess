@@ -39,7 +39,7 @@ function User({ user }) {
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
         <img 
-          src={user.avatar || '/avatars/jerry1.jpg'} 
+          src={user.avatar || '/avatars/PepetheFrog.jpg'} 
           alt={user.username} 
           className={styles.avatar}
         />

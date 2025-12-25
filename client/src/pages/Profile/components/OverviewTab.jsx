@@ -53,7 +53,7 @@ function OverviewTab({ user }) {
       {/* Hàng 2: Lịch sử đấu */}
       <div className={styles.sectionBlock}>
         <h3>Các ván đấu gần đây</h3>
-        <GameHistory limit={10} userId={user.id} />
+        <GameHistory limit={10} userId={user._id} />
       </div>
     </div>
   );

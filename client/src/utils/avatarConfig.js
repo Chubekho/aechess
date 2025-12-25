@@ -5,4 +5,5 @@ export const AVATAR_PRESETS = [
   "/avatars/jerry2.jpg",
   "/avatars/nikowhatsapp.jpg",
   "/avatars/two-black-people.gif",
+  "avatars/PepetheFrog.jpg"
 ];

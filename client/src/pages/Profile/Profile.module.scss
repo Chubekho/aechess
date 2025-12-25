@@ -38,14 +38,20 @@
 .avatar {
   width: 100px;
   height: 100px;
-  background-color: #3c3b39;
-  border-radius: 4px; /* Chess.com dùng avatar vuông bo nhẹ */
+  border-radius: 4px;
+  overflow: hidden;
   display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 3rem;
-  color: #787775;
+  align-items: center;
+  background-color: #3c3b39;
   border: 2px solid #403e3c;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .infoCol {

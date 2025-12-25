@@ -1,13 +1,13 @@
 import { useState } from "react";
 import axiosClient from "@/utils/axiosConfig";
 import styles from "./AccountSettings.module.scss";
-import { useToast } from "@/context/ToastContext";
+import { useToast } from "@/hooks/index";
 
 const SetPasswordForm = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const { showToast } = useToast();
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,11 +18,11 @@ const SetPasswordForm = () => {
     setError("");
     try {
       await axiosClient.post("/users/set-password", { password });
-      showToast("Password set successfully!", "success");
+      toast.success("Đặt mật khẩu thành công!");
       // Optionally refresh user data or redirect
     } catch (err) {
       setError(err.response?.data?.msg || "An error occurred.");
-      showToast(err.response?.data?.msg || "An error occurred.", "error");
+      toast.error(err.response?.data?.msg || "Đã xảy ra lỗi!");
     }
   };
 

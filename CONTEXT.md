@@ -244,6 +244,18 @@
   - **FlipBoardButton**: Must be positioned **Absolute** inside the `.boardContainer` (Top-Right corner), NOT inside side panels, to prevent layout overlap.
   - **Panels**: Must implement **Custom Scrollbars** (thin, dark theme) and `overflow-y: auto`.
 
+**G. Feedback & Notification Standards (Toast)**
+
+- **Usage Pattern**: The `useToast` hook returns the **toast instance object**, NOT a function or destructurable property.
+- **Syntax Requirement**:
+  - **Correct**:
+    ```javascript
+    const toast = useToast();
+    toast.success("Saved successfully");
+    toast.error("Something went wrong");
+    ```
+  - **Forbidden**: `const { showToast } = useToast();` (This will cause a crash).
+
 ## 8. Environment Variables
 
 ```env

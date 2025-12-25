@@ -132,10 +132,12 @@
 
 // Keeping other styles that might be used by the forms
 .formWrapper {
-  max-width: 500px;
+  // max-width: 500px;
 
   h4 {
-    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    color: var(--color-text-bright);
+    margin-bottom: 2rem;
   }
 }
 
@@ -152,8 +154,9 @@
 }
 
 .submitButton {
-  width: 100%;
-  padding: 0.75rem;
+  justify-self: end;
+  padding: 10px;
+  margin-top: 20px;
   border: none;
   border-radius: 4px;
   background-color: var(--color-btn-green);

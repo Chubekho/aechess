@@ -1,5 +1,14 @@
 .settingsPage {
   display: flex;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  gap: 30px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 }
 
 .sidebarContainer {
@@ -9,5 +18,29 @@
 
 .contentContainer {
   flex-grow: 1;
+  min-width: 0;
+}
+
+.profileSettings,
+.themeSettings {
+  background-color: var(--background-secondary);
   padding: 2rem;
+  border-radius: var(--border-radius);
+  h2 {
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+  }
+}
+.section {
+  margin-bottom: 2rem;
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+.sectionTitle {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
 }

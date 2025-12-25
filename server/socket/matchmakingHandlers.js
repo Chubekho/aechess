@@ -23,13 +23,13 @@ export const registerMatchmakingHandlers = (
     if (alreadyInQueue) return;
 
     console.log(
-      `User ${socket.user.email} đang tìm trận ${config.timeControl}`
+      `User ${socket.user.username} đang tìm trận ${config.timeControl}`
     );
 
     matchmakingQueue.push({
       user: {
         id: socket.user.id,
-        displayName: socket.user.displayName,
+        username: socket.user.username,
         ratings: socket.user.ratings,
       },
       socketId: socket.id,
@@ -105,14 +105,14 @@ export const registerMatchmakingHandlers = (
         players: [
           {
             id: whitePlayer.user.id,
-            displayName: whitePlayer.user.displayName,
+            username: whitePlayer.user.username,
             rating: whiteRating,
             socketId: whitePlayer.socketId,
             color: "w",
           },
           {
             id: blackPlayer.user.id,
-            displayName: blackPlayer.user.displayName,
+            username: blackPlayer.user.username,
             rating: blackRating,
             socketId: blackPlayer.socketId,
             color: "b",
@@ -241,7 +241,7 @@ function processMatchmakingQueue(
     if (timeMatch && ratedMatch && ratingMatch) {
       // === TÌM THẤY TRẬN! ===
       console.log(
-        `Ghép trận: ${pA.user.displayName} vs ${pB.user.displayName}`
+        `Ghép trận: ${pA.user.username} vs ${pB.user.username}`
       );
 
       matchmakingQueue.splice(i + 1, 1);
@@ -282,7 +282,7 @@ function processMatchmakingQueue(
         socketA.emit("matchFound", {
           matchId: matchId,
           opponent: {
-            displayName: pB.user.displayName,
+            username: pB.user.username,
             rating: ratingB,
           },
         });
@@ -291,7 +291,7 @@ function processMatchmakingQueue(
         socketB.emit("matchFound", {
           matchId: matchId,
           opponent: {
-            displayName: pA.user.displayName,
+            username: pA.user.username,
             rating: ratingA,
           },
         });

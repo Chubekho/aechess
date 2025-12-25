@@ -23,7 +23,8 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
     const hostPlayer = {
       id: socket.user.id, // Dùng User ID (bền bỉ)
       socketId: socket.id, // Dùng Socket ID (tạm thời)
-      displayName: socket.user.displayName,
+      // displayName: socket.user.displayName,
+      username: socket.user.username,
       rating: socket.user.rating,
       color: playerColor,
     };
@@ -47,14 +48,11 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
     const gameData = activeGames.get(gameId);
     if (!gameData) return callback({ error: "Phòng không tồn tại." });
 
-    // SỬA: Kiểm tra bằng User ID thay vì Socket ID
     const isAlreadyPlayer = gameData.players.find(
       (p) => p.id === socket.user.id
     );
 
-    // Gửi trạng thái hiện tại về cho Host/Player
     if (isAlreadyPlayer) {
-      // Cập nhật socketId mới cho người chơi (quan trọng khi F5)
       isAlreadyPlayer.socketId = socket.id;
       socket.join(gameId);
 
@@ -103,11 +101,10 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
     const hostColor = gameData.players[0].color;
     const guestColor = hostColor === "w" ? "b" : "w";
 
-    // SỬA: Lưu thông tin đầy đủ của người chơi B
     const guestPlayer = {
       id: socket.user.id,
       socketId: socket.id,
-      displayName: socket.user.displayName,
+      username: socket.user.username,
       rating: socket.user.rating,
       color: guestColor,
     };

@@ -19,7 +19,7 @@ const initializeSocket = (io) => {
   io.use(socketAuth);
 
   io.on("connection", (socket) => {
-    console.log(`User đã xác thực: ${socket.id}, Email: ${socket.user.email}`);
+    console.log(`User đã xác thực: ${socket.id}, Email: ${socket.user.username}`);
 
 
     // === 3. XỬ LÝ GAME ===

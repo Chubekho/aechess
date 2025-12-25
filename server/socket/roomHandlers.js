@@ -19,14 +19,13 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
 
     const baseTimeSeconds = (roomConfig.time.base || 10) * 60;
 
-    // SỬA: Lưu thông tin đầy đủ của người chơi
     const hostPlayer = {
       id: socket.user.id, // Dùng User ID (bền bỉ)
       socketId: socket.id, // Dùng Socket ID (tạm thời)
-      // displayName: socket.user.displayName,
       username: socket.user.username,
       rating: socket.user.rating,
       color: playerColor,
+      avatar: socket.user.avatar,
     };
 
     activeGames.set(gameId, {
@@ -35,7 +34,7 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
       config: roomConfig,
       clocks: { w: baseTimeSeconds, b: baseTimeSeconds },
       lastMoveTimestamp: null,
-      drawOffer: null, // Mới: Để xử lý cầu hòa
+      drawOffer: null,
     });
 
     socket.join(gameId);
@@ -107,6 +106,7 @@ export const registerRoomHandlers = (io, socket, activeGames) => {
       username: socket.user.username,
       rating: socket.user.rating,
       color: guestColor,
+      avatar: socket.user.avatar,
     };
     gameData.players.push(guestPlayer);
 

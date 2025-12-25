@@ -13,9 +13,7 @@ function PlayerInfoBox({
   isTurn = false,
   ratingDiff = null,
 }) {
-  // variant = 'top' (Cho Đen: Tên ở trên, Giờ ở dưới)
-  // variant = 'bottom' (Cho Trắng: Giờ ở trên, Tên ở dưới)
-  const name = player?.name || player?.displayName || "Unknown";
+  const name = player?.username || player?.displayName || "Unknown";
   const rating = player?.rating ? `(${player.rating})` : "";
   const formattedTime = formatTimeControl(timeControl);
 
@@ -26,32 +24,38 @@ function PlayerInfoBox({
 
   const capturedPieceColor = side === "white" ? "black" : "white";
 
-  // Render khối thông tin (Avatar + Tên + Rating)
-  const InfoBlock = () => (
-    <div className={styles.info}>
-      <div className={avatarClass}>
-        <i className="fa-solid fa-user"></i>
-      </div>
-      <div className={styles.textDetails}>
-        <div className={styles.nameRow}>
-          <span className={styles.name}>{name}</span>
-          <span className={styles.rating}>{rating}</span>
-          {ratingDiff !== null && (
-            <span
-              className={clsx(styles.ratingChange, {
-                [styles.diffPositive]: ratingDiff > 0,
-                [styles.diffNegative]: ratingDiff < 0,
-                [styles.diffZero]: ratingDiff === 0,
-              })}
-            >
-              {ratingDiff > 0 ? "+" : ""}
-              {ratingDiff}
-            </span>
+  const InfoBlock = () => {
+    const avatarUrl = player?.avatar;
+    return (
+      <div className={styles.info}>
+        <div className={avatarClass}>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={name} className={styles.avatarImg} />
+          ) : (
+            <i className="fa-solid fa-user"></i>
           )}
         </div>
+        <div className={styles.textDetails}>
+          <div className={styles.nameRow}>
+            <span className={styles.name}>{name}</span>
+            <span className={styles.rating}>{rating}</span>
+            {ratingDiff !== null && (
+              <span
+                className={clsx(styles.ratingChange, {
+                  [styles.diffPositive]: ratingDiff > 0,
+                  [styles.diffNegative]: ratingDiff < 0,
+                  [styles.diffZero]: ratingDiff === 0,
+                })}
+              >
+                {ratingDiff > 0 ? "+" : ""}
+                {ratingDiff}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Render đồng hồ (Chỉ hiển thị text Time Control)
   const ClockBlock = () => (

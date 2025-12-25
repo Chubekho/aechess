@@ -31,6 +31,7 @@ export const registerMatchmakingHandlers = (
         id: socket.user.id,
         username: socket.user.username,
         ratings: socket.user.ratings,
+        avatar: socket.user.avatar,
       },
       socketId: socket.id,
       config: config,
@@ -109,6 +110,7 @@ export const registerMatchmakingHandlers = (
             rating: whiteRating,
             socketId: whitePlayer.socketId,
             color: "w",
+            avatar: whitePlayer.user.avatar,
           },
           {
             id: blackPlayer.user.id,
@@ -116,6 +118,7 @@ export const registerMatchmakingHandlers = (
             rating: blackRating,
             socketId: blackPlayer.socketId,
             color: "b",
+            avatar: blackPlayer.user.avatar,
           },
         ],
         config: config,
@@ -284,6 +287,7 @@ function processMatchmakingQueue(
           opponent: {
             username: pB.user.username,
             rating: ratingB,
+            avatar: pB.user.avatar,
           },
         });
       }
@@ -293,6 +297,7 @@ function processMatchmakingQueue(
           opponent: {
             username: pA.user.username,
             rating: ratingA,
+            avatar: pA.user.avatar,
           },
         });
       }

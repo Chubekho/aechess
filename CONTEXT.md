@@ -167,6 +167,15 @@
 - **Frontend Handling**:
   - `getDisplayPlayer` checks for `gameResult.newRatings` payload immediately instead of waiting for a separate `ratingUpdate` event (though the separate event is still sent for other listeners).
 
+### G. Player Identity Consistency (Socket & Auth) [UPDATED]
+
+- **Problem**: `displayName` is not unique; relying on it caused UI confusion.
+- **Solution**:
+  - **Auth Token (JWT)**: Payload MUST include `{ id, email, username, displayName }`.
+  - **Socket Handshake**: `socket.user` is hydrated from this enriched Token.
+  - **Game Objects**: Player objects in `activeGames` MUST persist `username`.
+  - **UI Priority**: Components (`PlayerInfoBox`) prioritize `username` for identification.
+
 ## 5. Admin Module Implementation
 
 > **Goal**: A dedicated Lichess-style portal for system management.

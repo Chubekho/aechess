@@ -1,6 +1,24 @@
 @use "@/styles/variables.scss" as *;
 
-.boardSettings {
+.boardSettingsContainer {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.previewSection {
+  flex: 1 1 400px;
+  min-width: 320px;
+
+  h3 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+  }
+}
+
+.selectionSection {
+  flex: 2 1 400px;
+
   h3 {
     margin-bottom: 1rem;
     font-size: 1.25rem;

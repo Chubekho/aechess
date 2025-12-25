@@ -4,7 +4,13 @@ import { BOARD_THEMES } from '@/utils/themeConfig';
 import styles from './ChessBoardCustom.module.scss';
 
 const ChessBoardCustom = (props) => {
-  const theme = localStorage.getItem('boardTheme') || 'brown';
+  let theme;
+  if(props.previewTheme){
+    theme = props.previewTheme
+  }else{
+    theme = localStorage.getItem('boardTheme') || 'brown';
+  }
+  
   const themeColors = BOARD_THEMES[theme];
 
   const chessboardOptions = useMemo(() => {

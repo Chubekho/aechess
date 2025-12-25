@@ -132,8 +132,7 @@
 
 // Keeping other styles that might be used by the forms
 .formWrapper {
-  // max-width: 500px;
-
+  font-size: 1.4rem;
   h4 {
     font-size: 2rem;
     color: var(--color-text-bright);
@@ -142,14 +141,13 @@
 }
 
 .formDescription {
-  font-size: 0.9rem;
   color: var(--color-text-subtle);
   margin-bottom: 1.5rem;
+  font-style: italic;
 }
 
 .error {
   color: var(--color-text-error);
-  margin-top: 1rem;
   text-align: center;
 }
 

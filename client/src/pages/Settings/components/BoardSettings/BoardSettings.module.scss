@@ -11,8 +11,8 @@
   min-width: 320px;
 
   h3 {
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    font-size: 1.4rem;
   }
 }
 
@@ -20,8 +20,8 @@
   flex: 2 1 400px;
 
   h3 {
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
   }
 }
 
@@ -52,7 +52,7 @@
   }
 
   span {
-    font-size: 0.9rem;
+    font-size: 1.2rem;
   }
 }
 
@@ -69,6 +69,8 @@
 
 .saveButton {
   align-self: flex-start;
+  justify-self: center;
+  margin-top: 2rem;
   padding: 8px 16px;
   background-color: var(--color-btn-green);
   color: white;

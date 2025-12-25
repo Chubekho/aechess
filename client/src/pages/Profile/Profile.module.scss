@@ -356,6 +356,15 @@ button {
   align-items: center;
 }
 
+.cardRight {
+  span {
+    font-size: 1.4rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    color: #aaa;
+  }
+}
+
 .miniAvatar {
   width: 45px;
   height: 45px;
@@ -375,8 +384,9 @@ button {
 }
 
 .cardName {
-  font-weight: 700;
-  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--color-text-l-dark);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -388,7 +398,7 @@ button {
 }
 
 .cardSub {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #888;
 }
 

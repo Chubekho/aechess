@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router";
+import { useAuth } from "@/hooks/index";
 import clsx from "clsx";
 import axiosClient from "@/utils/axiosConfig";
 import FriendActionBtn from "./FriendActionBtn";
 import styles from "../Profile.module.scss";
-import { Link } from "react-router";
 
 // Sub-component hiển thị 1 dòng User (User Card)
-const UserCard = ({ user, subText, action }) => {
+const UserCard = ({ user, subText, action, isSelf }) => {
   // Phòng hờ user bị null
   if (!user) return null;
-  console.log(user);
-  
 
   return (
     <div className={styles.friendCard}>
@@ -31,7 +30,9 @@ const UserCard = ({ user, subText, action }) => {
         </div>
       </div>
       <div className={styles.cardRight}>
-        {action ? (
+        {isSelf ? (
+          <span>(Bạn)</span>
+        ) : action ? (
           action
         ) : (
           <FriendActionBtn targetUserId={user._id || user.id} />
@@ -42,6 +43,7 @@ const UserCard = ({ user, subText, action }) => {
 };
 
 function FriendsTab({ user, isMe }) {
+  const { user: currentUser } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState("all");
   const [dataList, setDataList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -177,7 +179,7 @@ function FriendsTab({ user, isMe }) {
           filteredList.map((item, index) => {
             let u = item;
             let sub = `Bạn bè`;
-            let actionBtn = null; // Default action logic
+            let actionBtn = null;
 
             // Xử lý data cho từng tab
             if (activeSubTab === "requests") {
@@ -185,20 +187,27 @@ function FriendsTab({ user, isMe }) {
               sub = `Đã gửi lời mời: ${new Date(
                 item.createdAt
               ).toLocaleDateString("vi-VN")}`;
-              // Ở tab Requests, action là nút Chấp nhận/Từ chối (FriendActionBtn tự xử lý dựa trên status 'received')
             } else if (activeSubTab === "sent") {
               u = item.recipient;
               sub = `Đã gửi: ${new Date(item.createdAt).toLocaleDateString(
                 "vi-VN"
               )}`;
-              // Ở tab Sent, FriendActionBtn tự xử lý hiện 'Đã gửi'
             }
 
             // Key an toàn
-            const key = u?._id || u?.id || index;
+            const uId = u?._id || u?.id; // Lấy ID của user trong card
+            const key = uId || index;
+
+            const isSelf = currentUser && uId === currentUser._id;
 
             return (
-              <UserCard key={key} user={u} subText={sub} action={actionBtn} />
+              <UserCard
+                key={key}
+                user={u}
+                subText={sub}
+                action={actionBtn}
+                isSelf={isSelf}
+              />
             );
           })
         )}

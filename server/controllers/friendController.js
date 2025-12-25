@@ -132,7 +132,7 @@ export const getPendingRequests = async (req, res) => {
     const requests = await Friendship.find({
       recipient: userId,
       status: "pending",
-    }).populate("requester", "displayName avatar ratings");
+    }).populate("requester", "username displayName avatar ratings");
 
     res.status(200).json(requests);
   } catch (error) {

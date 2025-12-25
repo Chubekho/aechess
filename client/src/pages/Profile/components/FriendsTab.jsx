@@ -3,11 +3,14 @@ import clsx from "clsx";
 import axiosClient from "@/utils/axiosConfig";
 import FriendActionBtn from "./FriendActionBtn";
 import styles from "../Profile.module.scss";
+import { Link } from "react-router";
 
 // Sub-component hiển thị 1 dòng User (User Card)
 const UserCard = ({ user, subText, action }) => {
   // Phòng hờ user bị null
   if (!user) return null;
+  console.log(user);
+  
 
   return (
     <div className={styles.friendCard}>
@@ -22,10 +25,7 @@ const UserCard = ({ user, subText, action }) => {
         </div>
         <div className={styles.cardInfo}>
           <div className={styles.cardName}>
-            {user.displayName}
-            <span className={styles.flag}>
-              <i className="fa-solid fa-flag"></i>
-            </span>
+            <Link to={`/profile/${user.username}`}>{user.username}</Link>
           </div>
           <div className={styles.cardSub}>{subText || `@${user.username}`}</div>
         </div>

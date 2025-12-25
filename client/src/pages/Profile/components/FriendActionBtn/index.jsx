@@ -48,7 +48,7 @@ function FriendActionBtn({ targetUserId }) {
       await axiosClient.post("/friends/request", { recipientId: targetUserId });
       setStatus("sent");
     } catch (err) {
-      console.log(err);
+      console.log(err.response);
       alert("Lỗi gửi lời mời");
     }
   };

@@ -2,13 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import axiosClient from '@/utils/axiosConfig';
 import styles from './Dashboard.module.scss';
+import { FaUsers, FaChessBoard, FaTrophy } from 'react-icons/fa';
 
-// A simple, internal StatCard component. Can be moved to a separate file if needed.
-// Icons are placeholders. An icon library like react-icons could be added.
-const StatCard = ({ title, value, icon, highlight = false }) => {
+const StatCard = ({ title, value, icon, variant }) => {
   return (
-    <div className={`${styles.statCard} ${highlight ? styles.highlight : ''}`}>
-      <div className={styles.icon}>{icon}</div>
+    <div className={styles.statCard} data-variant={variant}>
+      <div className={styles.iconWrapper}>{icon}</div>
       <div className={styles.content}>
         <div className={styles.value}>{value}</div>
         <div className={styles.title}>{title}</div>
@@ -59,18 +58,20 @@ const Dashboard = () => {
             <StatCard 
               title="Total Users" 
               value={stats.totalUsers} 
-              icon="👥" // Placeholder icon
+              icon={<FaUsers />}
+              variant="blue"
             />
             <StatCard 
               title="Active Games" 
               value={stats.activeGames} 
-              icon="♟️" // Placeholder icon
-              highlight={stats.activeGames > 0}
+              icon={<FaChessBoard />}
+              variant="green"
             />
             <StatCard 
               title="Completed Games" 
               value={stats.completedGames} 
-              icon="✔️" // Placeholder icon
+              icon={<FaTrophy />}
+              variant="purple"
             />
           </>
         )}

@@ -2,46 +2,106 @@
 
 .container {
   padding: 2rem;
+  font-size: 1.4rem;
   color: var(--color-text-primary);
+  background-color: var(--color-bg-low);
+  min-height: 100%;
+  border-radius: 8px;
+}
 
-  h1 {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-    color: var(--color-text-l-dark);
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--color-text-bright);
+}
+
+.filterBar {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background-color: var(--color-bg-high);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.searchInput,
+.filterSelect {
+  height: 40px;
+  background-color: var(--color-input-bg-dark);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-bright);
+  border-radius: 6px;
+  padding: 0 12px;
+  font-size: 1.4rem;
+  transition: all 0.2s ease-in-out;
+
+  &::placeholder {
+    color: var(--color-text-primary);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-neon-green);
+    box-shadow: 0 0 0 3px var(--color-neon-green-glow);
   }
 }
 
-.modalHeader {
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  color: var(--color-text-l-dark);
-  font-size: 1.5rem;
+.searchInput {
+  flex-grow: 1;
+  min-width: 250px;
+}
+
+.filterSelect {
+  min-width: 180px;
+}
+
+// Modal Styles
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  h2 {
+    margin: 0 0 0.5rem 0;
+    padding-bottom: 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text-bright);
+    border-bottom: 1px solid var(--color-border);
+  }
 }
 
 .formGroup {
-  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 
   label {
-    display: block;
-    margin-bottom: 0.5rem;
     font-weight: 500;
-    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    color: var(--color-text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
+}
 
-  .select,
-  .input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--color-border);
-    background-color: var(--color-background-l-d-2);
-    border-radius: 4px;
-    color: var(--color-text-primary);
-    font-size: 1rem;
+.select,
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-input-bg-dark);
+  color: var(--color-text-bright);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 1.4rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
 
-    &:focus {
-      outline: none;
-      border-color: var(--color-primary);
-    }
+  &:focus {
+    outline: none;
+    border-color: var(--color-neon-green);
+    box-shadow: 0 0 0 3px var(--color-neon-green-glow);
   }
 }
 
@@ -49,34 +109,36 @@
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
+}
 
-  .cancelButton,
-  .confirmButton {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+.btnCancel,
+.btnConfirm {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btnCancel {
+  background-color: var(--color-board-control);
+  color: var(--color-text-subtle);
+
+  &:hover {
+    background-color: var(--color-border);
+    color: var(--color-text-bright);
   }
+}
 
-  .cancelButton {
-    background-color: var(--color-background-l-d-2);
-    color: var(--color-text-primary);
+.btnConfirm {
+  background-color: var(--color-btn-danger-bg);
+  color: white;
 
-    &:hover {
-      background-color: var(--color-background-l-d-3);
-    }
-  }
-
-  .confirmButton {
-    background-color: var(--color-danger, #e53e3e);
-    color: #fff;
-
-    &:hover {
-      background-color: var(--color-danger-hover, #c53030);
-    }
+  &:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 15px rgba(231, 111, 81, 0.5);
   }
 }

@@ -1,31 +1,47 @@
-@use "@/styles/variables.scss";
+@use "@/styles/variables.scss" as *;
 
 .sidebarNav {
   list-style: none;
-  padding: 0;
+  padding: 1rem;
   margin: 0;
 }
 
 .navItem {
-  margin-bottom: 10px;
+  margin-bottom: 0.5rem;
 }
 
 .navLink {
-  display: block;
-  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
   border-radius: 4px;
   color: var(--color-text-primary);
   text-decoration: none;
   transition: background-color 0.2s, color 0.2s;
+  cursor: pointer;
+  font-weight: 500;
+
+  i,
+  svg {
+    margin-right: 0.75rem;
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+  }
 
   &:hover {
-    background-color: var(--color-admin-sidebar-hover);
+    background-color: var(--color-btn-def-hover);
     color: var(--color-text-hover);
   }
 
   &.active {
-    background-color: var(--color-admin-sidebar-hover);
-    color: var(--color-admin-active-item);
-    font-weight: bold;
+    background-color: var(--color-btn-green);
+    color: white;
+    font-weight: 600;
+
+    i,
+    svg {
+      color: white;
+    }
   }
 }

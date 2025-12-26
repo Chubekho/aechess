@@ -7,12 +7,14 @@ import styles from "./AdminLayout.module.scss";
 const AdminLayout = () => {
   return (
     <div className={styles.adminLayout}>
-      <aside className={styles.sidebar}>
-        <Sidebar />
-      </aside>
-      <main className={styles.mainContent}>
-        <Outlet />
-      </main>
+      <div className={styles.container}>
+        <aside className={styles.sidebar}>
+          <Sidebar />
+        </aside>
+        <main className={styles.mainContent}>
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

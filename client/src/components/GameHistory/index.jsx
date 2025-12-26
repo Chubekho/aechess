@@ -9,7 +9,7 @@ import { TimeControlIcon, formatDate } from "./helpers.jsx";
 
 const PlayerInfo = ({ player, rating, color }) => {
   const hasProfile = player && player.username && player.username !== "undefined";
-  const displayName = player?.username || "Anonymous";
+  const displayName = player?.username || player?.displayName || "Unknown";
 
   return (
     <div className={styles.player}>

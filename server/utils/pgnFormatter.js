@@ -43,8 +43,8 @@ export function generatePgnWithHeaders(game, gameData, result) {
   game.setHeader("Site", "aechess"); // Tên website của bạn
   game.setHeader("Date", dateStr);
   game.setHeader("Result", result);
-  game.setHeader("White", whitePlayerInfo.displayName || "Player 1");
-  game.setHeader("Black", blackPlayerInfo.displayName || "Player 2");
+  game.setHeader("White", whitePlayerInfo.username || "Player 1");
+  game.setHeader("Black", blackPlayerInfo.username || "Player 2");
   game.setHeader("WhiteElo", whitePlayerInfo.rating || 1200);
   game.setHeader("BlackElo", blackPlayerInfo.rating || 1200);
   game.setHeader("TimeControl", timeControlStr); // PGN chuẩn (giây + giây cộng)

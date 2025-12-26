@@ -151,13 +151,15 @@ function AnalysisPage() {
       .filter(Boolean);
   }, [lines, isAnalyzing]);
 
+  useEffect(() => console.log(pgnHeaders), [pgnHeaders]);
+
   // --- Player Info & Layout ---
   const whitePlayerInfo = {
-    name: pgnHeaders.White || "White",
+    username: pgnHeaders.White || "White",
     rating: pgnHeaders.WhiteElo,
   };
   const blackPlayerInfo = {
-    name: pgnHeaders.Black || "Black",
+    username: pgnHeaders.Black || "Black",
     rating: pgnHeaders.BlackElo,
   };
 
@@ -246,10 +248,7 @@ function AnalysisPage() {
             arePiecesDraggable={true}
           />
         </div>
-        <FlipBoardButton
-          onClick={handleFlipBoard}
-          className={styles.flipBtn} 
-        />
+        <FlipBoardButton onClick={handleFlipBoard} className={styles.flipBtn} />
       </div>
 
       {/* 3. Right Panel: Engine & Moves */}

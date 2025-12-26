@@ -14,10 +14,10 @@ const UserManager = () => {
       try {
         setLoading(true);
         const response = await axiosClient.get("/admin/users");
-        setUsers(response.data.users);
+        setUsers(response.users);
         setError(null);
       } catch (err) {
-        setError(err.response?.data?.message || "Failed to fetch users");
+        setError(err.response?.message || "Failed to fetch users");
       } finally {
         setLoading(false);
       }

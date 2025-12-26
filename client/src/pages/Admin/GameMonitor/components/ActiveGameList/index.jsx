@@ -4,7 +4,7 @@ import styles from './ActiveGameList.module.scss';
 import { format } from 'date-fns';
 
 const ActiveGameList = ({ games, onAbort }) => {
-    const activeGames = games.games;
+    const activeGames = games;
     
   if (!activeGames || activeGames.length === 0) {
     return <p className={styles.noGames}>No active games at the moment.</p>;

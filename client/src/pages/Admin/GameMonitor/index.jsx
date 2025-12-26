@@ -14,7 +14,9 @@ const GameMonitor = () => {
         const response = await axiosClient.get("/admin/games/active", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setActiveGames(response.data);
+        console.log(response.games);
+        
+        setActiveGames(response.games || []);
       } catch (error) {
         console.error("Failed to fetch active games:", error);
       }
@@ -23,18 +25,18 @@ const GameMonitor = () => {
     fetchActiveGames();
   }, [token]);
 
-  const handleAbort = async gameId => {
+  const handleAbort = async (gameId) => {
     if (window.confirm("Are you sure you want to abort this game?")) {
       try {
-        await axiosClient.post(
+        await axiosClient.patch(
           `/admin/games/${gameId}/abort`,
           {},
           {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        setActiveGames(prevGames =>
-          prevGames.filter(game => game._id !== gameId)
+        setActiveGames((prevGames) =>
+          prevGames.filter((game) => game._id !== gameId)
         );
       } catch (error) {
         console.error("Failed to abort game:", error);

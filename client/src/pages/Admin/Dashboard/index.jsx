@@ -27,13 +27,13 @@ const Dashboard = () => {
       try {
         setLoading(true);
         const response = await axiosClient.get('/admin/stats');
-        if (response.data.success) {
-          setStats(response.data.stats);
+        if (response.success) {
+          setStats(response.stats);
         } else {
           throw new Error('Failed to fetch stats');
         }
       } catch (err) {
-        setError(err.response?.data?.message || 'An error occurred while fetching stats.');
+        setError(err.response?.message || 'An error occurred while fetching stats.');
       } finally {
         setLoading(false);
       }

@@ -1,5 +1,10 @@
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import sendEmail from "../utils/sendEmail.js";
+import passport from "passport";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import { validateEmail, validateUsername } from "../utils/validators.js";
 
 // === HELPER FUNCTION: Create JWT ===
 const createToken = (user) => {

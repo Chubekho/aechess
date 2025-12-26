@@ -25,7 +25,7 @@
 /* Tiêu đề (Đăng nhập / Đăng ký) */
 .title {
   text-align: center;
-  font-size: 28px;
+  font-size: 2.8rem;
   font-weight: 600;
   margin-bottom: 24px;
 }
@@ -36,14 +36,32 @@
   flex-direction: column;
 }
 
+/* Header cho label (để chứa link quên mật khẩu) */
+.labelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+/* Link quên mật khẩu */
+.forgotLink {
+    font-size: 1.4rem;
+    color: var(--color-link);
+    text-decoration: none;
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
 /* Nhóm (label + input) */
 .inputGroup {
   margin-bottom: 18px;
 
   label {
     display: block;
-    margin-bottom: 6px;
-    font-size: 14px;
+    // margin-bottom: 6px; // Chuyển vào labelHeader
+    font-size: 1.4rem;
     font-weight: 500;
     color: var(--color-text-subtle);
   }
@@ -51,7 +69,7 @@
   input {
     width: 100%;
     padding: 12px;
-    font-size: 16px;
+    font-size: 1.4rem;
     background-color: var(--color-input-bg-dark);
     border: 1px solid var(--color-border-light);
     color: var(--color-piece-white);
@@ -70,8 +88,10 @@
 .button {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 8px;
   padding: 12px;
-  font-size: 16px;
+  font-size: 1.4rem;
   font-weight: 600;
   border: none;
   border-radius: 5px;
@@ -119,7 +139,7 @@
 /* Thông báo lỗi */
 .error {
   color: var(--color-text-error);
-  font-size: 14px;
+  font-size: 1.4rem;
   text-align: center;
   margin-bottom: 15px;
   min-height: 1.2em; /* Giữ khoảng trống dù có lỗi hay không */
@@ -129,7 +149,7 @@
 .footerText {
   text-align: center;
   margin-top: 20px;
-  font-size: 14px;
+  font-size: 1.4rem;
   color: var(--color-text-subtle);
 
   a {

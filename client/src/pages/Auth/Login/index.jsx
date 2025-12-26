@@ -22,9 +22,7 @@ function Login() {
     }
   };
 
-  // Hàm xử lý Google Login (Bước 5)
   const handleGoogleLogin = () => {
-    // Chuyển hướng đến API backend
     window.location.href = "http://localhost:8080/api/auth/google";
   };
 
@@ -49,7 +47,12 @@ function Login() {
             />
           </div>
           <div className={styles.inputGroup}>
-            <label htmlFor="password">Mật khẩu</label>
+            <div className={styles.labelHeader}>
+              <label htmlFor="password">Mật khẩu</label>
+              <Link to="/forgot-password" className={styles.forgotLink}>
+                Quên mật khẩu?
+              </Link>
+            </div>
             <input
               id="password"
               type="password"

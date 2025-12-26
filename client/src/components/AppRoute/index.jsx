@@ -28,6 +28,8 @@ import AdminDashboard from "@/pages/Admin/Dashboard";
 import AdminUserManager from "@/pages/Admin/UserManager";
 import AdminGameMonitor from "@/pages/Admin/GameMonitor";
 import AdminGuard from "../guards/AdminGuard";
+import ResetPassword from "@/pages/Auth/ResetPassword";
+import ForgotPassword from "@/pages/Auth/ForgotPassword";
 
 function AppRoute() {
   return (
@@ -57,6 +59,11 @@ function AppRoute() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/auth-callback" element={<AuthCallback />} />
                 <Route path="/set-username" element={<SetUsername />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route
+                  path="/reset-password/:token"
+                  element={<ResetPassword />}
+                />
               </Route>
 
               {/* Admin Layout */}

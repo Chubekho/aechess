@@ -1,9 +1,5 @@
-// server/controllers/authController.js
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import User from "../models/User.js";
-import passport from "passport";
-import { validateEmail, validateUsername } from "../utils/validators.js";
+import crypto from "crypto";
+import sendEmail from "../utils/sendEmail.js";
 
 // === HELPER FUNCTION: Create JWT ===
 const createToken = (user) => {
@@ -224,4 +220,113 @@ export const setUsername = async (req, res) => {
     }
     res.status(500).json({ message: "Lỗi máy chủ." });
   }
+};
+
+
+// @desc: Forgot password
+// @route: POST /api/auth/forgot-password
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ msg: "Vui lòng nhập email." });
+  }
+
+  let user;
+  try {
+    user = await User.findOne({ email });
+    if (!user) {
+      // Don't reveal that the user doesn't exist
+      return res.status(200).json({ msg: "Nếu email tồn tại, bạn sẽ nhận được một liên kết đặt lại mật khẩu." });
+    }
+
+    // Restriction for Google users
+    if (!user.passwordHash) {
+      return res.status(400).json({ msg: "Tài khoản này đăng nhập bằng Google, không thể đặt lại mật khẩu." });
+    }
+
+    // 1. Generate token
+    const resetToken = crypto.randomBytes(20).toString('hex');
+
+    // 2. Hash token and set to resetPasswordToken field
+    user.resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    // 3. Set expire time (10 minutes)
+    user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
+    
+    await user.save({ validateBeforeSave: false });
+
+    // 4. Create reset URL
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const message = `Bạn nhận được email này vì bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu cho tài khoản của bạn.\n\nVui lòng nhấn vào liên kết sau hoặc dán vào trình duyệt để hoàn tất quá trình:\n\n${resetUrl}\n\nNếu bạn không yêu cầu điều này, vui lòng bỏ qua email này và mật khẩu của bạn sẽ không thay đổi. Liên kết sẽ hết hạn sau 10 phút.`;
+
+    // 5. Send email
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Yêu cầu đặt lại mật khẩu AE-Chess',
+        message,
+        html: `<p>Bạn nhận được email này vì bạn (hoặc ai đó) đã yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p><p>Vui lòng nhấn vào liên kết sau hoặc dán vào trình duyệt để hoàn tất quá trình:</p><p><a href="${resetUrl}">${resetUrl}</a></p><p>Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này và mật khẩu của bạn sẽ không thay đổi. Liên kết sẽ hết hạn sau 10 phút.</p>`
+      });
+      res.status(200).json({ msg: "Email đặt lại mật khẩu đã được gửi." });
+    } catch (emailError) {
+      console.error("Failed to send password reset email:", emailError);
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      res.status(500).json({ msg: "Lỗi khi gửi email. Vui lòng thử lại sau." });
+    }
+
+  } catch (error) {
+    console.error("Forgot Password Error:", error);
+    res.status(500).json({ msg: "Đã có lỗi xảy ra phía máy chủ." });
+  }
+};
+
+// @desc: Reset password
+// @route: PUT /api/auth/reset-password/:token
+export const resetPassword = async (req, res) => {
+    // 1. Get user based on the hashed token
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+
+    try {
+        const user = await User.findOne({
+            resetPasswordToken,
+            resetPasswordExpires: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            return res.status(400).json({ msg: "Token không hợp lệ hoặc đã hết hạn." });
+        }
+
+        const { password } = req.body;
+        if (!password || password.length < 6) {
+            return res.status(400).json({ msg: "Mật khẩu phải có ít nhất 6 ký tự." });
+        }
+
+        // 2. Set new password
+        const salt = await bcrypt.genSalt(10);
+        user.passwordHash = await bcrypt.hash(password, salt);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+
+        await user.save();
+
+        // Optional: Log the user in automatically
+        const token = createToken(user);
+        res.status(200).json({
+            token,
+            user,
+            msg: "Mật khẩu đã được đặt lại thành công."
+        });
+
+    } catch (error) {
+        console.error("Reset Password Error:", error);
+        res.status(500).json({ msg: "Đã có lỗi xảy ra phía máy chủ." });
+    }
 };

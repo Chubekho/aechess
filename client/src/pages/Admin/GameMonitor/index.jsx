@@ -14,7 +14,6 @@ const GameMonitor = () => {
         const response = await axiosClient.get("/admin/games/active", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log(response.games);
         
         setActiveGames(response.games || []);
       } catch (error) {

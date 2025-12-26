@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Chess } from "chess.js";
 import { useNavigate } from "react-router";
+import axiosClient from "@/utils/axiosConfig"; // [CHUẨN] Dùng axiosClient
+import { useToast } from "@/hooks/index";
 
 export const useAnalysisData = (
   gameId,
@@ -12,6 +13,7 @@ export const useAnalysisData = (
 ) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const toast = useToast();
 
   const {
     setPgnHeaders,
@@ -23,93 +25,95 @@ export const useAnalysisData = (
   } = callbacks;
 
   useEffect(() => {
-    // Định nghĩa logic load game bên trong effect hoặc hook để closure các biến callbacks
+    // Helper: Trích xuất dữ liệu từ instance chess.js ra State
     const loadGameToState = (gameInstance) => {
-      setPgnHeaders(gameInstance.header());
+      const headers = gameInstance.header();
+      setPgnHeaders(headers); // Fix lỗi header null
       setPgn(gameInstance.pgn());
       resetNavigation();
 
       const historyVerbose = gameInstance.history({ verbose: true });
-      loadHistory(historyVerbose);
+      loadHistory(historyVerbose); // Fix lỗi không có nước đi
       setFen(gameInstance.fen());
 
-      return gameInstance.header();
+      return headers;
     };
 
     const initGame = async () => {
       setLoading(true);
       try {
-        // CASE 1: Load từ API (có Game ID)
+        // ---------------------------------------------------------
+        // CASE 1: Load Game từ Database (Có Game ID)
+        // ---------------------------------------------------------
         if (gameId) {
-          if (!token) return; // Đợi token
+          if (!token) return; // Chờ token sẵn sàng
           try {
-            // 1. Gọi song song API lấy Game và API lấy thông tin User hiện tại
-            const [gameRes, userRes] = await Promise.all([
-              axios.get(`http://localhost:8080/api/games/${gameId}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              }),
-              axios.get(`http://localhost:8080/api/users/${user?.username}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              }),
-            ]);
-            // 2. Load Game
+            const res = await axiosClient.get(`/games/${gameId}`);
+            const gameData = res; // Giả sử API trả về { success: true, game: ... }
+
+            // Load PGN từ DB
             const loadedGame = new Chess();
             try {
-              loadedGame.loadPgn(gameRes.data.pgn);
+              loadedGame.loadPgn(gameData.pgn);
             } catch (e) {
-              console.error("PGN Error:", e);
+              console.error("PGN Error from DB:", e);
             }
+            
             const headers = loadGameToState(loadedGame);
 
-            // 3. LOGIC SET ORIENTATION
-            const currentDisplayName = userRes.data.displayName;
-            const blackPlayerName = headers?.Black;
-
-            // Nếu tên User hiện tại trùng với tên người cầm quân Đen -> Xoay bàn
-            if (
-              currentDisplayName &&
-              blackPlayerName &&
-              currentDisplayName === blackPlayerName
-            ) {
+            // LOGIC ORIENTATION (XOAY BÀN CỜ)
+            // So sánh username của user hiện tại với tên người cầm quân Đen trong PGN
+            const blackPlayerName = headers?.Black || gameData.blackPlayer?.username;
+            
+            if (user && blackPlayerName && user.username === blackPlayerName) {
               setBoardOrientation("black");
             } else {
-              // Trường hợp còn lại (Quân Trắng hoặc Không trùng tên) -> Mặc định Trắng
               setBoardOrientation("white");
             }
+
           } catch (err) {
             console.error("Lỗi tải ván đấu:", err);
-            alert("Không thể tải ván đấu.");
+            toast.error("Không tìm thấy ván đấu hoặc lỗi server.");
             navigate("/");
           }
-        } else {
-          const pgnFromImport = location.state?.pgnInput;
+        } 
+        // ---------------------------------------------------------
+        // CASE 2: Import PGN trực tiếp (Không có Game ID)
+        // ---------------------------------------------------------
+        else {
+          // [FIX BUG] Dùng locationState được truyền vào, không dùng location.state
+          const pgnFromImport = locationState?.pgnInput; 
           const localGame = new Chess();
 
           if (pgnFromImport) {
             try {
               localGame.loadPgn(pgnFromImport);
             } catch (e) {
-              console.log("PGN error:", e);
-              navigate("/");
+              console.error("Invalid PGN Input:", e);
+              toast.error("Chuỗi PGN không hợp lệ.");
+              // Không navigate về home ngay để user có thể thử lại nếu muốn
             }
-            // Xóa state để F5 không bị load lại
+            // Xóa state của history browser để tránh F5 bị duplicate action (Optional)
             window.history.replaceState({}, document.title);
           }
 
           loadGameToState(localGame);
+          
+          // Với Import PGN, mặc định luôn là White trừ khi có logic khác
           setBoardOrientation("white");
         }
       } finally {
         setLoading(false);
       }
     };
+
     initGame();
   }, [
     gameId,
     token,
-    user,
+    user, // User thay đổi thì check lại orientation
     locationState,
-    // Thêm các dependency từ callbacks để đảm bảo hook chạy đúng khi các hàm này thay đổi (dù thường là stable)
+    // Callbacks dependencies
     setPgnHeaders,
     setPgn,
     resetNavigation,
@@ -117,6 +121,8 @@ export const useAnalysisData = (
     setFen,
     setBoardOrientation,
     navigate,
-  ]); 
+    toast
+  ]);
+
   return { loading };
 };

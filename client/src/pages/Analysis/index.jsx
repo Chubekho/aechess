@@ -151,8 +151,6 @@ function AnalysisPage() {
       .filter(Boolean);
   }, [lines, isAnalyzing]);
 
-  useEffect(() => console.log(pgnHeaders), [pgnHeaders]);
-
   // --- Player Info & Layout ---
   const whitePlayerInfo = {
     username: pgnHeaders.White || "White",

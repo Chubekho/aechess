@@ -29,14 +29,23 @@ const UserTable = ({ users = [], onToggleBan }) => {
               </div>
             </td>
             <td>
-              <button
-                className={`${styles.actionButton} ${
-                  user.isActive ? styles.ban : styles.unban
-                }`}
-                onClick={() => onToggleBan(user._id)}
-              >
-                {user.isActive ? "Ban" : "Unban"}
-              </button>
+              {user.role === 'admin' ? (
+                <button
+                  className={`${styles.actionButton} ${styles.disabled}`}
+                  disabled
+                >
+                  Admin
+                </button>
+              ) : (
+                <button
+                  className={`${styles.actionButton} ${
+                    user.isActive ? styles.ban : styles.unban
+                  }`}
+                  onClick={() => onToggleBan(user._id)}
+                >
+                  {user.isActive ? "Ban" : "Unban"}
+                </button>
+              )}
             </td>
           </tr>
         ))}

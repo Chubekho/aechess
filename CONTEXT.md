@@ -90,9 +90,10 @@
 - **`preferences`**: Nested Object. Stores UI settings.
   - `boardTheme`: String (e.g., `'brown'`, `'green'`).
   - `pieceTheme`: String.
-- **`bio`**: String (Max 200 chars).
-- **`avatar`**: String (Path to static asset, e.g., `"/avatars/1.png"`).
+- `bio`: String (Max 200 chars).
+- `avatar`: String (Path to static asset, e.g., `"/avatars/1.png"`).
 - `ratings`: Nested Object (`bullet`, `blitz`, `rapid`, `classical`).
+- `banReason`: String (Default: `null`). Stores the reason for account deactivation.
 
 ### Game Model (`Game.js`)
 
@@ -181,9 +182,19 @@
 
 - **Problem**: Previously, `activeGames` was isolated within `socketHandler.js`, preventing REST API Controllers (like Admin) from interacting with realtime games.
 - **Solution**:
+
   - **Shared Memory**: `activeGames` Map is centralized in `server/utils/gameState.js`.
   - **Access**: Both `socketHandler` (for gameplay) and `adminController` (for moderation) import this singleton Map.
   - **IO Injection**: Server entry point uses `app.set('io', io)` to make the Socket.IO instance available in Controllers via `req.app.get('io')`.
+
+### I. Security & Moderation [NEW]
+
+- **Ban Enforcement**:
+  - **API Layer**: `authController` prevents login if `isActive: false` (Returns 403 + Reason).
+  - **Socket Layer**:
+    - Middleware rejects new connections.
+    - Admin "Ban" action triggers instant `disconnectSockets(true)` via Socket Room ID (User ID).
+    - Client `SocketProvider` listens for ban errors to force local logout.
 
 ## 5. Admin Module Implementation
 

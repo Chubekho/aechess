@@ -2,6 +2,7 @@
 import { useParams, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/index";
+import { FaBan } from 'react-icons/fa';
 
 import clsx from "clsx";
 import axiosClient from "@/utils/axiosConfig";
@@ -11,11 +12,11 @@ import OverviewTab from "./components/OverviewTab";
 import FriendsTab from "./components/FriendsTab";
 import styles from "./Profile.module.scss";
 
-// Định nghĩa các Tabs
+// Define Tabs
 const TABS = [
-  { id: "overview", label: "Tổng quan", icon: "fa-solid fa-chart-pie" },
-  { id: "friends", label: "Bạn bè", icon: "fa-solid fa-user-group" },
-  { id: "clubs", label: "Các câu lạc bộ", icon: "fa-solid fa-users" },
+  { id: "overview", label: "Overview", icon: "fa-solid fa-chart-pie" },
+  { id: "friends", label: "Friends", icon: "fa-solid fa-user-group" },
+  { id: "clubs", label: "Clubs", icon: "fa-solid fa-users" },
 ];
 
 function Profile() {
@@ -28,11 +29,11 @@ function Profile() {
   const friendCount = 0;
 
   useEffect(() => {
-    // 1. Reset state ngay lập tức khi username thay đổi
+    // 1. Reset state immediately when username changes
     setProfileUser(null);
     setLoading(true);
 
-    // 2. Kiểm tra nếu username bị undefined (do click vào link lỗi)
+    // 2. Check if username is undefined (from a broken link)
     if (!username || username === "undefined" || username === "null") {
       setLoading(false);
       return;
@@ -43,7 +44,7 @@ function Profile() {
         const res = await axiosClient.get(`/users/${username}`);
         setProfileUser(res);
       } catch (err) {
-        console.error("Lỗi tải profile:", err);
+        console.error("Error loading profile:", err);
       } finally {
         setLoading(false);
       }
@@ -52,13 +53,13 @@ function Profile() {
     fetchUser();
   }, [username]);
 
-  if (loading) return <div className={styles.loading}>Đang tải...</div>;
+  if (loading) return <div className={styles.loading}>Loading...</div>;
   if (!profileUser)
-    return <div className={styles.loading}>Không tìm thấy người chơi</div>;
+    return <div className={styles.loading}>Player not found</div>;
 
   const isMe = currentUser && profileUser._id === currentUser._id;
 
-  // --- RENDER CONTENT THEO TAB ---
+  // --- RENDER CONTENT BY TAB ---
   const renderTabContent = () => {
     switch (activeTab) {
       case "overview":
@@ -74,9 +75,20 @@ function Profile() {
 
   return (
     <div className={styles.wrapper}>
-      {/* --- HEADER PROFILE (Giống Chess.com) --- */}
+      {/* --- BANNER FOR DEACTIVATED ACCOUNT --- */}
+      {!profileUser.isActive && (
+        <div className={styles.banBanner}>
+          <FaBan />
+          <div>
+            <p>This account has been deactivated.</p>
+            <span>Reason: {profileUser.banReason || 'Terms of service violation'}</span>
+          </div>
+        </div>
+      )}
+      
+      {/* --- PROFILE HEADER (Chess.com style) --- */}
       <div className={styles.profileHeader}>
-        {/* Cột 1: Avatar */}
+        {/* Column 1: Avatar */}
         <div className={styles.avatarCol}>
           <div className={styles.avatar}>
             <img
@@ -87,7 +99,7 @@ function Profile() {
           </div>
         </div>
 
-        {/* Cột 2: Info & Stats */}
+        {/* Column 2: Info & Stats */}
         <div className={styles.infoCol}>
           <div className={styles.nameRow}>
             <h1 className={styles.username}>{profileUser.username}</h1>
@@ -98,32 +110,32 @@ function Profile() {
           )}
 
           <div className={styles.metaRow}>
-            <div className={styles.metaItem} title="Ngày tham gia">
+            <div className={styles.metaItem} title="Date joined">
               <i className="fa-regular fa-calendar-days"></i>
               <span>
-                {new Date(profileUser.createdAt).toLocaleDateString("vi-VN")}
+                {new Date(profileUser.createdAt).toLocaleDateString("en-US")}
               </span>
             </div>
-            <div className={styles.metaItem} title="Số bạn bè">
+            <div className={styles.metaItem} title="Number of friends">
               <i className="fa-solid fa-user-group"></i>
-              <span>{friendCount} bạn bè</span>
+              <span>{friendCount} friends</span>
             </div>
           </div>
         </div>
 
-        {/* Cột 3: Actions (Nút bấm) */}
+        {/* Column 3: Actions (Buttons) */}
         <div className={styles.actionCol}>
           {isMe ? (
             <button
               className={styles.btnEdit}
               onClick={() => navigate("/settings")}
             >
-              <i className="fa-solid fa-pen-to-square"></i> Chỉnh sửa hồ sơ
+              <i className="fa-solid fa-pen-to-square"></i> Edit Profile
             </button>
           ) : (
             <div className={styles.btnGroup}>
               <button className={styles.btnChallenge}>
-                <i className="fa-solid fa-chess-board"></i> Thách đấu
+                <i className="fa-solid fa-chess-board"></i> Challenge
               </button>
               {profileUser && <FriendActionBtn targetUserId={profileUser._id} />}
             </div>

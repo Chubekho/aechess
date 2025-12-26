@@ -18,8 +18,9 @@ const initializeSocket = (io) => {
   io.use(socketAuth);
 
   io.on("connection", (socket) => {
-    console.log(`User đã xác thực: ${socket.id}, Email: ${socket.user.username}`);
+    console.log(`User đã xác thực: ${socket.id}, username: ${socket.user.username}`);
 
+    socket.join(socket.user._id.toString());
 
     // === 3. XỬ LÝ GAME ===
     registerRoomHandlers(io, socket, activeGames);

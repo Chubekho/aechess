@@ -81,4 +81,17 @@
       background-color: rgba(52, 199, 89, 0.1);
     }
   }
+
+  &.disabled {
+    background-color: var(--color-btn-def-hover);
+    color: var(--color-text-primary);
+    cursor: not-allowed;
+    border-color: var(--color-border);
+
+    &:hover {
+      background-color: var(--color-btn-def-hover);
+      color: var(--color-text-primary);
+      border-color: var(--color-border);
+    }
+  }
 }

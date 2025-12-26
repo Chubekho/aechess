@@ -195,6 +195,33 @@ button {
   min-height: 400px;
 }
 
+.banBanner {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+
+  svg {
+    font-size: 2rem;
+    flex-shrink: 0;
+  }
+
+  p {
+    margin: 0;
+    font-weight: bold;
+    color: #fecaca;
+  }
+
+  span {
+    font-size: 1.2rem;
+  }
+}
+
 /* Overview Stats Grid */
 .statsGrid {
   display: grid;

@@ -30,8 +30,20 @@ export const banUser = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
+    if (user.role === 'admin') {
+      return res
+        .status(403)
+        .json({ success: false, message: "Cannot ban an administrator" });
+    }
+
     user.isActive = !user.isActive;
     await user.save();
+
+    // If the user is being banned, disconnect their sockets
+    if (!user.isActive) {
+      const io = req.app.get('io');
+      io.in(user._id.toString()).disconnectSockets(true);
+    }
 
     res.json({
       success: true,

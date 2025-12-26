@@ -5,12 +5,12 @@ import User from "../models/User.js";
 import passport from "passport";
 import { validateEmail, validateUsername } from "../utils/validators.js";
 
-// === HÀM HỖ TRỢ: Tạo JWT ===
+// === HELPER FUNCTION: Create JWT ===
 const createToken = (user) => {
   return jwt.sign(
     { id: user._id, email: user.email, username: user.username, role: user.role, isActive: user.isActive, avatar: user.avatar},
     process.env.JWT_SECRET,
-    { expiresIn: "1d" } // Token hết hạn sau 1 ngày
+    { expiresIn: "1d" } // Token expires in 1 day
   );
 };
 
@@ -24,23 +24,23 @@ export const register = async (req, res) => {
     if (!email || !password) {
       return res
         .status(400)
-        .json({ msg: "Vui lòng nhập đủ email và password." });
+        .json({ msg: "Please provide both email and password." });
     }
 
     // 2. Validate email
     if (!validateEmail(email)) {
-      return res.status(400).json({ msg: "Email không hợp lệ." });
+      return res.status(400).json({ msg: "Invalid email." });
     }
 
     // 3. validate password length
     if (password.length < 6) {
-      return res.status(400).json({ msg: "Mật khẩu phải có ít nhất 6 ký tự." });
+      return res.status(400).json({ msg: "Password must be at least 6 characters long." });
     }
 
     // 4. validate duplicate email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ msg: "Email đã được sử dụng." });
+      return res.status(400).json({ msg: "Email is already in use." });
     }
 
     // 5. password hashing
@@ -48,7 +48,7 @@ export const register = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // 4. create temp username
-    // Ví dụ: user_1701234567890 (user_ + timestamp)
+    // Example: user_1701234567890 (user_ + timestamp)
     const tempUsername = "user_" + Date.now();
 
     const newUser = new User({
@@ -60,7 +60,7 @@ export const register = async (req, res) => {
 
     const savedUser = await newUser.save();
 
-    // 5. Tạo JWT và trả về
+    // 5. Create and return JWT
     const token = createToken(savedUser);
     res.status(201).json({
       token,
@@ -82,7 +82,7 @@ export const login = async (req, res) => {
     if (!loginId || !password) {
       return res
         .status(400)
-        .json({ msg: "Vui lòng nhập tài khoản và mật khẩu." });
+        .json({ msg: "Please enter your login ID and password." });
     }
 
     // 1. Check user
@@ -91,25 +91,32 @@ export const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ msg: "Email hoặc mật khẩu không đúng." });
+      return res.status(400).json({ msg: "Invalid credentials." });
     }
 
-    // 2. Check user có password (tránh user Google login)
-    if (!user.passwordHash) {
-      return res.status(400).json({
-        msg: "Tài khoản này đăng ký qua Google. Vui lòng đăng nhập bằng Google.",
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(403).json({ 
+        msg: `Your account has been disabled. Reason: ${user.banReason || 'Community standards violation'}` 
       });
     }
 
-    // 3. So sánh password
+    // 2. Check user has password (to avoid Google users logging in with password)
+    if (!user.passwordHash) {
+      return res.status(400).json({
+        msg: "This account was registered via Google. Please log in with Google.",
+      });
+    }
+
+    // 3. Compare password
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       return res
         .status(400)
-        .json({ msg: "Email, username hoặc mật khẩu không đúng." });
+        .json({ msg: "Invalid credentials." });
     }
 
-    // 4. Tạo JWT và trả về
+    // 4. Create and return JWT
     const token = createToken(user);
     res.status(200).json({
       token,
@@ -124,19 +131,22 @@ export const login = async (req, res) => {
 // @route: GET /api/auth/me
 export const getMe = async (req, res) => {
   try {
-    // Lấy cả passwordHash để kiểm tra
     const user = await User.findById(req.user.id); 
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
 
-    // Chuyển sang object để có thể thêm trường mới
+    if (!user.isActive) {
+      return res.status(403).json({ msg: "Your account has been deactivated." });
+    }
+
+    // Convert to object to add a new field
     const userData = user.toObject();
 
-    // Thêm trường hasPassword
+    // Add hasPassword field
     userData.hasPassword = !!user.passwordHash;
 
-    // Xóa passwordHash khỏi object trả về
+    // Remove passwordHash from the returned object
     delete userData.passwordHash;
 
     res.json(userData);
@@ -150,19 +160,19 @@ export const getMe = async (req, res) => {
 // @desc: Authenticate user using Google (starts the process)
 // @route: GET /api/auth/google
 export const googleAuth = passport.authenticate("google", {
-  scope: ["profile", "email"], // Yêu cầu lấy profile và email
+  scope: ["profile", "email"], // Request profile and email
   session: false,
 });
 
-// --- Logic cho Google Callback ---
+// --- Logic for Google Callback ---
 
-// 1. Middleware xác thực của Passport
+// 1. Passport authentication middleware
 const passportAuth = passport.authenticate("google", {
   failureRedirect: `${process.env.CLIENT_URL}/login?error=true`,
   session: false,
 });
 
-// 2. Handler cuối cùng (sau khi Passport chạy thành công)
+// 2. Final handler (after Passport runs successfully)
 const finalHandler = (req, res) => {
   const { user, isNew } = req.user;
   const token = createToken(user);
@@ -178,39 +188,39 @@ const finalHandler = (req, res) => {
 // @route: GET /api/auth/google/callback
 export const googleCallback = [passportAuth, finalHandler];
 
-// @desc: Cập nhật username (Dành cho user Google mới)
+// @desc: Set/update username (For new Google users)
 // @route: POST /api/auth/set-username
 export const setUsername = async (req, res) => {
   try {
     const { username } = req.body;
-    const userId = req.user.id; // Lấy từ middleware auth (token gửi lên)
+    const userId = req.user.id; // From auth middleware (token)
     
 
     if (!username)
-      return res.status(400).json({ msg: "Vui lòng nhập username" });
+      return res.status(400).json({ msg: "Please enter a username." });
 
-    // 1. VALIDATE USERNAME (Mới thêm)
+    // 1. VALIDATE USERNAME
     if (!validateUsername(username)) {
       return res.status(400).json({
-        msg: "Username không hợp lệ (3-20 ký tự, không dấu, không khoảng trắng, chỉ gồm chữ, số, - và _).",
+        msg: "Invalid username (3-20 characters, letters, numbers, '-', and '_' allowed).",
       });
     }
 
-    // Check trùng
+    // Check for duplicates
     const dup = await User.findOne({ username });
-    if (dup) return res.status(400).json({ msg: "Username đã tồn tại" });
+    if (dup) return res.status(400).json({ msg: "Username already exists." });
 
-    // Update
+    // Update user
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { username, displayName: username }, // Set luôn displayName ban đầu
+      { username, displayName: username }, // Also set initial displayName
       { new: true }
     );
 
     res.json({ user: updatedUser });
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(400).json({ msg: "Username đã tồn tại." });
+      return res.status(400).json({ msg: "Username already exists." });
     }
     res.status(500).json({ message: "Server error" });
   }

@@ -69,6 +69,10 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    banReason: {
+      type: String,
+      default: null
+    },
   },
   { timestamps: true }
 ); // Tự động thêm createdAt, updatedAt

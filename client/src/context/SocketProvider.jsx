@@ -1,50 +1,60 @@
 //client/src/context/SocketProvider.jsx
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
-import { useAuth } from "@/hooks/index"; // Dùng để xác thực (nếu cần)
+import { useAuth } from "@/hooks/index";
+import { useToast } from "@/hooks/index";
 
 import { SocketContext } from "./SocketContext";
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
-  const { user, token } = useAuth(); // Lấy user từ AuthContext
+  const { user, token, logout } = useAuth();
+  const toast = useToast();
 
   useEffect(() => {
-    // Chỉ kết nối socket nếu user đã đăng nhập
+    // Only connect if the user is logged in
     if (user) {
-      // Kết nối tới server
-      const newSocket = io("http://localhost:8080", { // (Hoặc IP nội bộ)
+      // Connect to the server
+      const newSocket = io(import.meta.env.VITE_API_URL, {
         query: {
-          token: token 
-        }
+          token: token,
+        },
       });
-      
+
       newSocket.on("connect", () => {
-        console.log("Đã kết nối Socket.IO!");
+        console.log("Socket.IO connected!");
       });
 
       newSocket.on("disconnect", () => {
-        console.log("Đã ngắt kết nối Socket.IO.");
+        console.log("Socket.IO disconnected.");
+      });
+
+      newSocket.on("connect_error", (err) => {
+        console.error("Socket connection error:", err.message);
+        if (err.message === "Account is banned") {
+          toast.error("Your account has been banned and you have been logged out.");
+          logout();
+          newSocket.disconnect();
+        }
       });
 
       setSocket(newSocket);
 
-      // Dọn dẹp
+      // Cleanup
       return () => {
         newSocket.disconnect();
       };
     } else {
-      // Nếu logout, ngắt kết nối (nếu có)
+      // If logged out, disconnect the socket if it exists
       if (socket) {
         socket.disconnect();
         setSocket(null);
       }
     }
-  }, [user, token]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, token]);
 
   return (
-    <SocketContext.Provider value={socket}>
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
   );
 };

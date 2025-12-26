@@ -27,6 +27,23 @@ const UserManager = () => {
   }, []);
 
   const handleToggleBan = async (userId) => {
+    const userToToggle = users.find((user) => user._id === userId);
+
+    if (!userToToggle) {
+      console.error("User not found for toggling ban status.");
+      return;
+    }
+
+    if (userToToggle.role === "admin") {
+      alert("Cannot ban an administrator.");
+      return;
+    }
+
+    const action = userToToggle.isActive ? "ban" : "unban";
+    if (!window.confirm(`Are you sure you want to ${action} this user?`)) {
+      return;
+    }
+
     // --- Optimistic UI Update ---
     const originalUsers = [...users];
     const updatedUsers = users.map((user) =>

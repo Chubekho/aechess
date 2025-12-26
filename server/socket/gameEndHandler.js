@@ -48,7 +48,7 @@ export async function endGame(io, activeGames, gameId, result, reason) {
     result: result,
     reason: reason,
     dbGameId: gameData.dbGameId,
-    newRatings: newRatingsForPayload, // <-- Ratings are sent here
+    newRatings: newRatingsForPayload,
   });
 
   // 3. Perform database updates asynchronously after emitting.

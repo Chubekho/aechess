@@ -1,6 +1,8 @@
 // server/controllers/adminController.js
 import User from "../models/User.js";
 import Game from "../models/Game.js";
+import { activeGames } from "../utils/gameState.js";
+import { endGame } from "../socket/gameEndHandler.js";
 
 // =============================================
 // USER MANAGEMENT
@@ -75,7 +77,7 @@ export const getActiveGames = async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('whitePlayer', 'username email ratings')
       .populate('blackPlayer', 'username email ratings');
-      
+
     res.json({ success: true, games });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error fetching active games." });
@@ -85,27 +87,54 @@ export const getActiveGames = async (req, res) => {
 export const abortGame = async (req, res) => {
   try {
     const { gameId } = req.params;
+    let shortIdToAbort = null;
+    
+
+    // 1. Search for the game in the in-memory `activeGames` map
+    for (const [shortId, gameData] of activeGames.entries()) {
+      if (gameData.dbGameId.toString() === gameId) {
+        shortIdToAbort = shortId;
+        break;
+      }
+    }
+
+    const io = req.app.get("io");
+
+    // 2. If found, end the game using the real-time handler
+    if (shortIdToAbort) {
+      await endGame(io, activeGames, shortIdToAbort, "1/2-1/2", "Admin Abort");
+      return res.json({
+        success: true,
+        message: "Real-time game has been aborted successfully.",
+      });
+    }
+
+    // 3. If not found in memory (e.g., server restarted), fall back to DB update
     const game = await Game.findById(gameId);
 
     if (!game) {
-      return res.status(404).json({ success: false, message: "Game not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found in DB." });
     }
 
-    if (game.status !== 'active') {
-      return res.status(400).json({ success: false, message: `Game is already ${game.status}.` });
+    if (game.status !== "active") {
+      return res
+        .status(400)
+        .json({ success: false, message: `Game is already ${game.status}.` });
     }
 
-    // Note: 'endReason' is not in the schema, so it's omitted.
-    game.status = 'aborted';
-    game.result = '*'; 
+    game.status = "aborted";
+    game.result = "*";
+    game.endReason = "Admin Abort";
     await game.save();
 
-    // Ideal: Emit a socket event to inform players
-    // io.to(game.gameId).emit('gameOver', { result: '*', reason: 'admin_intervention' });
-    
-    res.json({ success: true, message: "Game has been aborted successfully." });
-
+    res.json({
+      success: true,
+      message: "Game record in DB has been marked as aborted.",
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error while aborting game." });
+    console.error("Error aborting game:", error);
+    res.status(500).json({ success: false, message: "An unexpected error occurred." });
   }
 };

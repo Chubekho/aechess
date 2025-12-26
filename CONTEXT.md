@@ -171,10 +171,19 @@
 
 - **Problem**: `displayName` is not unique; relying on it caused UI confusion.
 - **Solution**:
+
   - **Auth Token (JWT)**: Payload MUST include `{ id, email, username, displayName }`.
   - **Socket Handshake**: `socket.user` is hydrated from this enriched Token.
   - **Game Objects**: Player objects in `activeGames` MUST persist `username`.
   - **UI Priority**: Components (`PlayerInfoBox`) prioritize `username` for identification.
+
+### H. Server State Architecture (Shared State Pattern) [NEW]
+
+- **Problem**: Previously, `activeGames` was isolated within `socketHandler.js`, preventing REST API Controllers (like Admin) from interacting with realtime games.
+- **Solution**:
+  - **Shared Memory**: `activeGames` Map is centralized in `server/utils/gameState.js`.
+  - **Access**: Both `socketHandler` (for gameplay) and `adminController` (for moderation) import this singleton Map.
+  - **IO Injection**: Server entry point uses `app.set('io', io)` to make the Socket.IO instance available in Controllers via `req.app.get('io')`.
 
 ## 5. Admin Module Implementation
 

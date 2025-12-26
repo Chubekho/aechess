@@ -1,4 +1,4 @@
-// server/socket/socketHandler.js
+import { activeGames } from "../utils/gameState.js";
 import { registerGameHandlers } from "./gameHandlers.js";
 import { registerRoomHandlers } from "./roomHandlers.js";
 import {
@@ -10,7 +10,6 @@ import socketAuth from "../middleware/socketAuth.js";
 // --- State Chung Của Server ---
 
 // Nơi lưu trữ tất cả các ván đấu đang diễn ra
-const activeGames = new Map();
 
 const matchmakingQueue = [];
 

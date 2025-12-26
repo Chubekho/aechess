@@ -1,20 +1,29 @@
-@use "@/styles/variables.scss";
+@use "@/styles/variables.scss" as *;
 
 .userTable {
   width: 100%;
   border-collapse: collapse;
   color: var(--color-text-l-dark);
+  background-color: var(--color-bg-high);
+  border-radius: 8px;
+  overflow: hidden;
 
   th,
   td {
-    padding: 12px 15px;
+    font-size: 1.4rem;
+    padding: 16px 20px;
     text-align: left;
+    vertical-align: middle;
   }
 
   thead th {
     background-color: var(--color-table-header-bg);
-    font-weight: bold;
-    border-bottom: 2px solid var(--color-border);
+    font-weight: 500;
+    font-size: 1.4rem;
+    color: var(--color-text-subtle);
+    border-bottom: 1px solid var(--color-border);
+    text-transform: uppercase;
+    letter-spacing: 1px;
   }
 
   tbody tr {
@@ -31,67 +40,76 @@
   }
 }
 
-.status {
+.userCell {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+}
 
-  .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin-right: 8px;
+.username {
+  font-weight: 700;
+  color: var(--color-text-bright);
+}
+
+.email {
+  color: var(--color-text-subtle);
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: fit-content;
+
+  &.active {
+    background-color: rgba(42, 157, 143, 0.15);
+    color: var(--color-status-active);
   }
 
-  .active {
-    background-color: #34c759; // Green for active
-  }
-
-  .banned {
-    background-color: #ff3b30; // Red for banned
+  &.banned {
+    background-color: rgba(231, 111, 81, 0.15);
+    color: var(--color-btn-danger-bg);
   }
 }
 
 .actionButton {
-  background-color: transparent;
-  border: 1px solid var(--color-text-primary);
-  color: var(--color-text-primary);
-  padding: 5px 10px;
-  border-radius: 4px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background-color: var(--color-admin-sidebar-hover);
-    border-color: var(--color-text-hover);
-    color: var(--color-text-hover);
-  }
+  transition: all 0.2s ease-in-out;
+  color: white;
 
   &.ban {
-    border-color: #ff3b30;
-    color: #ff3b30;
+    background-color: rgba(255, 59, 48, 0.15);
+    color: #ff453a;
     &:hover {
-      background-color: rgba(255, 59, 48, 0.1);
+      background-color: #ff3b30;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
     }
   }
 
   &.unban {
-    border-color: #34c759;
-    color: #34c759;
-     &:hover {
-      background-color: rgba(52, 199, 89, 0.1);
+    background-color: rgba(52, 199, 89, 0.15);
+    color: #32d74b;
+    &:hover {
+      background-color: #34c759;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
     }
   }
 
   &.disabled {
-    background-color: var(--color-btn-def-hover);
+    background-color: var(--color-board-control);
     color: var(--color-text-primary);
     cursor: not-allowed;
-    border-color: var(--color-border);
-
     &:hover {
-      background-color: var(--color-btn-def-hover);
-      color: var(--color-text-primary);
-      border-color: var(--color-border);
+      transform: none;
+      box-shadow: none;
     }
   }
 }

@@ -41,7 +41,7 @@ const UserTable = ({ users = [], onToggleBan }) => {
                   className={`${styles.actionButton} ${
                     user.isActive ? styles.ban : styles.unban
                   }`}
-                  onClick={() => onToggleBan(user._id)}
+                  onClick={() => onToggleBan(user)}
                 >
                   {user.isActive ? "Ban" : "Unban"}
                 </button>

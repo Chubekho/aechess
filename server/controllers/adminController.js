@@ -1,4 +1,3 @@
-// server/controllers/adminController.js
 import User from "../models/User.js";
 import Game from "../models/Game.js";
 import { activeGames } from "../utils/gameState.js";
@@ -11,50 +10,90 @@ import { endGame } from "../socket/gameEndHandler.js";
 export const getUsers = async (req, res) => {
   try {
     const users = await User.find({})
-      .select("_id username email role isActive ratings createdAt")
+      .select("_id username email role isActive ratings createdAt banReason")
       .sort({ createdAt: -1 });
     res.json({ success: true, users });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error fetching users." });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching users." });
   }
 };
 
 export const banUser = async (req, res) => {
   try {
     const { id } = req.params;
+    const { banReason } = req.body;
     const user = await User.findById(id);
 
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    if (user.role === 'admin') {
+    if (user.role === "admin") {
       return res
         .status(403)
         .json({ success: false, message: "Cannot ban an administrator" });
     }
 
-    user.isActive = !user.isActive;
+    if (!banReason) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Ban reason is required" });
+    }
+
+    // Explicitly set isActive to false and update reason
+    user.isActive = false;
+    user.banReason = banReason;
     await user.save();
 
-    // If the user is being banned, disconnect their sockets
-    if (!user.isActive) {
-      const io = req.app.get('io');
-      io.in(user._id.toString()).disconnectSockets(true);
-    }
+    // Disconnect user's sockets
+    const io = req.app.get("io");
+    io.in(user._id.toString()).disconnectSockets(true);
 
     res.json({
       success: true,
-      message: `User ${user.username} has been ${user.isActive ? 'unbanned' : 'banned'}.`,
+      message: `User ${user.username} has been banned.`,
       user: {
         _id: user._id,
         isActive: user.isActive,
+        banReason: user.banReason,
       },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error updating user status." });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error updating user status." });
+  }
+};
+
+export const unbanUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Explicitly set isActive to true and clear reason
+    user.isActive = true;
+    user.banReason = null;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: `User ${user.username} has been unbanned.`,
+      user: {
+        _id: user._id,
+        isActive: user.isActive,
+        banReason: user.banReason,
+      },
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server error updating user status." });
   }
 };
 
@@ -64,35 +103,42 @@ export const banUser = async (req, res) => {
 
 export const getDashboardStats = async (req, res) => {
   try {
-    const [totalUsers, activeGames, completedGames] = await Promise.all([
+    const [totalUsers, activeGamesCount, completedGames] = await Promise.all([
       User.countDocuments(),
-      Game.countDocuments({ status: 'active' }),
-      Game.countDocuments({ status: 'completed' })
+      Game.countDocuments({ status: "active" }),
+      Game.countDocuments({ status: "completed" }),
     ]);
 
     res.json({
       success: true,
       stats: {
         totalUsers,
-        activeGames,
+        activeGames: activeGamesCount, // Use a different name to avoid shadowing
         completedGames,
       },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error fetching dashboard stats." });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Server error fetching dashboard stats.",
+      });
   }
 };
 
 export const getActiveGames = async (req, res) => {
   try {
-    const games = await Game.find({ status: 'active' })
+    const games = await Game.find({ status: "active" })
       .sort({ createdAt: -1 })
-      .populate('whitePlayer', 'username email ratings')
-      .populate('blackPlayer', 'username email ratings');
+      .populate("whitePlayer", "username email ratings")
+      .populate("blackPlayer", "username email ratings");
 
     res.json({ success: true, games });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error fetching active games." });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error fetching active games." });
   }
 };
 
@@ -102,8 +148,8 @@ export const abortGame = async (req, res) => {
     const { result, reason } = req.body;
 
     // Validate result and set default values
-    const allowedResults = ['*', '1-0', '0-1', '1/2-1/2'];
-    const finalResult = allowedResults.includes(result) ? result : '*';
+    const allowedResults = ["*", "1-0", "0-1", "1/2-1/2"];
+    const finalResult = allowedResults.includes(result) ? result : "*";
     const finalReason = reason || "Admin Intervention";
 
     let shortIdToAbort = null;
@@ -153,6 +199,8 @@ export const abortGame = async (req, res) => {
     });
   } catch (error) {
     console.error("Error aborting game:", error);
-    res.status(500).json({ success: false, message: "An unexpected error occurred." });
+    res
+      .status(500)
+      .json({ success: false, message: "An unexpected error occurred." });
   }
 };

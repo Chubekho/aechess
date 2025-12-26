@@ -24,23 +24,23 @@ export const register = async (req, res) => {
     if (!email || !password) {
       return res
         .status(400)
-        .json({ msg: "Please provide both email and password." });
+        .json({ msg: "Vui lòng cung cấp cả email và mật khẩu." });
     }
 
     // 2. Validate email
     if (!validateEmail(email)) {
-      return res.status(400).json({ msg: "Invalid email." });
+      return res.status(400).json({ msg: "Email không hợp lệ." });
     }
 
     // 3. validate password length
     if (password.length < 6) {
-      return res.status(400).json({ msg: "Password must be at least 6 characters long." });
+      return res.status(400).json({ msg: "Mật khẩu phải có ít nhất 6 ký tự." });
     }
 
     // 4. validate duplicate email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ msg: "Email is already in use." });
+      return res.status(400).json({ msg: "Email đã được sử dụng." });
     }
 
     // 5. password hashing
@@ -82,7 +82,7 @@ export const login = async (req, res) => {
     if (!loginId || !password) {
       return res
         .status(400)
-        .json({ msg: "Please enter your login ID and password." });
+        .json({ msg: "Vui lòng nhập tài khoản và mật khẩu." });
     }
 
     // 1. Check user
@@ -91,20 +91,20 @@ export const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ msg: "Invalid credentials." });
+      return res.status(400).json({ msg: "Thông tin đăng nhập không chính xác." });
     }
 
     // Check if user is active
     if (!user.isActive) {
       return res.status(403).json({ 
-        msg: `Your account has been disabled. Reason: ${user.banReason || 'Community standards violation'}` 
+        msg: `Tài khoản của bạn đã bị vô hiệu hóa. Lý do: ${user.banReason || 'Vi phạm tiêu chuẩn cộng đồng'}` 
       });
     }
 
     // 2. Check user has password (to avoid Google users logging in with password)
     if (!user.passwordHash) {
       return res.status(400).json({
-        msg: "This account was registered via Google. Please log in with Google.",
+        msg: "Tài khoản này được đăng ký qua Google. Vui lòng đăng nhập bằng Google.",
       });
     }
 
@@ -113,7 +113,7 @@ export const login = async (req, res) => {
     if (!isMatch) {
       return res
         .status(400)
-        .json({ msg: "Invalid credentials." });
+        .json({ msg: "Thông tin đăng nhập không chính xác." });
     }
 
     // 4. Create and return JWT
@@ -133,11 +133,11 @@ export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id); 
     if (!user) {
-      return res.status(404).json({ msg: "User not found" });
+      return res.status(404).json({ msg: "Không tìm thấy người dùng." });
     }
 
     if (!user.isActive) {
-      return res.status(403).json({ msg: "Your account has been deactivated." });
+      return res.status(403).json({ msg: "Tài khoản của bạn đã bị vô hiệu hóa." });
     }
 
     // Convert to object to add a new field
@@ -197,18 +197,18 @@ export const setUsername = async (req, res) => {
     
 
     if (!username)
-      return res.status(400).json({ msg: "Please enter a username." });
+      return res.status(400).json({ msg: "Vui lòng nhập username." });
 
     // 1. VALIDATE USERNAME
     if (!validateUsername(username)) {
       return res.status(400).json({
-        msg: "Invalid username (3-20 characters, letters, numbers, '-', and '_' allowed).",
+        msg: "Username không hợp lệ (3-20 ký tự, chỉ gồm chữ, số, - và _).",
       });
     }
 
     // Check for duplicates
     const dup = await User.findOne({ username });
-    if (dup) return res.status(400).json({ msg: "Username already exists." });
+    if (dup) return res.status(400).json({ msg: "Username đã tồn tại." });
 
     // Update user
     const updatedUser = await User.findByIdAndUpdate(
@@ -220,8 +220,8 @@ export const setUsername = async (req, res) => {
     res.json({ user: updatedUser });
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(400).json({ msg: "Username already exists." });
+      return res.status(400).json({ msg: "Username đã tồn tại." });
     }
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Lỗi máy chủ." });
   }
 };

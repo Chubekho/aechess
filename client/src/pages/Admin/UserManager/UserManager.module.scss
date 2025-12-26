@@ -1,33 +1,169 @@
-@use "@/styles/variables.scss";
+@use "@/styles/variables.scss" as *;
 
 .container {
   padding: 20px;
-  background-color: var(--color-bg-high);
+  background-color: var(--color-bg-low);
   color: var(--color-text-l-dark);
   border-radius: 8px;
+  min-height: 100%;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 1rem; // Adjusted margin
 }
 
 .title {
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-bright);
 }
 
-.searchInput {
-  padding: 8px 12px;
-  background-color: var(--color-board-control);
+.filterBar {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background-color: var(--color-bg-high); // Changed to high for contrast
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.searchInput,
+.filterSelect {
+  height: 40px;
+  background-color: var(--color-input-bg-dark);
   border: 1px solid var(--color-border);
-  border-radius: 4px;
-  color: var(--color-text-l-dark);
-  width: 250px;
+  color: var(--color-text-bright);
+  border-radius: 6px;
+  padding: 0 12px;
+  font-size: 1.4rem;
+  transition: all 0.2s ease-in-out;
 
   &::placeholder {
     color: var(--color-text-primary);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-btn-green);
+    box-shadow: 0 0 0 3px var(--color-neon-green-glow);
+  }
+}
+
+.searchInput {
+  flex-grow: 1; // Allow search to take more space
+  min-width: 250px;
+}
+
+.filterSelect {
+  min-width: 150px;
+}
+
+
+// Modal Styles
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-size: 1.4rem;
+
+  h2 {
+    margin: 0 0 0.5rem 0;
+    padding-bottom: 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text-bright);
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  label {
+    font-weight: 500;
+    color: var(--color-text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.select,
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-input-bg-dark);
+  color: var(--color-text-bright);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 1.4rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-neon-blue);
+    box-shadow: 0 0 0 3px var(--color-neon-blue-glow);
+  }
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn {
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.btnCancel {
+  background-color: var(--color-board-control);
+  color: var(--color-text-subtle);
+
+  &:hover {
+    background-color: var(--color-border);
+    color: var(--color-text-bright);
+  }
+}
+
+.btnConfirmBan {
+  background-color: var(--color-btn-danger-bg);
+  color: white;
+
+  &:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 15px rgba(231, 111, 81, 0.5);
+  }
+}
+
+.btnConfirmUnban {
+  background-color: var(--color-btn-green);
+  color: white;
+
+  &:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 15px rgba(42, 157, 143, 0.5);
+  }
+}
+
+// Confirmation text styling
+p {
+  line-height: 1.6;
+  color: var(--color-text-l-dark);
+  font-size: 1.4rem;
+  strong {
+    color: var(--color-text-bright);
+    font-weight: 700;
   }
 }

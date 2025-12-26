@@ -1,4 +1,5 @@
 .tableContainer {
+  font-size: 1.4rem;
   overflow-x: auto;
 }
 
@@ -30,7 +31,6 @@
 }
 
 .playerInfo {
-  font-size: 0.9rem;
   strong {
     font-weight: 600;
     color: var(--color-text-l-dark);

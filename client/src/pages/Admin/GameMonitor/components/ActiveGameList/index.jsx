@@ -1,11 +1,12 @@
 // client/src/pages/Admin/GameMonitor/ActiveGameList/index.jsx
-import React from 'react';
-import styles from './ActiveGameList.module.scss';
-import { format } from 'date-fns';
+import React from "react";
+import { Link } from "react-router";
+import { format } from "date-fns";
+import styles from "./ActiveGameList.module.scss";
 
 const ActiveGameList = ({ games, onAbort }) => {
-    const activeGames = games;
-    
+  const activeGames = games;
+
   if (!activeGames || activeGames.length === 0) {
     return <p className={styles.noGames}>No active games at the moment.</p>;
   }
@@ -27,14 +28,26 @@ const ActiveGameList = ({ games, onAbort }) => {
             <tr key={game._id}>
               <td>
                 <div className={styles.playerInfo}>
-                  <strong>W:</strong> {game.whitePlayer.username} ({game.whiteRating})
+                  <strong>W:</strong>{" "}
+                  {
+                    <Link to={`/profile/${game.whitePlayer.username}`}>
+                      {game.whitePlayer.username}
+                    </Link>
+                  }{" "}
+                  ({game.whiteRating})
                 </div>
                 <div className={styles.playerInfo}>
-                  <strong>B:</strong> {game.blackPlayer.username} ({game.blackRating})
+                  <strong>B:</strong>{" "}
+                  {
+                    <Link to={`/profile/${game.blackPlayer.username}`}>
+                      {game.blackPlayer.username}
+                    </Link>
+                  }{" "}
+                  ({game.blackRating})
                 </div>
               </td>
               <td>{game.timeControl}</td>
-              <td>{format(new Date(game.createdAt), 'HH:mm:ss')}</td>
+              <td>{format(new Date(game.createdAt), "HH:mm:ss")}</td>
               <td>
                 <span className={`${styles.badge} ${styles.badgeActive}`}>
                   Active

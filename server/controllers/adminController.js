@@ -87,8 +87,14 @@ export const getActiveGames = async (req, res) => {
 export const abortGame = async (req, res) => {
   try {
     const { gameId } = req.params;
+    const { result, reason } = req.body;
+
+    // Validate result and set default values
+    const allowedResults = ['*', '1-0', '0-1', '1/2-1/2'];
+    const finalResult = allowedResults.includes(result) ? result : '*';
+    const finalReason = reason || "Admin Intervention";
+
     let shortIdToAbort = null;
-    
 
     // 1. Search for the game in the in-memory `activeGames` map
     for (const [shortId, gameData] of activeGames.entries()) {
@@ -102,7 +108,7 @@ export const abortGame = async (req, res) => {
 
     // 2. If found, end the game using the real-time handler
     if (shortIdToAbort) {
-      await endGame(io, activeGames, shortIdToAbort, "1/2-1/2", "Admin Abort");
+      await endGame(io, activeGames, shortIdToAbort, finalResult, finalReason);
       return res.json({
         success: true,
         message: "Real-time game has been aborted successfully.",
@@ -125,8 +131,8 @@ export const abortGame = async (req, res) => {
     }
 
     game.status = "aborted";
-    game.result = "*";
-    game.endReason = "Admin Abort";
+    game.result = finalResult;
+    game.endReason = finalReason;
     await game.save();
 
     res.json({

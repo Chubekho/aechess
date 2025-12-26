@@ -9,8 +9,6 @@ import socketAuth from "../middleware/socketAuth.js";
 
 // --- State Chung Của Server ---
 
-// Nơi lưu trữ tất cả các ván đấu đang diễn ra
-
 const matchmakingQueue = [];
 
 const initializeSocket = (io) => {

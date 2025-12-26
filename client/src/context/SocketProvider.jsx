@@ -15,7 +15,10 @@ export const SocketProvider = ({ children }) => {
     // Only connect if the user is logged in
     if (user) {
       // Connect to the server
-      const newSocket = io(import.meta.env.VITE_API_URL, {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+      const socketUrl = apiUrl.replace(/\/api\/?$/, "");
+
+      const newSocket = io(socketUrl, {
         query: {
           token: token,
         },
